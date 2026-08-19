@@ -18,7 +18,7 @@ export interface InputProps extends TextInputProps {
   inputStyle?: TextStyle;
 }
 
-export const Input = forwardRef<TextInput, InputProps>(function Input(
+export const Input = forwardRef<TextInput, InputProps>((
   {
     label,
     placeholder,
@@ -29,7 +29,7 @@ export const Input = forwardRef<TextInput, InputProps>(function Input(
     ...textInputProps
   },
   ref,
-) {
+) => {
   return (
     <View style={[styles.container, containerStyle]}>
       {label ? <Text style={[styles.label, labelStyle]}>{label}</Text> : null}

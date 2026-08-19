@@ -18,7 +18,7 @@ export interface InputProps extends TextInputProps {
   inputStyle?: TextStyle;
 }
 
-export const Input = forwardRef<TextInput, InputProps>((
+export const Input = forwardRef<TextInput, InputProps>(function Input(
   {
     label,
     placeholder,
@@ -29,7 +29,7 @@ export const Input = forwardRef<TextInput, InputProps>((
     ...textInputProps
   },
   ref,
-) => {
+) {
   return (
     <View style={[styles.container, containerStyle]}>
       {label ? <Text style={[styles.label, labelStyle]}>{label}</Text> : null}
@@ -46,7 +46,7 @@ export const Input = forwardRef<TextInput, InputProps>((
 
 const styles = StyleSheet.create({
   container: {
-    width: '100%',
+    alignSelf: 'stretch',
   },
   label: {
     marginBottom: spacing.sm,
@@ -55,14 +55,13 @@ const styles = StyleSheet.create({
     color: colors.text.primary,
   },
   input: {
-    width: '100%',
-    minHeight: 52,
+    alignSelf: 'stretch',
+    height: 52,
     paddingHorizontal: spacing.md,
-    paddingVertical: spacing.sm + 2,
     borderWidth: 1,
     borderColor: colors.border.default,
     borderRadius: 10,
-    backgroundColor: colors.background,
+    backgroundColor: colors.surface,
     fontSize: 16,
     fontFamily: fonts.serif.regular,
     color: colors.text.primary,

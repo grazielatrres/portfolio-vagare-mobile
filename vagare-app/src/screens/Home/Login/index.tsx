@@ -1,12 +1,10 @@
-import { Input } from "@/components/Input";
-import { colors, spacing } from "@/theme";
-import { fonts } from "@/theme/fonts";
-import { useState } from "react";
-import { StyleSheet, View } from "react-native";
-import { Text } from "react-native";
+import { useState } from 'react';
+import { StyleSheet, Text, View } from 'react-native';
 
+import { Input } from '@/components/Input';
+import { colors, fonts, spacing } from '@/theme';
 
-export function Login () {
+export function Login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   
@@ -26,6 +24,7 @@ export function Login () {
           keyboardType="email-address"
           autoCapitalize="none"
           autoCorrect={false}
+          containerStyle={styles.field}
         />
         <Input
           label="Senha"
@@ -33,6 +32,7 @@ export function Login () {
           value={password}
           onChangeText={setPassword}
           secureTextEntry
+          containerStyle={styles.field}
         />
       </View>
     </View>
@@ -62,6 +62,10 @@ const styles = StyleSheet.create({
     fontFamily: fonts.serif.regular,
   },
   form: {
-    gap: spacing.md,
+    alignSelf: 'stretch',
+    width: '100%',
+  },
+  field: {
+    marginBottom: spacing.md,
   },
 });

@@ -1,4 +1,4 @@
-import { forwardRef } from 'react';
+import { forwardRef, ReactNode } from 'react';
 import {
   StyleSheet,
   Text,
@@ -16,6 +16,7 @@ export interface InputProps extends TextInputProps {
   containerStyle?: ViewStyle;
   labelStyle?: TextStyle;
   inputStyle?: TextStyle;
+  rightElement?: ReactNode;
 }
 
 export const Input = forwardRef<TextInput, InputProps>(function Input(
@@ -25,6 +26,7 @@ export const Input = forwardRef<TextInput, InputProps>(function Input(
     containerStyle,
     labelStyle,
     inputStyle,
+    rightElement,
     placeholderTextColor = colors.text.placeholder,
     ...textInputProps
   },
@@ -33,13 +35,16 @@ export const Input = forwardRef<TextInput, InputProps>(function Input(
   return (
     <View style={[styles.container, containerStyle]}>
       {label ? <Text style={[styles.label, labelStyle]}>{label}</Text> : null}
-      <TextInput
-        ref={ref}
-        style={[styles.input, inputStyle]}
-        placeholder={placeholder}
-        placeholderTextColor={placeholderTextColor}
-        {...textInputProps}
-      />
+      <View style={styles.inputWrapper}>
+        <TextInput
+          ref={ref}
+          style={[styles.input, rightElement ? styles.inputWithRightElement : null, inputStyle]}
+          placeholder={placeholder}
+          placeholderTextColor={placeholderTextColor}
+          {...textInputProps}
+        />
+        {rightElement ? <View style={styles.rightElement}>{rightElement}</View> : null}
+      </View>
     </View>
   );
 });
@@ -54,6 +59,9 @@ const styles = StyleSheet.create({
     fontFamily: fonts.serif.medium,
     color: colors.text.primary,
   },
+  inputWrapper: {
+    justifyContent: 'center',
+  },
   input: {
     alignSelf: 'stretch',
     height: 52,
@@ -65,5 +73,16 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontFamily: fonts.serif.regular,
     color: colors.text.primary,
+  },
+  inputWithRightElement: {
+    paddingRight: spacing.xl + spacing.sm,
+  },
+  rightElement: {
+    position: 'absolute',
+    right: spacing.md,
+    top: 0,
+    bottom: 0,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
 });

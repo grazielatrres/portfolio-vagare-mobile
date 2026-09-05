@@ -1,2 +1,11 @@
 /** Componentes de UI reutilizáveis. */
-export {};
+export { BackButton } from './BackButton';
+export type { BackButtonProps } from './BackButton';
+export { Button } from './Button';
+export type { ButtonProps, ButtonVariant } from './Button';
+export { Divider } from './Divider';
+export type { DividerProps } from './Divider';
+export { Input } from './Input';
+export type { InputProps } from './Input';
+export { PasswordInput } from './PasswordInput';
+export type { PasswordInputProps } from './PasswordInput';

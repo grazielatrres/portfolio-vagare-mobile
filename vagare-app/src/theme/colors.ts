@@ -1,13 +1,15 @@
 export const colors = {
-  background: '#e0d9d1',
+  background: '#F5F1EA',
   surface: '#FFFFFF',
+  accent: '#C1653D',
+  danger: '#B3261E',
   text: {
     primary: '#32221B',
-    secondary: '#4d4d4d',
-    placeholder: '#8A8580',
+    secondary: '#8A8478',
+    placeholder: '#A9A296',
   },
   border: {
-    default: '#B8AFA6',
-    focus: '#32221B',
+    default: '#DDD6CA',
+    focus: '#C1653D',
   },
 } as const;

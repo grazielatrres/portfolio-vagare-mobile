@@ -3,6 +3,8 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
 import { Button, Divider, Input, PasswordInput } from '@/components';
+import { useAuth } from '@/contexts/AuthContext';
+import { ApiError } from '@/services/api';
 import { colors, fonts, spacing } from '@/theme';
 import { AuthHeader } from '../components/AuthHeader';
 
@@ -12,8 +14,25 @@ export interface LoginProps {
 }
 
 export function Login({ onCreateAccount, onForgotPassword }: LoginProps) {
+  const { login, isLoading } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [error, setError] = useState<string | null>(null);
+
+  async function handleSubmit() {
+    setError(null);
+
+    if (!email || !password) {
+      setError('Informe e-mail e senha para continuar.');
+      return;
+    }
+
+    try {
+      await login(email, password);
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : 'Não foi possível entrar. Tente novamente.');
+    }
+  }
 
   return (
     <View style={styles.root}>
@@ -47,7 +66,14 @@ export function Login({ onCreateAccount, onForgotPassword }: LoginProps) {
           <Text style={styles.forgotPasswordText}>Esqueci minha senha</Text>
         </Pressable>
 
-        <Button title="Entrar" style={styles.section} />
+        {error ? <Text style={styles.errorText}>{error}</Text> : null}
+
+        <Button
+          title={isLoading ? 'Entrando...' : 'Entrar'}
+          onPress={handleSubmit}
+          disabled={isLoading}
+          style={styles.section}
+        />
 
         <View style={styles.section}>
           <Divider label="ou" />
@@ -97,6 +123,13 @@ const styles = StyleSheet.create({
     fontFamily: fonts.serif.medium,
     color: colors.accent,
     textDecorationLine: 'underline',
+  },
+  errorText: {
+    fontSize: 14,
+    fontFamily: fonts.serif.regular,
+    color: colors.danger,
+    marginBottom: spacing.md,
+    textAlign: 'center',
   },
   footer: {
     flexDirection: 'row',

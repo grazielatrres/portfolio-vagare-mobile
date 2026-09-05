@@ -3,17 +3,34 @@ import { Ionicons } from '@expo/vector-icons';
 
 import { colors, fonts, spacing } from '@/theme';
 
+export type BackButtonTone = 'accent' | 'muted';
+export type BackButtonAlign = 'left' | 'center';
+
 export interface BackButtonProps {
   label?: string;
   onPress?: () => void;
+  tone?: BackButtonTone;
+  align?: BackButtonAlign;
   style?: ViewStyle;
 }
 
-export function BackButton({ label = 'Voltar', onPress, style }: BackButtonProps) {
+export function BackButton({
+  label = 'Voltar',
+  onPress,
+  tone = 'accent',
+  align = 'left',
+  style,
+}: BackButtonProps) {
+  const color = tone === 'accent' ? colors.accent : colors.text.secondary;
+
   return (
-    <Pressable style={[styles.container, style]} onPress={onPress} hitSlop={8}>
-      <Ionicons name="arrow-back" size={20} color={colors.accent} />
-      <Text style={styles.label}>{label}</Text>
+    <Pressable
+      style={[styles.container, align === 'center' && styles.centered, style]}
+      onPress={onPress}
+      hitSlop={8}
+    >
+      <Ionicons name="arrow-back" size={20} color={color} />
+      <Text style={[styles.label, { color }]}>{label}</Text>
     </Pressable>
   );
 }
@@ -25,9 +42,11 @@ const styles = StyleSheet.create({
     alignSelf: 'flex-start',
     gap: spacing.xs,
   },
+  centered: {
+    alignSelf: 'center',
+  },
   label: {
     fontSize: 16,
     fontFamily: fonts.serif.medium,
-    color: colors.accent,
   },
 });

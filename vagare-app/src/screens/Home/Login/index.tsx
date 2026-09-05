@@ -8,9 +8,10 @@ import { AuthHeader } from '../components/AuthHeader';
 
 export interface LoginProps {
   onCreateAccount?: () => void;
+  onForgotPassword?: () => void;
 }
 
-export function Login({ onCreateAccount }: LoginProps) {
+export function Login({ onCreateAccount, onForgotPassword }: LoginProps) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
 
@@ -42,7 +43,7 @@ export function Login({ onCreateAccount }: LoginProps) {
           containerStyle={styles.field}
         />
 
-        <Pressable style={styles.forgotPassword} hitSlop={8}>
+        <Pressable style={styles.forgotPassword} onPress={onForgotPassword} hitSlop={8}>
           <Text style={styles.forgotPasswordText}>Esqueci minha senha</Text>
         </Pressable>
 

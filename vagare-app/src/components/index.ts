@@ -1,8 +1,7 @@
-/** Componentes de UI reutilizáveis. */
 export { BackButton } from './BackButton';
 export type { BackButtonProps } from './BackButton';
 export { Button } from './Button';
-export type { ButtonProps, ButtonVariant } from './Button';
+export type { ButtonProps, ButtonVariant, ButtonTone } from './Button';
 export { Divider } from './Divider';
 export type { DividerProps } from './Divider';
 export { Input } from './Input';

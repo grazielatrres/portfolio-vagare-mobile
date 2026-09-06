@@ -4,11 +4,13 @@ import { Pressable, StyleSheet, Text, ViewStyle } from 'react-native';
 import { colors, fonts, spacing } from '@/theme';
 
 export type ButtonVariant = 'primary' | 'outline';
+export type ButtonTone = 'neutral' | 'accent';
 
 export interface ButtonProps {
   title: string;
   onPress?: () => void;
   variant?: ButtonVariant;
+  tone?: ButtonTone;
   icon?: ReactNode;
   disabled?: boolean;
   style?: ViewStyle;
@@ -18,11 +20,13 @@ export function Button({
   title,
   onPress,
   variant = 'primary',
+  tone = 'neutral',
   icon,
   disabled,
   style,
 }: ButtonProps) {
   const isOutline = variant === 'outline';
+  const isAccentTone = tone === 'accent';
 
   return (
     <Pressable
@@ -30,14 +34,23 @@ export function Button({
       disabled={disabled}
       style={({ pressed }) => [
         styles.base,
-        isOutline ? styles.outline : styles.primary,
+        isOutline ? (isAccentTone ? styles.outlineAccent : styles.outline) : styles.primary,
         pressed && styles.pressed,
         disabled && styles.disabled,
         style,
       ]}
     >
       {icon}
-      <Text style={[styles.text, isOutline ? styles.outlineText : styles.primaryText]}>
+      <Text
+        style={[
+          styles.text,
+          isOutline
+            ? isAccentTone
+              ? styles.outlineAccentText
+              : styles.outlineText
+            : styles.primaryText,
+        ]}
+      >
         {title}
       </Text>
     </Pressable>
@@ -61,6 +74,11 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.border.default,
   },
+  outlineAccent: {
+    backgroundColor: colors.surface,
+    borderWidth: 1,
+    borderColor: colors.accent,
+  },
   pressed: {
     opacity: 0.85,
   },
@@ -77,5 +95,9 @@ const styles = StyleSheet.create({
   outlineText: {
     fontFamily: fonts.serif.medium,
     color: colors.text.primary,
+  },
+  outlineAccentText: {
+    fontFamily: fonts.serif.semiBold,
+    color: colors.accent,
   },
 });

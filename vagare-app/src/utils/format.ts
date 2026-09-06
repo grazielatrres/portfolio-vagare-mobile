@@ -22,6 +22,18 @@ export function formatDateRange(startDate: string, endDate: string): string {
   return `${formatDateShort(startDate)} – ${formatDateShort(endDate)}`;
 }
 
+export function getCountryFromDestination(destination: string): string {
+  const parts = destination.split(',');
+  return parts[parts.length - 1].trim();
+}
+
+export function countDistinctCountries(destinations: string[]): number {
+  const countries = destinations.map((destination) =>
+    getCountryFromDestination(destination).toLowerCase(),
+  );
+  return new Set(countries).size;
+}
+
 export function formatCurrency(value: string | null): string | null {
   if (value === null) {
     return null;

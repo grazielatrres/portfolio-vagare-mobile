@@ -89,14 +89,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   async function logout() {
+    console.log('[auth] logout: start');
     if (token) {
       try {
         await logoutRequest(token);
-      } catch {
+        console.log('[auth] logout: backend request resolved');
+      } catch (err) {
+        console.log('[auth] logout: backend request threw (ignoring)', err);
         // sessão pode já ter expirado no servidor; segue com o logout local
       }
     }
     await clearSession();
+    console.log('[auth] logout: session cleared');
   }
 
   const value = { user, token, isLoading, isRestoring, login, register, logout };

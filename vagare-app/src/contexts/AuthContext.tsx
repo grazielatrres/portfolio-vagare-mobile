@@ -62,11 +62,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   async function login(email: string, password: string) {
+    console.log('[auth] login: start');
     setIsLoading(true);
     try {
       const response = await loginRequest(email, password);
+      console.log('[auth] login: request resolved', response.user.email);
       await persistSession(response.token, response.user);
+      console.log('[auth] login: session persisted');
+    } catch (err) {
+      console.log('[auth] login: threw', err);
+      throw err;
     } finally {
+      console.log('[auth] login: finally, isLoading -> false');
       setIsLoading(false);
     }
   }

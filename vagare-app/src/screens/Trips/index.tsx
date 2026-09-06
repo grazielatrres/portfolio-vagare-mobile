@@ -1,58 +1,22 @@
-import { useCallback, useEffect, useState } from 'react';
 import { ActivityIndicator, FlatList, StyleSheet, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Button } from '@/components';
 import { useAuth } from '@/contexts/AuthContext';
+import { useTripsQuery } from '@/hooks/useTripsQuery';
 import { ApiError } from '@/services/api';
-import { listTrips, Trip } from '@/services/trips';
-import { getCachedTrips, saveTripsToCache } from '@/services/tripsCache';
 import { colors, fonts, spacing } from '@/theme';
 import { getGreeting } from '@/utils/format';
 import { TripCard } from './components/TripCard';
 
 export function Trips() {
-  const { user, token } = useAuth();
+  const { user } = useAuth();
   const insets = useSafeAreaInsets();
-  const [trips, setTrips] = useState<Trip[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [isOffline, setIsOffline] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const { data, isPending, isError, error, refetch } = useTripsQuery();
 
-  const loadTrips = useCallback(async () => {
-    if (!token) {
-      return;
-    }
-
-    setIsLoading(true);
-    setError(null);
-    setIsOffline(false);
-
-    try {
-      const data = await listTrips(token);
-      setTrips(data);
-      await saveTripsToCache(data);
-    } catch (err) {
-      if (err instanceof ApiError && err.status === 0) {
-        const cached = await getCachedTrips();
-        if (cached.length > 0) {
-          setTrips(cached);
-          setIsOffline(true);
-        } else {
-          setError('Sem conexão e nenhuma viagem salva neste dispositivo ainda.');
-        }
-      } else {
-        setError(err instanceof ApiError ? err.message : 'Não foi possível carregar suas viagens.');
-      }
-    } finally {
-      setIsLoading(false);
-    }
-  }, [token]);
-
-  useEffect(() => {
-    loadTrips();
-  }, [loadTrips]);
+  const trips = data?.trips ?? [];
+  const isOffline = data?.isOffline ?? false;
 
   return (
     <View style={[styles.root, { paddingTop: insets.top + spacing.md }]}>
@@ -78,12 +42,14 @@ export function Trips() {
         </View>
       ) : null}
 
-      {isLoading ? (
+      {isPending ? (
         <ActivityIndicator color={colors.accent} style={styles.stateSpacing} />
-      ) : error ? (
+      ) : isError ? (
         <View style={styles.stateSpacing}>
-          <Text style={styles.errorText}>{error}</Text>
-          <Button title="Tentar novamente" variant="outline" onPress={loadTrips} />
+          <Text style={styles.errorText}>
+            {error instanceof ApiError ? error.message : 'Não foi possível carregar suas viagens.'}
+          </Text>
+          <Button title="Tentar novamente" variant="outline" onPress={() => refetch()} />
         </View>
       ) : trips.length === 0 ? (
         <View style={styles.stateSpacing}>

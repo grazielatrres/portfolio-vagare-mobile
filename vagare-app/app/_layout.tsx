@@ -24,8 +24,6 @@ function SplashScreenController({ fontsLoaded }: { fontsLoaded: boolean }) {
 function RootNavigator() {
   const { user, isRestoring } = useAuth();
 
-  console.log('[nav] render, isRestoring =', isRestoring, 'user =', user?.email ?? null);
-
   if (isRestoring) {
     return null;
   }

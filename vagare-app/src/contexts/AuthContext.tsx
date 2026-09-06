@@ -62,18 +62,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   async function login(email: string, password: string) {
-    console.log('[auth] login: start');
     setIsLoading(true);
     try {
       const response = await loginRequest(email, password);
-      console.log('[auth] login: request resolved', response.user.email);
       await persistSession(response.token, response.user);
-      console.log('[auth] login: session persisted');
-    } catch (err) {
-      console.log('[auth] login: threw', err);
-      throw err;
     } finally {
-      console.log('[auth] login: finally, isLoading -> false');
       setIsLoading(false);
     }
   }
@@ -89,18 +82,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   async function logout() {
-    console.log('[auth] logout: start');
     if (token) {
       try {
         await logoutRequest(token);
-        console.log('[auth] logout: backend request resolved');
-      } catch (err) {
-        console.log('[auth] logout: backend request threw (ignoring)', err);
+      } catch {
         // sessão pode já ter expirado no servidor; segue com o logout local
       }
     }
     await clearSession();
-    console.log('[auth] logout: session cleared');
   }
 
   const value = { user, token, isLoading, isRestoring, login, register, logout };

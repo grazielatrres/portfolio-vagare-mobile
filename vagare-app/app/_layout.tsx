@@ -1,3 +1,4 @@
+import { QueryClientProvider } from '@tanstack/react-query';
 import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
@@ -6,6 +7,7 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import { AuthProvider, useAuth } from '@/contexts/AuthContext';
 import { useSerifFonts } from '@/hooks/useSerifFonts';
+import { queryClient } from '@/services/queryClient';
 
 SplashScreen.preventAutoHideAsync();
 
@@ -45,11 +47,13 @@ export default function RootLayout() {
 
   return (
     <SafeAreaProvider>
-      <AuthProvider>
-        <SplashScreenController fontsLoaded={fontsLoaded} />
-        <StatusBar style="auto" />
-        {fontsLoaded && <RootNavigator />}
-      </AuthProvider>
+      <QueryClientProvider client={queryClient}>
+        <AuthProvider>
+          <SplashScreenController fontsLoaded={fontsLoaded} />
+          <StatusBar style="auto" />
+          {fontsLoaded && <RootNavigator />}
+        </AuthProvider>
+      </QueryClientProvider>
     </SafeAreaProvider>
   );
 }

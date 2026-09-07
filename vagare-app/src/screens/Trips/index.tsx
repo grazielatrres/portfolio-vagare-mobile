@@ -1,44 +1,22 @@
-import { useCallback, useEffect, useState } from 'react';
 import { ActivityIndicator, FlatList, StyleSheet, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Button } from '@/components';
 import { useAuth } from '@/contexts/AuthContext';
+import { useTripsQuery } from '@/hooks/useTripsQuery';
 import { ApiError } from '@/services/api';
-import { listTrips, Trip } from '@/services/trips';
 import { colors, fonts, spacing } from '@/theme';
 import { getGreeting } from '@/utils/format';
 import { TripCard } from './components/TripCard';
 
 export function Trips() {
-  const { user, token } = useAuth();
+  const { user } = useAuth();
   const insets = useSafeAreaInsets();
-  const [trips, setTrips] = useState<Trip[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const { data, isPending, isError, error, refetch } = useTripsQuery();
 
-  const loadTrips = useCallback(async () => {
-    if (!token) {
-      return;
-    }
-
-    setIsLoading(true);
-    setError(null);
-
-    try {
-      const data = await listTrips(token);
-      setTrips(data);
-    } catch (err) {
-      setError(err instanceof ApiError ? err.message : 'Não foi possível carregar suas viagens.');
-    } finally {
-      setIsLoading(false);
-    }
-  }, [token]);
-
-  useEffect(() => {
-    loadTrips();
-  }, [loadTrips]);
+  const trips = data?.trips ?? [];
+  const isOffline = data?.isOffline ?? false;
 
   return (
     <View style={[styles.root, { paddingTop: insets.top + spacing.md }]}>
@@ -55,12 +33,23 @@ export function Trips() {
 
       <Text style={styles.sectionTitle}>Suas viagens</Text>
 
-      {isLoading ? (
+      {isOffline ? (
+        <View style={styles.offlineBanner}>
+          <Ionicons name="cloud-offline-outline" size={16} color={colors.text.secondary} />
+          <Text style={styles.offlineBannerText}>
+            Sem conexão — mostrando as viagens salvas neste dispositivo
+          </Text>
+        </View>
+      ) : null}
+
+      {isPending ? (
         <ActivityIndicator color={colors.accent} style={styles.stateSpacing} />
-      ) : error ? (
+      ) : isError ? (
         <View style={styles.stateSpacing}>
-          <Text style={styles.errorText}>{error}</Text>
-          <Button title="Tentar novamente" variant="outline" onPress={loadTrips} />
+          <Text style={styles.errorText}>
+            {error instanceof ApiError ? error.message : 'Não foi possível carregar suas viagens.'}
+          </Text>
+          <Button title="Tentar novamente" variant="outline" onPress={() => refetch()} />
         </View>
       ) : trips.length === 0 ? (
         <View style={styles.stateSpacing}>
@@ -108,6 +97,23 @@ const styles = StyleSheet.create({
     fontFamily: fonts.serif.bold,
     color: colors.text.primary,
     marginBottom: spacing.md,
+  },
+  offlineBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.xs,
+    backgroundColor: colors.surface,
+    borderWidth: 1,
+    borderColor: colors.border.default,
+    borderRadius: 10,
+    padding: spacing.sm,
+    marginBottom: spacing.md,
+  },
+  offlineBannerText: {
+    flex: 1,
+    fontSize: 13,
+    fontFamily: fonts.serif.regular,
+    color: colors.text.secondary,
   },
   list: {
     flex: 1,

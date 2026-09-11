@@ -7,6 +7,8 @@ import {
   logout as logoutRequest,
   register as registerRequest,
 } from '@/services/auth';
+import { queryClient } from '@/services/queryClient';
+import { clearTripsCache } from '@/services/tripsCache';
 
 const TOKEN_KEY = 'vagare.auth.token';
 const USER_KEY = 'vagare.auth.user';
@@ -90,6 +92,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
     }
     await clearSession();
+    await clearTripsCache();
+    queryClient.clear();
   }
 
   const value = { user, token, isLoading, isRestoring, login, register, logout };

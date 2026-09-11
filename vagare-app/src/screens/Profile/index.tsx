@@ -1,49 +1,31 @@
-import { useCallback, useEffect, useState } from 'react';
 import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Button } from '@/components';
 import { useAuth } from '@/contexts/AuthContext';
+import { useProfileQuery } from '@/hooks/useProfileQuery';
+import { useTripsQuery } from '@/hooks/useTripsQuery';
 import { ApiError } from '@/services/api';
-import { listTrips } from '@/services/trips';
-import { getMe, UserProfile } from '@/services/users';
 import { colors, fonts, spacing } from '@/theme';
 import { countDistinctCountries } from '@/utils/format';
 
 export function Profile() {
-  const { user, token, logout, isLoading: isLoggingOut } = useAuth();
+  const { user, logout, isLoading: isLoggingOut } = useAuth();
   const insets = useSafeAreaInsets();
-  const [profile, setProfile] = useState<UserProfile | null>(null);
-  const [countryCount, setCountryCount] = useState<number | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const profileQuery = useProfileQuery();
+  const tripsQuery = useTripsQuery();
 
-  const loadProfile = useCallback(async () => {
-    if (!token) {
-      return;
-    }
+  const isPending = profileQuery.isPending || tripsQuery.isPending;
+  const isError = profileQuery.isError || tripsQuery.isError;
+  const error = profileQuery.error ?? tripsQuery.error;
 
-    setIsLoading(true);
-    setError(null);
+  const countryCount = tripsQuery.data
+    ? countDistinctCountries(tripsQuery.data.trips.map((trip) => trip.destination))
+    : null;
 
-    try {
-      const [profileData, trips] = await Promise.all([getMe(token), listTrips(token)]);
-      setProfile(profileData);
-      setCountryCount(countDistinctCountries(trips.map((trip) => trip.destination)));
-    } catch (err) {
-      setError(err instanceof ApiError ? err.message : 'Não foi possível carregar seu perfil.');
-    } finally {
-      setIsLoading(false);
-    }
-  }, [token]);
-
-  useEffect(() => {
-    loadProfile();
-  }, [loadProfile]);
-
-  const name = profile?.name ?? user?.name;
-  const email = profile?.email ?? user?.email;
+  const name = profileQuery.data?.name ?? user?.name;
+  const email = profileQuery.data?.email ?? user?.email;
 
   return (
     <View style={[styles.root, { paddingTop: insets.top + spacing.md }]}>
@@ -65,16 +47,20 @@ export function Profile() {
       <View style={styles.card}>
         <Text style={styles.cardTitle}>Estatísticas</Text>
 
-        {isLoading ? (
+        {isPending ? (
           <ActivityIndicator color={colors.accent} />
-        ) : error ? (
-          <Text style={styles.errorText}>{error}</Text>
+        ) : isError ? (
+          <Text style={styles.errorText}>
+            {error instanceof ApiError ? error.message : 'Não foi possível carregar seu perfil.'}
+          </Text>
         ) : (
           <View style={styles.statsRow}>
             <View style={styles.statBox}>
-              <Text style={styles.statValue}>{profile?.stats.totalTrips ?? 0}</Text>
+              <Text style={styles.statValue}>{profileQuery.data?.stats.totalTrips ?? 0}</Text>
               <Text style={styles.statLabel}>
-                {profile?.stats.totalTrips === 1 ? 'Viagem planejada' : 'Viagens planejadas'}
+                {profileQuery.data?.stats.totalTrips === 1
+                  ? 'Viagem planejada'
+                  : 'Viagens planejadas'}
               </Text>
             </View>
             <View style={styles.statBox}>

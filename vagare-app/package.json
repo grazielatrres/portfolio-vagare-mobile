@@ -8,7 +8,14 @@
     "android": "expo run:android",
     "ios": "expo run:ios",
     "web": "expo start --web",
-    "lint": "eslint app src"
+    "lint": "eslint app src",
+    "lint:fix": "eslint app src --fix",
+    "typecheck": "tsc --noEmit",
+    "prebuild": "expo prebuild",
+    "build:dev": "eas build --profile development",
+    "build:preview": "eas build --profile preview",
+    "build:production": "eas build --profile production",
+    "submit": "eas submit --profile production"
   },
   "dependencies": {
     "@expo-google-fonts/lora": "^0.4.2",

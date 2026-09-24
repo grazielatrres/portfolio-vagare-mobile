@@ -1,4 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-echo "PR checks placeholder - add real checks here"
+cd "$(dirname "$0")/../vagare-app"
+
+yarn lint
+yarn typecheck

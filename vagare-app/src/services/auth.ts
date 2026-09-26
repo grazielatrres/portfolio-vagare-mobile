@@ -33,6 +33,13 @@ export function logout(token: string) {
   });
 }
 
+export function googleLogin(idToken: string) {
+  return apiRequest<AuthResponse>('/auth/google', {
+    method: 'POST',
+    body: { token: idToken },
+  });
+}
+
 export function forgotPassword(email: string) {
   return apiRequest<{ message: string }>('/auth/forgot-password', {
     method: 'POST',

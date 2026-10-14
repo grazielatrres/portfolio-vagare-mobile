@@ -5,21 +5,25 @@
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": "vagareapp",
+    "scheme": [
+      "vagareapp",
+      "com.googleusercontent.apps.879185611069-qc5gntnfljkqt9c22cmnh272okk50vkb"
+    ],
     "userInterfaceStyle": "automatic",
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.grazielatrres.vagare-app",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false
-      }
+      },
+      "appleTeamId": "9F5CY99SJ3"
     },
     "android": {
       "adaptiveIcon": {
         "backgroundColor": "#E6F4FE",
-        "foregroundImage": "./assets/images/android-icon-foreground.png",
-        "backgroundImage": "./assets/images/android-icon-background.png",
-        "monochromeImage": "./assets/images/android-icon-monochrome.png"
+        "foregroundImage": "./assets/images/icon.png",
+        "backgroundImage": "./assets/images/icon.png",
+        "monochromeImage": "./assets/images/icon.png"
       },
       "predictiveBackGestureEnabled": false,
       "package": "com.grazielatrres.vagareapp"
@@ -30,6 +34,7 @@
     },
     "plugins": [
       "expo-router",
+      "expo-dev-client",
       "expo-secure-store",
       "expo-sqlite",
       "expo-font",
@@ -39,7 +44,7 @@
       [
         "expo-splash-screen",
         {
-          "image": "./assets/images/splash-icon.png",
+          "image": "./assets/images/icon.png",
           "imageWidth": 200,
           "resizeMode": "contain",
           "backgroundColor": "#ffffff",

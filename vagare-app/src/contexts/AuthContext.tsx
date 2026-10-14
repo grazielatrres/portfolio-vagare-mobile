@@ -3,6 +3,7 @@ import * as SecureStore from 'expo-secure-store';
 
 import {
   AuthUser,
+  googleLogin as googleLoginRequest,
   login as loginRequest,
   logout as logoutRequest,
   register as registerRequest,
@@ -20,6 +21,7 @@ interface AuthContextValue {
   isRestoring: boolean;
   login: (email: string, password: string) => Promise<void>;
   register: (name: string, email: string, password: string) => Promise<void>;
+  loginWithGoogle: (idToken: string) => Promise<void>;
   logout: () => Promise<void>;
 }
 
@@ -83,6 +85,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }
 
+  async function loginWithGoogle(idToken: string) {
+    setIsLoading(true);
+    try {
+      const response = await googleLoginRequest(idToken);
+      await persistSession(response.token, response.user);
+    } finally {
+      setIsLoading(false);
+    }
+  }
+
   async function logout() {
     if (token) {
       try {
@@ -96,7 +108,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     queryClient.clear();
   }
 
-  const value = { user, token, isLoading, isRestoring, login, register, logout };
+  const value = { user, token, isLoading, isRestoring, login, register, loginWithGoogle, logout };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }

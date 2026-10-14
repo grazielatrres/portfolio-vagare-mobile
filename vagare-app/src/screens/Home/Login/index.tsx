@@ -1,9 +1,10 @@
 import { useState } from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
 import { Button, Divider, Input, PasswordInput } from '@/components';
 import { useAuth } from '@/contexts/AuthContext';
+import { useGoogleAuth } from '@/hooks/useGoogleAuth';
 import { ApiError } from '@/services/api';
 import { colors, fonts, spacing } from '@/theme';
 import { AuthHeader } from '../components/AuthHeader';
@@ -14,10 +15,12 @@ export interface LoginProps {
 }
 
 export function Login({ onCreateAccount, onForgotPassword }: LoginProps) {
-  const { login, isLoading } = useAuth();
+  const { login, loginWithGoogle, isLoading } = useAuth();
+  const { signInWithGoogle, isReady: isGoogleReady } = useGoogleAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
+  const [isGoogleLoading, setIsGoogleLoading] = useState(false);
 
   async function handleSubmit() {
     setError(null);
@@ -31,6 +34,22 @@ export function Login({ onCreateAccount, onForgotPassword }: LoginProps) {
       await login(email, password);
     } catch (err) {
       setError(err instanceof ApiError ? err.message : 'Não foi possível entrar. Tente novamente.');
+    }
+  }
+
+  async function handleGoogleSignIn() {
+    setError(null);
+    setIsGoogleLoading(true);
+
+    try {
+      const idToken = await signInWithGoogle();
+      await loginWithGoogle(idToken);
+    } catch (err) {
+      setError(
+        err instanceof ApiError ? err.message : 'Não foi possível entrar com Google. Tente novamente.',
+      );
+    } finally {
+      setIsGoogleLoading(false);
     }
   }
 
@@ -80,9 +99,17 @@ export function Login({ onCreateAccount, onForgotPassword }: LoginProps) {
         </View>
 
         <Button
-          title="Entrar com Google"
+          title={isGoogleLoading ? 'Entrando...' : 'Entrar com Google'}
           variant="outline"
-          icon={<Ionicons name="logo-google" size={18} color={colors.text.primary} />}
+          icon={
+            isGoogleLoading ? (
+              <ActivityIndicator color={colors.text.primary} />
+            ) : (
+              <Ionicons name="logo-google" size={18} color={colors.text.primary} />
+            )
+          }
+          onPress={handleGoogleSignIn}
+          disabled={isGoogleLoading || !isGoogleReady}
           style={styles.section}
         />
 

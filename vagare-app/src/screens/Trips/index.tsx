@@ -1,8 +1,9 @@
 import { ActivityIndicator, FlatList, StyleSheet, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { Button } from '@/components';
+import { Button, FormError } from '@/components';
 import { useAuth } from '@/contexts/AuthContext';
 import { useTripsQuery } from '@/hooks/useTripsQuery';
 import { ApiError } from '@/services/api';
@@ -29,6 +30,7 @@ export function Trips() {
         title="Criar nova viagem"
         icon={<Ionicons name="add" size={20} color={colors.surface} />}
         style={styles.createButton}
+        onPress={() => router.push('/trip/create')}
       />
 
       <Text style={styles.sectionTitle}>Suas viagens</Text>
@@ -46,9 +48,12 @@ export function Trips() {
         <ActivityIndicator color={colors.accent} style={styles.stateSpacing} />
       ) : isError ? (
         <View style={styles.stateSpacing}>
-          <Text style={styles.errorText}>
-            {error instanceof ApiError ? error.message : 'Não foi possível carregar suas viagens.'}
-          </Text>
+          <FormError
+            message={
+              error instanceof ApiError ? error.message : 'Não foi possível carregar suas viagens.'
+            }
+            style={styles.noMargin}
+          />
           <Button title="Tentar novamente" variant="outline" onPress={() => refetch()} />
         </View>
       ) : trips.length === 0 ? (
@@ -122,11 +127,8 @@ const styles = StyleSheet.create({
     marginTop: spacing.lg,
     gap: spacing.md,
   },
-  errorText: {
-    fontSize: 14,
-    fontFamily: fonts.serif.regular,
-    color: colors.danger,
-    textAlign: 'center',
+  noMargin: {
+    marginBottom: 0,
   },
   emptyText: {
     fontSize: 14,

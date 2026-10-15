@@ -13,6 +13,19 @@ export interface Trip {
   updatedAt: string;
 }
 
+export interface CreateTripPayload {
+  name: string;
+  destination: string;
+  startDate: string;
+  endDate: string;
+  budget?: number | null;
+  numberOfPeople?: number | null;
+}
+
 export function listTrips(token: string) {
   return apiRequest<Trip[]>('/trips', { token });
+}
+
+export function createTrip(token: string, payload: CreateTripPayload) {
+  return apiRequest<Trip>('/trips', { method: 'POST', token, body: payload });
 }

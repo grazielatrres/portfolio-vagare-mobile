@@ -34,6 +34,7 @@ function RootNavigator() {
     <Stack key={user ? 'authenticated' : 'guest'} screenOptions={{ headerShown: false }}>
       <Stack.Protected guard={!!user}>
         <Stack.Screen name="(tabs)" />
+        <Stack.Screen name="trip/create" />
       </Stack.Protected>
       <Stack.Protected guard={!user}>
         <Stack.Screen name="(auth)" />

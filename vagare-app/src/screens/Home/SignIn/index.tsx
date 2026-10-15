@@ -1,11 +1,11 @@
 import { useState } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { BackButton, Button, Input, PasswordInput } from '@/components';
+import { BackButton, Button, FormError, Input, PasswordInput } from '@/components';
 import { useAuth } from '@/contexts/AuthContext';
 import { ApiError } from '@/services/api';
-import { colors, fonts, spacing } from '@/theme';
+import { colors, spacing } from '@/theme';
 import { AuthHeader } from '../components/AuthHeader';
 
 export interface SignInProps {
@@ -88,7 +88,7 @@ export function SignIn({ onBack }: SignInProps) {
           containerStyle={styles.field}
         />
 
-        {error ? <Text style={styles.errorText}>{error}</Text> : null}
+        <FormError message={error} />
 
         <Button
           title={isLoading ? 'Criando conta...' : 'Criar Conta'}
@@ -115,12 +115,5 @@ const styles = StyleSheet.create({
   },
   field: {
     marginBottom: spacing.md,
-  },
-  errorText: {
-    fontSize: 14,
-    fontFamily: fonts.serif.regular,
-    color: colors.danger,
-    marginBottom: spacing.md,
-    textAlign: 'center',
   },
 });

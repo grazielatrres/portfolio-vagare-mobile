@@ -32,3 +32,7 @@ export function listTrips(token: string) {
 export function createTrip(token: string, payload: CreateTripPayload) {
   return apiRequest<Trip>('/trips', { method: 'POST', token, body: payload });
 }
+
+export function deleteTrip(token: string, id: string) {
+  return apiRequest<void>(`/trips/${id}`, { method: 'DELETE', token });
+}

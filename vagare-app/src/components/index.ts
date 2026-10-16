@@ -2,6 +2,8 @@ export { BackButton } from './BackButton';
 export type { BackButtonProps } from './BackButton';
 export { Button } from './Button';
 export type { ButtonProps, ButtonVariant, ButtonTone } from './Button';
+export { ConfirmDialog } from './ConfirmDialog';
+export type { ConfirmDialogProps } from './ConfirmDialog';
 export { CurrencyPicker } from './CurrencyPicker';
 export type { CurrencyPickerProps } from './CurrencyPicker';
 export { DateRangeField } from './DateRangeField';

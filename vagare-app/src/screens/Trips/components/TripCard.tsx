@@ -3,14 +3,15 @@ import { Ionicons } from '@expo/vector-icons';
 
 import { Trip } from '@/services/trips';
 import { colors, fonts, spacing } from '@/theme';
-import { formatCurrency, formatDateRange } from '@/utils/format';
+import { formatCurrencyValue } from '@/utils/currency';
+import { formatDateRange } from '@/utils/format';
 
 export interface TripCardProps {
   trip: Trip;
 }
 
 export function TripCard({ trip }: TripCardProps) {
-  const budget = formatCurrency(trip.budget);
+  const budget = trip.budget !== null ? formatCurrencyValue(trip.budget, trip.currency) : null;
 
   return (
     <View style={styles.card}>

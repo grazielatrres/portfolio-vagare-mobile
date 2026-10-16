@@ -2,11 +2,12 @@ import { useMemo, useState } from 'react';
 import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { BackButton, Button, DateRangeField, FormError, Input } from '@/components';
+import { BackButton, Button, CurrencyPicker, DateRangeField, FormError, Input } from '@/components';
 import { useCreateTripMutation } from '@/hooks/useCreateTripMutation';
 import { ApiError } from '@/services/api';
 import { colors, fonts, spacing } from '@/theme';
 import { toISODate } from '@/utils/date';
+import { CurrencyCode, digitsToAmount, formatAmountFromDigits } from '@/utils/currency';
 
 export interface CreateTripProps {
   onBack?: () => void;
@@ -28,7 +29,8 @@ export function CreateTrip({ onBack, onCreated }: CreateTripProps) {
   const [destination, setDestination] = useState('');
   const [startDate, setStartDate] = useState<Date | null>(null);
   const [endDate, setEndDate] = useState<Date | null>(null);
-  const [budget, setBudget] = useState('');
+  const [budgetDigits, setBudgetDigits] = useState('');
+  const [currency, setCurrency] = useState<CurrencyCode>('BRL');
   const [numberOfPeople, setNumberOfPeople] = useState('');
   const [error, setError] = useState<string | null>(null);
 
@@ -65,18 +67,7 @@ export function CreateTrip({ onBack, onCreated }: CreateTripProps) {
       return;
     }
 
-    let parsedBudget: number | null = null;
-    if (budget.trim()) {
-      parsedBudget = Number(budget.replace(',', '.'));
-      if (Number.isNaN(parsedBudget)) {
-        setError('Orçamento inválido');
-        return;
-      }
-      if (parsedBudget < 0) {
-        setError('Orçamento não pode ser negativo');
-        return;
-      }
-    }
+    const parsedBudget = budgetDigits ? digitsToAmount(budgetDigits) : null;
 
     let parsedNumberOfPeople: number | null = null;
     if (numberOfPeople.trim()) {
@@ -94,6 +85,7 @@ export function CreateTrip({ onBack, onCreated }: CreateTripProps) {
         startDate: toISODate(startDate),
         endDate: toISODate(endDate),
         budget: parsedBudget,
+        currency,
         numberOfPeople: parsedNumberOfPeople,
       });
       onCreated?.();
@@ -143,12 +135,13 @@ export function CreateTrip({ onBack, onCreated }: CreateTripProps) {
             containerStyle={styles.field}
           />
 
+          <CurrencyPicker value={currency} onChange={setCurrency} containerStyle={styles.field} />
           <Input
             label="Orçamento estimado (opcional)"
-            placeholder="Ex: 10000"
-            value={budget}
-            onChangeText={setBudget}
-            keyboardType="decimal-pad"
+            placeholder={formatAmountFromDigits('', currency)}
+            value={budgetDigits ? formatAmountFromDigits(budgetDigits, currency) : ''}
+            onChangeText={(text) => setBudgetDigits(text.replace(/\D/g, ''))}
+            keyboardType="number-pad"
             containerStyle={styles.field}
           />
           <Input

@@ -33,13 +33,3 @@ export function countDistinctCountries(destinations: string[]): number {
   );
   return new Set(countries).size;
 }
-
-export function formatCurrency(value: string | null): string | null {
-  if (value === null) {
-    return null;
-  }
-
-  return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(
-    Number(value),
-  );
-}

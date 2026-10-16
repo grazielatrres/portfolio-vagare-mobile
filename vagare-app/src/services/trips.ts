@@ -1,3 +1,4 @@
+import { CurrencyCode } from '@/utils/currency';
 import { apiRequest } from './api';
 
 export interface Trip {
@@ -8,6 +9,7 @@ export interface Trip {
   startDate: string;
   endDate: string;
   budget: string | null;
+  currency: CurrencyCode;
   numberOfPeople: number | null;
   createdAt: string;
   updatedAt: string;
@@ -19,6 +21,7 @@ export interface CreateTripPayload {
   startDate: string;
   endDate: string;
   budget?: number | null;
+  currency?: CurrencyCode;
   numberOfPeople?: number | null;
 }
 

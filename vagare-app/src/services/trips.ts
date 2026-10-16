@@ -29,6 +29,10 @@ export function listTrips(token: string) {
   return apiRequest<Trip[]>('/trips', { token });
 }
 
+export function getTrip(token: string, id: string) {
+  return apiRequest<Trip>(`/trips/${id}`, { token });
+}
+
 export function createTrip(token: string, payload: CreateTripPayload) {
   return apiRequest<Trip>('/trips', { method: 'POST', token, body: payload });
 }

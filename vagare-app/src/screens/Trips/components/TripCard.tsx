@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { router } from 'expo-router';
 
 import { ConfirmDialog, FormError } from '@/components';
 import { useDeleteTripMutation } from '@/hooks/useDeleteTripMutation';
@@ -31,10 +32,17 @@ export function TripCard({ trip }: TripCardProps) {
   }
 
   return (
-    <View style={styles.card}>
+    <Pressable style={styles.card} onPress={() => router.push(`/trip/${trip.id}`)}>
       <View style={styles.header}>
         <Text style={styles.destination}>{trip.destination}</Text>
-        <Pressable onPress={() => setConfirmVisible(true)} disabled={isPending} hitSlop={12}>
+        <Pressable
+          onPress={(event) => {
+            event.stopPropagation();
+            setConfirmVisible(true);
+          }}
+          disabled={isPending}
+          hitSlop={12}
+        >
           {isPending ? (
             <ActivityIndicator size="small" color={colors.danger} />
           ) : (
@@ -72,7 +80,7 @@ export function TripCard({ trip }: TripCardProps) {
         onConfirm={handleConfirmDelete}
         onCancel={() => setConfirmVisible(false)}
       />
-    </View>
+    </Pressable>
   );
 }
 

@@ -34,6 +34,7 @@ function RootNavigator() {
     <Stack key={user ? 'authenticated' : 'guest'} screenOptions={{ headerShown: false }}>
       <Stack.Protected guard={!!user}>
         <Stack.Screen name="(tabs)" />
+        <Stack.Screen name="trip/create" />
       </Stack.Protected>
       <Stack.Protected guard={!user}>
         <Stack.Screen name="(auth)" />
@@ -51,7 +52,7 @@ export default function RootLayout() {
       <QueryClientProvider client={queryClient}>
         <AuthProvider>
           <SplashScreenController fontsLoaded={fontsLoaded} />
-          <StatusBar style="auto" />
+          <StatusBar style="dark" />
           {fontsLoaded && <RootNavigator />}
         </AuthProvider>
       </QueryClientProvider>

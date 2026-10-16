@@ -1,22 +1,41 @@
-import { ActivityIndicator, FlatList, StyleSheet, Text, View } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useState } from "react";
+import { Ionicons } from "@expo/vector-icons";
+import { router } from "expo-router";
+import {
+  ActivityIndicator,
+  FlatList,
+  RefreshControl,
+  StyleSheet,
+  Text,
+  View,
+} from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import { Button } from '@/components';
-import { useAuth } from '@/contexts/AuthContext';
-import { useTripsQuery } from '@/hooks/useTripsQuery';
-import { ApiError } from '@/services/api';
-import { colors, fonts, spacing } from '@/theme';
-import { getGreeting } from '@/utils/format';
-import { TripCard } from './components/TripCard';
+import { Button, FormError } from "@/components";
+import { useAuth } from "@/contexts/AuthContext";
+import { useTripsQuery } from "@/hooks/useTripsQuery";
+import { ApiError } from "@/services/api";
+import { colors, fonts, spacing } from "@/theme";
+import { getGreeting } from "@/utils/format";
+import { TripCard } from "./components/TripCard";
 
 export function Trips() {
   const { user } = useAuth();
   const insets = useSafeAreaInsets();
   const { data, isPending, isError, error, refetch } = useTripsQuery();
+  const [refreshing, setRefreshing] = useState(false);
 
   const trips = data?.trips ?? [];
   const isOffline = data?.isOffline ?? false;
+
+  async function handleRefresh() {
+    setRefreshing(true);
+    try {
+      await refetch();
+    } finally {
+      setRefreshing(false);
+    }
+  }
 
   return (
     <View style={[styles.root, { paddingTop: insets.top + spacing.md }]}>
@@ -29,13 +48,18 @@ export function Trips() {
         title="Criar nova viagem"
         icon={<Ionicons name="add" size={20} color={colors.surface} />}
         style={styles.createButton}
+        onPress={() => router.push("/trip/create")}
       />
 
-      <Text style={styles.sectionTitle}>Suas viagens</Text>
+      <Text style={styles.sectionTitle}>Minhas viagens</Text>
 
       {isOffline ? (
         <View style={styles.offlineBanner}>
-          <Ionicons name="cloud-offline-outline" size={16} color={colors.text.secondary} />
+          <Ionicons
+            name="cloud-offline-outline"
+            size={16}
+            color={colors.text.secondary}
+          />
           <Text style={styles.offlineBannerText}>
             Sem conexão — mostrando as viagens salvas neste dispositivo
           </Text>
@@ -46,15 +70,25 @@ export function Trips() {
         <ActivityIndicator color={colors.accent} style={styles.stateSpacing} />
       ) : isError ? (
         <View style={styles.stateSpacing}>
-          <Text style={styles.errorText}>
-            {error instanceof ApiError ? error.message : 'Não foi possível carregar suas viagens.'}
-          </Text>
-          <Button title="Tentar novamente" variant="outline" onPress={() => refetch()} />
+          <FormError
+            message={
+              error instanceof ApiError
+                ? error.message
+                : "Não foi possível carregar as viagens."
+            }
+            style={styles.noMargin}
+          />
+          <Button
+            title="Tentar novamente"
+            variant="outline"
+            onPress={() => refetch()}
+          />
         </View>
       ) : trips.length === 0 ? (
         <View style={styles.stateSpacing}>
           <Text style={styles.emptyText}>
-            Você ainda não tem viagens cadastradas. Crie a primeira para começar a planejar.
+            Você ainda não tem viagens cadastradas. Crie a primeira para começar
+            a planejar.
           </Text>
         </View>
       ) : (
@@ -64,6 +98,14 @@ export function Trips() {
           renderItem={({ item }) => <TripCard trip={item} />}
           showsVerticalScrollIndicator={false}
           style={styles.list}
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={handleRefresh}
+              tintColor={colors.accent}
+              colors={[colors.accent]}
+            />
+          }
         />
       )}
     </View>
@@ -99,8 +141,8 @@ const styles = StyleSheet.create({
     marginBottom: spacing.md,
   },
   offlineBanner: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: spacing.xs,
     backgroundColor: colors.surface,
     borderWidth: 1,
@@ -122,16 +164,13 @@ const styles = StyleSheet.create({
     marginTop: spacing.lg,
     gap: spacing.md,
   },
-  errorText: {
-    fontSize: 14,
-    fontFamily: fonts.serif.regular,
-    color: colors.danger,
-    textAlign: 'center',
+  noMargin: {
+    marginBottom: 0,
   },
   emptyText: {
     fontSize: 14,
     fontFamily: fonts.serif.regular,
     color: colors.text.secondary,
-    textAlign: 'center',
+    textAlign: "center",
   },
 });

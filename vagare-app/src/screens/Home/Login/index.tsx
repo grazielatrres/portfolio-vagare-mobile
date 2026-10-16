@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
-import { Button, Divider, Input, PasswordInput } from '@/components';
+import { Button, Divider, FormError, Input, PasswordInput } from '@/components';
 import { useAuth } from '@/contexts/AuthContext';
 import { useGoogleAuth } from '@/hooks/useGoogleAuth';
 import { ApiError } from '@/services/api';
@@ -85,7 +85,7 @@ export function Login({ onCreateAccount, onForgotPassword }: LoginProps) {
           <Text style={styles.forgotPasswordText}>Esqueci minha senha</Text>
         </Pressable>
 
-        {error ? <Text style={styles.errorText}>{error}</Text> : null}
+        <FormError message={error} />
 
         <Button
           title={isLoading ? 'Entrando...' : 'Entrar'}
@@ -150,13 +150,6 @@ const styles = StyleSheet.create({
     fontFamily: fonts.serif.medium,
     color: colors.accent,
     textDecorationLine: 'underline',
-  },
-  errorText: {
-    fontSize: 14,
-    fontFamily: fonts.serif.regular,
-    color: colors.danger,
-    marginBottom: spacing.md,
-    textAlign: 'center',
   },
   footer: {
     flexDirection: 'row',

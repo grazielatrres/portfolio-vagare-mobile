@@ -13,9 +13,11 @@ export function getGreeting(date: Date = new Date()): string {
 }
 
 export function formatDateShort(dateString: string): string {
-  return new Intl.DateTimeFormat('pt-BR', { day: 'numeric', month: 'short' }).format(
-    new Date(dateString),
-  );
+  return new Intl.DateTimeFormat('pt-BR', {
+    day: 'numeric',
+    month: 'short',
+    timeZone: 'UTC',
+  }).format(new Date(dateString));
 }
 
 export function formatDateRange(startDate: string, endDate: string): string {
@@ -32,14 +34,4 @@ export function countDistinctCountries(destinations: string[]): number {
     getCountryFromDestination(destination).toLowerCase(),
   );
   return new Set(countries).size;
-}
-
-export function formatCurrency(value: string | null): string | null {
-  if (value === null) {
-    return null;
-  }
-
-  return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(
-    Number(value),
-  );
 }

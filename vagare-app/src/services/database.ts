@@ -18,11 +18,19 @@ export async function getDatabase() {
           startDate TEXT NOT NULL,
           endDate TEXT NOT NULL,
           budget TEXT,
+          currency TEXT NOT NULL DEFAULT 'BRL',
           numberOfPeople INTEGER,
           createdAt TEXT NOT NULL,
           updatedAt TEXT NOT NULL
         );
       `);
+
+      try {
+        await db.execAsync("ALTER TABLE trips ADD COLUMN currency TEXT NOT NULL DEFAULT 'BRL';");
+      } catch {
+        // coluna já existe
+      }
+
       return db;
     });
   }

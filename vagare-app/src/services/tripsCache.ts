@@ -14,8 +14,8 @@ export async function saveTripsToCache(trips: Trip[]): Promise<void> {
 
     for (const trip of trips) {
       await db.runAsync(
-        `INSERT INTO trips (id, userId, name, destination, startDate, endDate, budget, numberOfPeople, createdAt, updatedAt)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        `INSERT INTO trips (id, userId, name, destination, startDate, endDate, budget, currency, numberOfPeople, createdAt, updatedAt)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
         [
           trip.id,
           trip.userId,
@@ -24,6 +24,7 @@ export async function saveTripsToCache(trips: Trip[]): Promise<void> {
           trip.startDate,
           trip.endDate,
           trip.budget,
+          trip.currency,
           trip.numberOfPeople,
           trip.createdAt,
           trip.updatedAt,

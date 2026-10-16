@@ -3,7 +3,7 @@ import { Modal, Pressable, StyleSheet, View, ViewStyle } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Calendar, CalendarProps, DateData, LocaleConfig } from 'react-native-calendars';
 
-import { colors, fonts, spacing } from '@/theme';
+import { calendarTheme, colors, spacing } from '@/theme';
 import { fromISODate, toISODate } from '@/utils/date';
 import { Button } from './Button';
 import { Input } from './Input';
@@ -42,6 +42,7 @@ LocaleConfig.defaultLocale = 'pt-br';
 
 export interface DateRangeFieldProps {
   label: string;
+  required?: boolean;
   startDate: Date | null;
   endDate: Date | null;
   onChange: (startDate: Date, endDate: Date) => void;
@@ -86,6 +87,7 @@ function buildMarkedDates(start: string | null, end: string | null): MarkedDates
 
 export function DateRangeField({
   label,
+  required,
   startDate,
   endDate,
   onChange,
@@ -133,6 +135,7 @@ export function DateRangeField({
       <Pressable onPress={open}>
         <Input
           label={label}
+          required={required}
           placeholder="Selecione o período"
           value={formatRange(startDate, endDate)}
           editable={false}
@@ -163,22 +166,6 @@ export function DateRangeField({
     </View>
   );
 }
-
-const calendarTheme = {
-  backgroundColor: colors.surface,
-  calendarBackground: colors.surface,
-  textSectionTitleColor: colors.text.secondary,
-  selectedDayBackgroundColor: colors.accent,
-  selectedDayTextColor: colors.surface,
-  todayTextColor: colors.accent,
-  dayTextColor: colors.text.primary,
-  textDisabledColor: colors.text.placeholder,
-  monthTextColor: colors.text.primary,
-  arrowColor: colors.accent,
-  textDayFontFamily: fonts.serif.regular,
-  textMonthFontFamily: fonts.serif.bold,
-  textDayHeaderFontFamily: fonts.serif.medium,
-};
 
 const styles = StyleSheet.create({
   backdrop: {

@@ -115,6 +115,7 @@ export function CreateTrip({ onBack, onCreated }: CreateTripProps) {
         <View style={styles.form}>
           <Input
             label="Nome da viagem"
+            required
             placeholder="Ex: Férias de verão"
             value={name}
             onChangeText={setName}
@@ -122,6 +123,7 @@ export function CreateTrip({ onBack, onCreated }: CreateTripProps) {
           />
           <Input
             label="Destino"
+            required
             placeholder="Ex: Santorini, Grécia"
             value={destination}
             onChangeText={setDestination}
@@ -130,6 +132,7 @@ export function CreateTrip({ onBack, onCreated }: CreateTripProps) {
 
           <DateRangeField
             label="Período da viagem"
+            required
             startDate={startDate}
             endDate={endDate}
             onChange={handlePeriodChange}
@@ -139,7 +142,7 @@ export function CreateTrip({ onBack, onCreated }: CreateTripProps) {
 
           <CurrencyPicker value={currency} onChange={setCurrency} containerStyle={styles.field} />
           <Input
-            label="Orçamento estimado (opcional)"
+            label="Orçamento estimado"
             placeholder={formatAmountFromDigits('', currency)}
             value={formattedBudget}
             onChangeText={(text) => setBudgetDigits(text.replace(/\D/g, ''))}
@@ -148,7 +151,7 @@ export function CreateTrip({ onBack, onCreated }: CreateTripProps) {
             containerStyle={styles.field}
           />
           <Input
-            label="Número de pessoas (opcional)"
+            label="Número de pessoas"
             placeholder="Ex: 2"
             value={numberOfPeople}
             onChangeText={(text) => setNumberOfPeople(text.replace(/\D/g, ''))}

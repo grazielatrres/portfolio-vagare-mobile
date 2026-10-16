@@ -5,15 +5,10 @@ import { Ionicons } from '@expo/vector-icons';
 import { ConfirmDialog, FormError } from '@/components';
 import { useDeleteActivityMutation } from '@/hooks/useDeleteActivityMutation';
 import { ApiError } from '@/services/api';
-import { Activity, ActivityPeriod } from '@/services/activities';
+import { Activity } from '@/services/activities';
 import { colors, fonts, spacing } from '@/theme';
+import { PERIOD_LABELS } from '@/utils/activityPeriod';
 import { CurrencyCode, formatCurrencyValue } from '@/utils/currency';
-
-const PERIOD_LABELS: Record<ActivityPeriod, string> = {
-  manha: 'Manhã',
-  tarde: 'Tarde',
-  noite: 'Noite',
-};
 
 export interface ActivityCardProps {
   activity: Activity;

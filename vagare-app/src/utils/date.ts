@@ -6,6 +6,6 @@ export function toISODate(date: Date): string {
 }
 
 export function fromISODate(value: string): Date {
-  const [year, month, day] = value.split('-').map(Number);
+  const [year, month, day] = value.slice(0, 10).split('-').map(Number);
   return new Date(year, month - 1, day);
 }

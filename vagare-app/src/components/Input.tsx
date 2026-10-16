@@ -13,6 +13,7 @@ import { colors, fonts, spacing } from '@/theme';
 
 export interface InputProps extends TextInputProps {
   label?: string;
+  required?: boolean;
   containerStyle?: ViewStyle;
   labelStyle?: TextStyle;
   inputStyle?: TextStyle;
@@ -22,6 +23,7 @@ export interface InputProps extends TextInputProps {
 export const Input = forwardRef<TextInput, InputProps>(function Input(
   {
     label,
+    required,
     placeholder,
     containerStyle,
     labelStyle,
@@ -34,7 +36,12 @@ export const Input = forwardRef<TextInput, InputProps>(function Input(
 ) {
   return (
     <View style={[styles.container, containerStyle]}>
-      {label ? <Text style={[styles.label, labelStyle]}>{label}</Text> : null}
+      {label ? (
+        <Text style={[styles.label, labelStyle]}>
+          {label}
+          {required ? <Text style={styles.required}> *</Text> : null}
+        </Text>
+      ) : null}
       <View style={styles.inputWrapper}>
         <TextInput
           ref={ref}
@@ -58,6 +65,9 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontFamily: fonts.serif.medium,
     color: colors.text.primary,
+  },
+  required: {
+    color: colors.danger,
   },
   inputWrapper: {
     justifyContent: 'center',

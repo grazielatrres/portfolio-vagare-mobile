@@ -1,4 +1,4 @@
-import { ActivityIndicator, FlatList, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, FlatList, RefreshControl, StyleSheet, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -14,7 +14,7 @@ import { TripCard } from './components/TripCard';
 export function Trips() {
   const { user } = useAuth();
   const insets = useSafeAreaInsets();
-  const { data, isPending, isError, error, refetch } = useTripsQuery();
+  const { data, isPending, isFetching, isError, error, refetch } = useTripsQuery();
 
   const trips = data?.trips ?? [];
   const isOffline = data?.isOffline ?? false;
@@ -69,6 +69,14 @@ export function Trips() {
           renderItem={({ item }) => <TripCard trip={item} />}
           showsVerticalScrollIndicator={false}
           style={styles.list}
+          refreshControl={
+            <RefreshControl
+              refreshing={isFetching}
+              onRefresh={() => refetch()}
+              tintColor={colors.accent}
+              colors={[colors.accent]}
+            />
+          }
         />
       )}
     </View>

@@ -88,7 +88,7 @@ const styles = StyleSheet.create({
   root: {
     flex: 1,
     backgroundColor: colors.background,
-    paddingHorizontal: spacing.lg,
+    paddingHorizontal: spacing.md,
   },
   backButton: {
     marginBottom: spacing.lg,

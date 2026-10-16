@@ -10,7 +10,7 @@ import { colors, fonts, spacing } from '@/theme';
 import { ACTIVITY_CATEGORIES } from '@/utils/activityCategory';
 import { PERIOD_LABELS, derivePeriodFromTime } from '@/utils/activityPeriod';
 import { digitsToAmount, formatAmountFromDigits } from '@/utils/currency';
-import { fromISODate, toISODate } from '@/utils/date';
+import { fromISODate, maskTimeInput, toISODate } from '@/utils/date';
 import { dayNumberInTrip } from '@/utils/format';
 
 export interface AddActivityFormProps {
@@ -96,20 +96,22 @@ export function AddActivityForm({ trip, onCancel, onCreated }: AddActivityFormPr
         maximumDate={tripEnd}
         containerStyle={styles.field}
       />
-      <Text style={styles.dayHint}>
+      <Text style={styles.hint}>
         Dia {dayNumberInTrip(trip.startDate, toISODate(activeDate))} da viagem
       </Text>
 
       <Input
         label="Horário"
-        placeholder="Ex: 19:30"
+        placeholder="00:00"
         value={time}
-        onChangeText={setTime}
-        keyboardType="numbers-and-punctuation"
+        onChangeText={(text) => setTime(maskTimeInput(text))}
+        keyboardType="number-pad"
+        maxLength={5}
         containerStyle={styles.field}
       />
+      <Text style={styles.hint}>Formato 24h (ex: 19:30 para 7:30 da noite)</Text>
       {derivedPeriod ? (
-        <Text style={styles.periodHint}>Período: {PERIOD_LABELS[derivedPeriod]}</Text>
+        <Text style={styles.hint}>Período: {PERIOD_LABELS[derivedPeriod]}</Text>
       ) : null}
 
       <SelectField
@@ -192,14 +194,7 @@ const styles = StyleSheet.create({
   field: {
     marginBottom: spacing.md,
   },
-  dayHint: {
-    marginTop: -spacing.sm,
-    marginBottom: spacing.md,
-    fontSize: 13,
-    fontFamily: fonts.serif.regular,
-    color: colors.text.secondary,
-  },
-  periodHint: {
+  hint: {
     marginTop: -spacing.sm,
     marginBottom: spacing.md,
     fontSize: 13,

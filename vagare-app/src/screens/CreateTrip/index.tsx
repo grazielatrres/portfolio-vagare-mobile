@@ -34,6 +34,8 @@ export function CreateTrip({ onBack, onCreated }: CreateTripProps) {
   const [numberOfPeople, setNumberOfPeople] = useState('');
   const [error, setError] = useState<string | null>(null);
 
+  const formattedBudget = budgetDigits ? formatAmountFromDigits(budgetDigits, currency) : '';
+
   function handlePeriodChange(nextStartDate: Date, nextEndDate: Date) {
     setStartDate(nextStartDate);
     setEndDate(nextEndDate);
@@ -139,9 +141,10 @@ export function CreateTrip({ onBack, onCreated }: CreateTripProps) {
           <Input
             label="Orçamento estimado (opcional)"
             placeholder={formatAmountFromDigits('', currency)}
-            value={budgetDigits ? formatAmountFromDigits(budgetDigits, currency) : ''}
+            value={formattedBudget}
             onChangeText={(text) => setBudgetDigits(text.replace(/\D/g, ''))}
             keyboardType="number-pad"
+            selection={{ start: formattedBudget.length, end: formattedBudget.length }}
             containerStyle={styles.field}
           />
           <Input

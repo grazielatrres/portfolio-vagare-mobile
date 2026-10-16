@@ -34,7 +34,7 @@ export function TripCard({ trip }: TripCardProps) {
     <View style={styles.card}>
       <View style={styles.header}>
         <Text style={styles.destination}>{trip.destination}</Text>
-        <Pressable onPress={() => setConfirmVisible(true)} disabled={isPending} hitSlop={8}>
+        <Pressable onPress={() => setConfirmVisible(true)} disabled={isPending} hitSlop={12}>
           {isPending ? (
             <ActivityIndicator size="small" color={colors.danger} />
           ) : (

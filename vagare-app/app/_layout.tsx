@@ -52,7 +52,7 @@ export default function RootLayout() {
       <QueryClientProvider client={queryClient}>
         <AuthProvider>
           <SplashScreenController fontsLoaded={fontsLoaded} />
-          <StatusBar style="auto" />
+          <StatusBar style="dark" />
           {fontsLoaded && <RootNavigator />}
         </AuthProvider>
       </QueryClientProvider>

@@ -13,9 +13,11 @@ export function getGreeting(date: Date = new Date()): string {
 }
 
 export function formatDateShort(dateString: string): string {
-  return new Intl.DateTimeFormat('pt-BR', { day: 'numeric', month: 'short' }).format(
-    new Date(dateString),
-  );
+  return new Intl.DateTimeFormat('pt-BR', {
+    day: 'numeric',
+    month: 'short',
+    timeZone: 'UTC',
+  }).format(new Date(dateString));
 }
 
 export function formatDateRange(startDate: string, endDate: string): string {

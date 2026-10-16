@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react';
 import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { BackButton, Button, DateField, FormError, Input } from '@/components';
+import { BackButton, Button, DateRangeField, FormError, Input } from '@/components';
 import { useCreateTripMutation } from '@/hooks/useCreateTripMutation';
 import { ApiError } from '@/services/api';
 import { colors, fonts, spacing } from '@/theme';
@@ -32,11 +32,9 @@ export function CreateTrip({ onBack, onCreated }: CreateTripProps) {
   const [numberOfPeople, setNumberOfPeople] = useState('');
   const [error, setError] = useState<string | null>(null);
 
-  function handleStartDateChange(date: Date) {
-    setStartDate(date);
-    if (endDate && endDate.getTime() < date.getTime()) {
-      setEndDate(null);
-    }
+  function handlePeriodChange(nextStartDate: Date, nextEndDate: Date) {
+    setStartDate(nextStartDate);
+    setEndDate(nextEndDate);
   }
 
   async function handleSubmit() {
@@ -136,22 +134,14 @@ export function CreateTrip({ onBack, onCreated }: CreateTripProps) {
             containerStyle={styles.field}
           />
 
-          <View style={styles.row}>
-            <DateField
-              label="Data de início"
-              value={startDate}
-              onChange={handleStartDateChange}
-              minimumDate={today}
-              containerStyle={styles.rowField}
-            />
-            <DateField
-              label="Data de fim"
-              value={endDate}
-              onChange={setEndDate}
-              minimumDate={startDate ?? today}
-              containerStyle={styles.rowField}
-            />
-          </View>
+          <DateRangeField
+            label="Período da viagem"
+            startDate={startDate}
+            endDate={endDate}
+            onChange={handlePeriodChange}
+            minimumDate={today}
+            containerStyle={styles.field}
+          />
 
           <Input
             label="Orçamento estimado (opcional)"
@@ -212,14 +202,6 @@ const styles = StyleSheet.create({
     width: '100%',
   },
   field: {
-    marginBottom: spacing.md,
-  },
-  row: {
-    flexDirection: 'row',
-    gap: spacing.md,
-  },
-  rowField: {
-    flex: 1,
     marginBottom: spacing.md,
   },
 });

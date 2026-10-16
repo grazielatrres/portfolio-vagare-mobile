@@ -9,16 +9,15 @@ import { colors, fonts, spacing } from '@/theme';
 import { formatCurrencyValue } from '@/utils/currency';
 import { countTripDays, formatDateFull } from '@/utils/format';
 import { ComingSoon } from './components/ComingSoon';
-import { RoteiroTab } from './components/RoteiroTab';
+import { ItineraryTab } from './components/ItineraryTab';
 import { TripTabKey, TripTabs } from './components/TripTabs';
 
 export interface TripDetailProps {
   tripId: string;
   onBack?: () => void;
-  onAddActivity?: () => void;
 }
 
-export function TripDetail({ tripId, onBack, onAddActivity }: TripDetailProps) {
+export function TripDetail({ tripId, onBack }: TripDetailProps) {
   const insets = useSafeAreaInsets();
   const { data: trip, isPending, isError, error, refetch } = useTripQuery(tripId);
   const [activeTab, setActiveTab] = useState<TripTabKey>('roteiro');
@@ -52,7 +51,7 @@ export function TripDetail({ tripId, onBack, onAddActivity }: TripDetailProps) {
 
           <View style={styles.content}>
             {activeTab === 'roteiro' ? (
-              <RoteiroTab trip={trip} onAddActivity={() => onAddActivity?.()} />
+              <ItineraryTab trip={trip} />
             ) : activeTab === 'calendario' ? (
               <ComingSoon
                 icon="calendar-outline"

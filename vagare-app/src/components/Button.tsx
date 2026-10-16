@@ -3,7 +3,7 @@ import { Pressable, StyleSheet, Text, ViewStyle } from 'react-native';
 
 import { colors, fonts, spacing } from '@/theme';
 
-export type ButtonVariant = 'primary' | 'outline';
+export type ButtonVariant = 'primary' | 'outline' | 'soft';
 export type ButtonTone = 'neutral' | 'accent';
 
 export interface ButtonProps {
@@ -26,7 +26,24 @@ export function Button({
   style,
 }: ButtonProps) {
   const isOutline = variant === 'outline';
+  const isSoft = variant === 'soft';
   const isAccentTone = tone === 'accent';
+
+  const variantStyle = isSoft
+    ? styles.soft
+    : isOutline
+      ? isAccentTone
+        ? styles.outlineAccent
+        : styles.outline
+      : styles.primary;
+
+  const textVariantStyle = isSoft
+    ? styles.softText
+    : isOutline
+      ? isAccentTone
+        ? styles.outlineAccentText
+        : styles.outlineText
+      : styles.primaryText;
 
   return (
     <Pressable
@@ -34,25 +51,14 @@ export function Button({
       disabled={disabled}
       style={({ pressed }) => [
         styles.base,
-        isOutline ? (isAccentTone ? styles.outlineAccent : styles.outline) : styles.primary,
+        variantStyle,
         pressed && styles.pressed,
         disabled && styles.disabled,
         style,
       ]}
     >
       {icon}
-      <Text
-        style={[
-          styles.text,
-          isOutline
-            ? isAccentTone
-              ? styles.outlineAccentText
-              : styles.outlineText
-            : styles.primaryText,
-        ]}
-      >
-        {title}
-      </Text>
+      <Text style={[styles.text, textVariantStyle]}>{title}</Text>
     </Pressable>
   );
 }
@@ -70,14 +76,17 @@ const styles = StyleSheet.create({
     backgroundColor: colors.accent,
   },
   outline: {
-    backgroundColor: colors.surface,
+    backgroundColor: 'transparent',
     borderWidth: 1,
     borderColor: colors.border.default,
   },
   outlineAccent: {
-    backgroundColor: colors.surface,
+    backgroundColor: 'transparent',
     borderWidth: 1,
     borderColor: colors.accent,
+  },
+  soft: {
+    backgroundColor: colors.accentSoft,
   },
   pressed: {
     opacity: 0.85,
@@ -97,6 +106,10 @@ const styles = StyleSheet.create({
     color: colors.text.primary,
   },
   outlineAccentText: {
+    fontFamily: fonts.serif.semiBold,
+    color: colors.accent,
+  },
+  softText: {
     fontFamily: fonts.serif.semiBold,
     color: colors.accent,
   },

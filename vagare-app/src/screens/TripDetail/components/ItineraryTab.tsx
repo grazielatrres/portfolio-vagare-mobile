@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { Ionicons } from '@expo/vector-icons';
 import { ActivityIndicator, ScrollView, StyleSheet, Text, View } from 'react-native';
 
@@ -9,10 +10,10 @@ import { Trip } from '@/services/trips';
 import { colors, fonts, spacing } from '@/theme';
 import { dayNumberInTrip, formatDateShort } from '@/utils/format';
 import { ActivityCard } from './ActivityCard';
+import { AddActivityForm } from './AddActivityForm';
 
-export interface RoteiroTabProps {
+export interface ItineraryTabProps {
   trip: Trip;
-  onAddActivity: () => void;
 }
 
 interface DayGroup {
@@ -40,8 +41,9 @@ function groupByDay(activities: Activity[], tripStartDate: string): DayGroup[] {
     }));
 }
 
-export function RoteiroTab({ trip, onAddActivity }: RoteiroTabProps) {
+export function ItineraryTab({ trip }: ItineraryTabProps) {
   const { data: activities, isPending, isError, error, refetch } = useActivitiesQuery(trip.id);
+  const [showForm, setShowForm] = useState(false);
 
   const dayGroups = activities ? groupByDay(activities, trip.startDate) : [];
 
@@ -89,14 +91,22 @@ export function RoteiroTab({ trip, onAddActivity }: RoteiroTabProps) {
             ))
           )}
 
-          <Button
-            title="Adicionar ao roteiro"
-            variant="outline"
-            tone="accent"
-            icon={<Ionicons name="add" size={20} color={colors.accent} />}
-            onPress={onAddActivity}
-            style={styles.addButton}
-          />
+          {showForm ? (
+            <AddActivityForm
+              trip={trip}
+              onCancel={() => setShowForm(false)}
+              onCreated={() => setShowForm(false)}
+            />
+          ) : (
+            <Button
+              title="Adicionar ao roteiro"
+              variant="outline"
+              tone="accent"
+              icon={<Ionicons name="add" size={20} color={colors.accent} />}
+              onPress={() => setShowForm(true)}
+              style={styles.addButton}
+            />
+          )}
         </ScrollView>
       )}
     </View>

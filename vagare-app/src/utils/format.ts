@@ -28,6 +28,15 @@ export function formatDateFull(dateString: string): string {
   return new Intl.DateTimeFormat('pt-BR', { timeZone: 'UTC' }).format(new Date(dateString));
 }
 
+export function formatDateWithWeekday(dateString: string): string {
+  return new Intl.DateTimeFormat('pt-BR', {
+    weekday: 'short',
+    day: 'numeric',
+    month: 'short',
+    timeZone: 'UTC',
+  }).format(new Date(dateString));
+}
+
 export function countTripDays(startDate: string, endDate: string): number {
   const start = new Date(startDate);
   const end = new Date(endDate);

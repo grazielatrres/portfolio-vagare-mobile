@@ -1,21 +1,34 @@
-import { useMemo, useState } from 'react';
-import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { useMemo, useState } from "react";
+import {
+  ActivityIndicator,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  View,
+} from "react-native";
 
-import { Button, EmptyState, FormError } from '@/components';
-import { useActivitiesQuery } from '@/hooks/useActivitiesQuery';
-import { ApiError } from '@/services/api';
-import { Trip } from '@/services/trips';
-import { colors, fonts, spacing } from '@/theme';
-import { DayGroup, groupByDay, tripDayDates } from '@/utils/activities';
-import { formatDateCompact, formatDateWithWeekday } from '@/utils/format';
-import { CalendarActivityRow } from './CalendarActivityRow';
+import { Button, EmptyState, FormError } from "@/components";
+import { useActivitiesQuery } from "@/hooks/useActivitiesQuery";
+import { ApiError } from "@/services/api";
+import { Trip } from "@/services/trips";
+import { colors, fonts, spacing } from "@/theme";
+import { DayGroup, groupByDay, tripDayDates } from "@/utils/activities";
+import { formatDateCompact, formatDateWithWeekday } from "@/utils/format";
+import { CalendarActivityRow } from "./CalendarActivityRow";
 
 export interface CalendarTabProps {
   trip: Trip;
 }
 
 export function CalendarTab({ trip }: CalendarTabProps) {
-  const { data: activities, isPending, isError, error, refetch } = useActivitiesQuery(trip.id);
+  const {
+    data: activities,
+    isPending,
+    isError,
+    error,
+    refetch,
+  } = useActivitiesQuery(trip.id);
 
   const dates = useMemo(
     () => tripDayDates(trip.startDate, trip.endDate),
@@ -32,8 +45,8 @@ export function CalendarTab({ trip }: CalendarTabProps) {
     return map;
   }, [activities, trip.startDate]);
 
-  const selectedActivities = activitiesByDate.get(selectedDate)?.activities ?? [];
-  const selectedDayNumber = dates.indexOf(selectedDate) + 1;
+  const selectedActivities =
+    activitiesByDate.get(selectedDate)?.activities ?? [];
 
   return (
     <View style={styles.root}>
@@ -43,11 +56,17 @@ export function CalendarTab({ trip }: CalendarTabProps) {
         <View style={styles.stateSpacing}>
           <FormError
             message={
-              error instanceof ApiError ? error.message : 'Não foi possível carregar o calendário.'
+              error instanceof ApiError
+                ? error.message
+                : "Não foi possível carregar o calendário."
             }
             style={styles.noMargin}
           />
-          <Button title="Tentar novamente" variant="outline" onPress={() => refetch()} />
+          <Button
+            title="Tentar novamente"
+            variant="outline"
+            onPress={() => refetch()}
+          />
         </View>
       ) : (
         <ScrollView
@@ -69,14 +88,17 @@ export function CalendarTab({ trip }: CalendarTabProps) {
                   style={[styles.dayCard, isSelected && styles.dayCardSelected]}
                 >
                   <Text
-                    style={[styles.dayDate, isSelected && styles.dayDateSelected]}
+                    style={[
+                      styles.dayDate,
+                      isSelected && styles.dayDateSelected,
+                    ]}
                     numberOfLines={1}
                   >
                     {formatDateCompact(date)}
                   </Text>
                   {count > 0 ? (
                     <Text style={styles.dayCount} numberOfLines={1}>
-                      {count} {count === 1 ? 'atividade' : 'atividades'}
+                      {count} {count === 1 ? "atividade" : "atividades"}
                     </Text>
                   ) : null}
                 </Pressable>
@@ -85,14 +107,21 @@ export function CalendarTab({ trip }: CalendarTabProps) {
           </View>
 
           <Text style={styles.dayHeader}>
-            Dia {selectedDayNumber} – {formatDateWithWeekday(selectedDate)}
+            {formatDateWithWeekday(selectedDate)}
           </Text>
 
           {selectedActivities.length === 0 ? (
-            <EmptyState message="Nenhuma atividade cadastrada neste dia." style={styles.emptyState} />
+            <EmptyState
+              message="Nenhuma atividade cadastrada neste dia."
+              style={styles.emptyState}
+            />
           ) : (
             selectedActivities.map((activity) => (
-              <CalendarActivityRow key={activity.id} activity={activity} currency={trip.currency} />
+              <CalendarActivityRow
+                key={activity.id}
+                activity={activity}
+                currency={trip.currency}
+              />
             ))
           )}
         </ScrollView>
@@ -126,16 +155,16 @@ const styles = StyleSheet.create({
     marginBottom: spacing.md,
   },
   grid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
+    flexDirection: "row",
+    flexWrap: "wrap",
     gap: spacing.sm,
     marginBottom: spacing.lg,
   },
   dayCard: {
-    width: '22.5%',
+    width: "22.5%",
     height: 72,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
     gap: spacing.xs,
     backgroundColor: colors.surface,
     borderWidth: 2,
@@ -159,7 +188,7 @@ const styles = StyleSheet.create({
     fontSize: 11,
     fontFamily: fonts.serif.medium,
     color: colors.accent,
-    textAlign: 'center',
+    textAlign: "center",
   },
   dayHeader: {
     fontSize: 16,

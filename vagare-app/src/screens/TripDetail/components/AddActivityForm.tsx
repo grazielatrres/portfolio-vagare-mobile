@@ -1,19 +1,27 @@
-import { useState } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { Ionicons } from "@expo/vector-icons";
+import { useState } from "react";
+import { StyleSheet, Text, View } from "react-native";
 
-import { Button, DayField, FormError, Input, SelectField } from '@/components';
-import { useCreateActivityMutation } from '@/hooks/useCreateActivityMutation';
-import { useUpdateActivityMutation } from '@/hooks/useUpdateActivityMutation';
-import { ApiError } from '@/services/api';
-import { Activity } from '@/services/activities';
-import { Trip } from '@/services/trips';
-import { colors, fonts, spacing } from '@/theme';
-import { ACTIVITY_CATEGORIES } from '@/utils/activityCategory';
-import { PERIOD_LABELS, derivePeriodFromTime } from '@/utils/activityPeriod';
-import { amountToDigits, digitsToAmount, formatAmountFromDigits } from '@/utils/currency';
-import { formatTime, fromISODate, maskTimeInput, toISODate } from '@/utils/date';
-import { dayNumberInTrip } from '@/utils/format';
+import { Button, DayField, FormError, Input, SelectField } from "@/components";
+import { useCreateActivityMutation } from "@/hooks/useCreateActivityMutation";
+import { useUpdateActivityMutation } from "@/hooks/useUpdateActivityMutation";
+import { Activity } from "@/services/activities";
+import { ApiError } from "@/services/api";
+import { Trip } from "@/services/trips";
+import { colors, fonts, spacing } from "@/theme";
+import { ACTIVITY_CATEGORIES } from "@/utils/activityCategory";
+import { PERIOD_LABELS, derivePeriodFromTime } from "@/utils/activityPeriod";
+import {
+  amountToDigits,
+  digitsToAmount,
+  formatAmountFromDigits,
+} from "@/utils/currency";
+import {
+  formatTime,
+  fromISODate,
+  maskTimeInput,
+  toISODate,
+} from "@/utils/date";
 
 export interface AddActivityFormProps {
   trip: Trip;
@@ -24,43 +32,61 @@ export interface AddActivityFormProps {
 
 const TIME_PATTERN = /^([01]\d|2[0-3]):([0-5]\d)$/;
 
-export function AddActivityForm({ trip, activity, onCancel, onSuccess }: AddActivityFormProps) {
+export function AddActivityForm({
+  trip,
+  activity,
+  onCancel,
+  onSuccess,
+}: AddActivityFormProps) {
   const isEditMode = !!activity;
   const createMutation = useCreateActivityMutation(trip.id);
   const updateMutation = useUpdateActivityMutation(trip.id);
-  const isPending = isEditMode ? updateMutation.isPending : createMutation.isPending;
+  const isPending = isEditMode
+    ? updateMutation.isPending
+    : createMutation.isPending;
 
   const tripStart = fromISODate(trip.startDate);
   const tripEnd = fromISODate(trip.endDate);
 
-  const [name, setName] = useState(activity?.name ?? '');
+  const [name, setName] = useState(activity?.name ?? "");
   const [selectedDate, setSelectedDate] = useState<Date | null>(
     activity ? fromISODate(activity.date) : null,
   );
-  const [time, setTime] = useState(activity?.time ? formatTime(activity.time) : '');
-  const [category, setCategory] = useState<string | null>(activity?.category ?? null);
-  const [costDigits, setCostDigits] = useState(
-    activity?.estimatedCost ? amountToDigits(Number(activity.estimatedCost)) : '',
+  const [time, setTime] = useState(
+    activity?.time ? formatTime(activity.time) : "",
   );
-  const [location, setLocation] = useState(activity?.location ?? '');
-  const [description, setDescription] = useState(activity?.description ?? '');
+  const [category, setCategory] = useState<string | null>(
+    activity?.category ?? null,
+  );
+  const [costDigits, setCostDigits] = useState(
+    activity?.estimatedCost
+      ? amountToDigits(Number(activity.estimatedCost))
+      : "",
+  );
+  const [location, setLocation] = useState(activity?.location ?? "");
+  const [description, setDescription] = useState(activity?.description ?? "");
   const [error, setError] = useState<string | null>(null);
 
   const currency = trip.currency;
-  const formattedCost = costDigits ? formatAmountFromDigits(costDigits, currency) : '';
+  const formattedCost = costDigits
+    ? formatAmountFromDigits(costDigits, currency)
+    : "";
   const activeDate = selectedDate ?? tripStart;
-  const derivedPeriod = time.trim() && TIME_PATTERN.test(time.trim()) ? derivePeriodFromTime(time) : null;
+  const derivedPeriod =
+    time.trim() && TIME_PATTERN.test(time.trim())
+      ? derivePeriodFromTime(time)
+      : null;
 
   async function handleSubmit() {
     setError(null);
 
     if (!name.trim()) {
-      setError('Nome é obrigatório');
+      setError("Nome é obrigatório");
       return;
     }
 
     if (time.trim() && !TIME_PATTERN.test(time.trim())) {
-      setError('Horário inválido. Use o formato HH:mm');
+      setError("Horário inválido. Use o formato HH:mm");
       return;
     }
 
@@ -87,8 +113,8 @@ export function AddActivityForm({ trip, activity, onCancel, onSuccess }: AddActi
         err instanceof ApiError
           ? err.message
           : isEditMode
-            ? 'Não foi possível salvar a atividade.'
-            : 'Não foi possível adicionar a atividade.',
+            ? "Não foi possível salvar a atividade."
+            : "Não foi possível adicionar a atividade.",
       );
     }
   }
@@ -96,8 +122,14 @@ export function AddActivityForm({ trip, activity, onCancel, onSuccess }: AddActi
   return (
     <View style={styles.card}>
       <View style={styles.header}>
-        <Ionicons name={isEditMode ? 'create-outline' : 'add'} size={20} color={colors.text.primary} />
-        <Text style={styles.title}>{isEditMode ? 'Editar atividade' : 'Nova atividade'}</Text>
+        <Ionicons
+          name={isEditMode ? "create-outline" : "add"}
+          size={20}
+          color={colors.text.primary}
+        />
+        <Text style={styles.title}>
+          {isEditMode ? "Editar atividade" : "Nova atividade"}
+        </Text>
       </View>
 
       <Input
@@ -118,9 +150,6 @@ export function AddActivityForm({ trip, activity, onCancel, onSuccess }: AddActi
         maximumDate={tripEnd}
         containerStyle={styles.field}
       />
-      <Text style={styles.hint}>
-        Dia {dayNumberInTrip(trip.startDate, toISODate(activeDate))} da viagem
-      </Text>
 
       <Input
         label="Horário"
@@ -131,7 +160,9 @@ export function AddActivityForm({ trip, activity, onCancel, onSuccess }: AddActi
         maxLength={5}
         containerStyle={styles.field}
       />
-      <Text style={styles.hint}>Formato 24h (ex: 19:30 para 7:30 da noite)</Text>
+      <Text style={styles.hint}>
+        Formato 24h (ex: 19:30 para 7:30 da noite)
+      </Text>
       {derivedPeriod ? (
         <Text style={styles.hint}>Período: {PERIOD_LABELS[derivedPeriod]}</Text>
       ) : null}
@@ -146,9 +177,9 @@ export function AddActivityForm({ trip, activity, onCancel, onSuccess }: AddActi
 
       <Input
         label="Valor estimado"
-        placeholder={formatAmountFromDigits('', currency)}
+        placeholder={formatAmountFromDigits("", currency)}
         value={formattedCost}
-        onChangeText={(text) => setCostDigits(text.replace(/\D/g, ''))}
+        onChangeText={(text) => setCostDigits(text.replace(/\D/g, ""))}
         keyboardType="number-pad"
         selection={{ start: formattedCost.length, end: formattedCost.length }}
         containerStyle={styles.field}
@@ -185,7 +216,13 @@ export function AddActivityForm({ trip, activity, onCancel, onSuccess }: AddActi
         />
         <Button
           title={
-            isEditMode ? (isPending ? 'Salvando...' : 'Salvar') : isPending ? 'Adicionando...' : 'Adicionar'
+            isEditMode
+              ? isPending
+                ? "Salvando..."
+                : "Salvar"
+              : isPending
+                ? "Adicionando..."
+                : "Adicionar"
           }
           onPress={handleSubmit}
           disabled={isPending}
@@ -205,8 +242,8 @@ const styles = StyleSheet.create({
     padding: spacing.md,
   },
   header: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: spacing.xs,
     marginBottom: spacing.md,
   },
@@ -228,10 +265,10 @@ const styles = StyleSheet.create({
   multilineInput: {
     height: 80,
     paddingTop: spacing.sm,
-    textAlignVertical: 'top',
+    textAlignVertical: "top",
   },
   actions: {
-    flexDirection: 'row',
+    flexDirection: "row",
     gap: spacing.sm,
   },
   actionButton: {

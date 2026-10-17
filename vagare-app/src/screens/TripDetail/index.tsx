@@ -10,7 +10,7 @@ import { formatCurrencyValue } from '@/utils/currency';
 import { countTripDays, formatDateFull } from '@/utils/format';
 import { BudgetTab } from './components/BudgetTab';
 import { CalendarTab } from './components/CalendarTab';
-import { ComingSoon } from './components/ComingSoon';
+import { InfoTab } from './components/InfoTab';
 import { ItineraryTab } from './components/ItineraryTab';
 import { TripTabKey, TripTabs } from './components/TripTabs';
 import { WeatherTab } from './components/WeatherTab';
@@ -62,11 +62,7 @@ export function TripDetail({ tripId, onBack }: TripDetailProps) {
             ) : activeTab === 'orcamento' ? (
               <BudgetTab trip={trip} />
             ) : (
-              <ComingSoon
-                icon="information-circle-outline"
-                title="Info"
-                description="Em breve você vai poder guardar dados de voo e hospedagem aqui."
-              />
+              <InfoTab trip={trip} />
             )}
           </View>
         </>

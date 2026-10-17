@@ -20,12 +20,28 @@ export function formatDateShort(dateString: string): string {
   }).format(new Date(dateString));
 }
 
+export function formatDateCompact(dateString: string): string {
+  const date = new Date(dateString);
+  const day = new Intl.DateTimeFormat('pt-BR', { day: 'numeric', timeZone: 'UTC' }).format(date);
+  const month = new Intl.DateTimeFormat('pt-BR', { month: 'short', timeZone: 'UTC' }).format(date);
+  return `${day} ${month}`;
+}
+
 export function formatDateRange(startDate: string, endDate: string): string {
   return `${formatDateShort(startDate)} – ${formatDateShort(endDate)}`;
 }
 
 export function formatDateFull(dateString: string): string {
   return new Intl.DateTimeFormat('pt-BR', { timeZone: 'UTC' }).format(new Date(dateString));
+}
+
+export function formatDateWithWeekday(dateString: string): string {
+  return new Intl.DateTimeFormat('pt-BR', {
+    weekday: 'short',
+    day: 'numeric',
+    month: 'short',
+    timeZone: 'UTC',
+  }).format(new Date(dateString));
 }
 
 export function countTripDays(startDate: string, endDate: string): number {

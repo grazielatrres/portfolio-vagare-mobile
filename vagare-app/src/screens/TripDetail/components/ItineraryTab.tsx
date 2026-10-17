@@ -5,40 +5,15 @@ import { ActivityIndicator, ScrollView, StyleSheet, Text, View } from 'react-nat
 import { Button, EmptyState, FormError } from '@/components';
 import { useActivitiesQuery } from '@/hooks/useActivitiesQuery';
 import { ApiError } from '@/services/api';
-import { Activity } from '@/services/activities';
 import { Trip } from '@/services/trips';
 import { colors, fonts, spacing } from '@/theme';
-import { dayNumberInTrip, formatDateShort } from '@/utils/format';
+import { groupByDay } from '@/utils/activities';
+import { formatDateShort } from '@/utils/format';
 import { ActivityCard } from './ActivityCard';
 import { AddActivityForm } from './AddActivityForm';
 
 export interface ItineraryTabProps {
   trip: Trip;
-}
-
-interface DayGroup {
-  date: string;
-  dayNumber: number;
-  activities: Activity[];
-}
-
-function groupByDay(activities: Activity[], tripStartDate: string): DayGroup[] {
-  const groups = new Map<string, Activity[]>();
-
-  for (const activity of activities) {
-    const key = activity.date;
-    const existing = groups.get(key) ?? [];
-    existing.push(activity);
-    groups.set(key, existing);
-  }
-
-  return Array.from(groups.entries())
-    .sort(([a], [b]) => (a < b ? -1 : 1))
-    .map(([date, dayActivities]) => ({
-      date,
-      dayNumber: dayNumberInTrip(tripStartDate, date),
-      activities: dayActivities,
-    }));
 }
 
 export function ItineraryTab({ trip }: ItineraryTabProps) {
@@ -83,12 +58,7 @@ export function ItineraryTab({ trip }: ItineraryTabProps) {
                   Dia {group.dayNumber} · {formatDateShort(group.date)}
                 </Text>
                 {group.activities.map((activity) => (
-                  <ActivityCard
-                    key={activity.id}
-                    activity={activity}
-                    tripId={trip.id}
-                    currency={trip.currency}
-                  />
+                  <ActivityCard key={activity.id} activity={activity} trip={trip} />
                 ))}
               </View>
             ))
@@ -98,7 +68,7 @@ export function ItineraryTab({ trip }: ItineraryTabProps) {
             <AddActivityForm
               trip={trip}
               onCancel={() => setShowForm(false)}
-              onCreated={() => setShowForm(false)}
+              onSuccess={() => setShowForm(false)}
             />
           ) : (
             <Button

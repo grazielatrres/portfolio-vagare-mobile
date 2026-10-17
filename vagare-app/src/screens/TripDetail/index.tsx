@@ -8,6 +8,7 @@ import { ApiError } from '@/services/api';
 import { colors, fonts, spacing } from '@/theme';
 import { formatCurrencyValue } from '@/utils/currency';
 import { countTripDays, formatDateFull } from '@/utils/format';
+import { CalendarTab } from './components/CalendarTab';
 import { ComingSoon } from './components/ComingSoon';
 import { ItineraryTab } from './components/ItineraryTab';
 import { TripTabKey, TripTabs } from './components/TripTabs';
@@ -53,11 +54,7 @@ export function TripDetail({ tripId, onBack }: TripDetailProps) {
             {activeTab === 'roteiro' ? (
               <ItineraryTab trip={trip} />
             ) : activeTab === 'calendario' ? (
-              <ComingSoon
-                icon="calendar-outline"
-                title="Calendário"
-                description="Em breve você vai poder ver o roteiro distribuído num calendário mensal."
-              />
+              <CalendarTab trip={trip} />
             ) : activeTab === 'clima' ? (
               <ComingSoon
                 icon="cloud-outline"

@@ -11,7 +11,7 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import { Button, FormError } from "@/components";
+import { Button, EmptyState, FormError } from "@/components";
 import { useAuth } from "@/contexts/AuthContext";
 import { useTripsQuery } from "@/hooks/useTripsQuery";
 import { ApiError } from "@/services/api";
@@ -86,10 +86,7 @@ export function Trips() {
         </View>
       ) : trips.length === 0 ? (
         <View style={styles.stateSpacing}>
-          <Text style={styles.emptyText}>
-            Você ainda não tem viagens cadastradas. Crie a primeira para começar
-            a planejar.
-          </Text>
+          <EmptyState message="Você ainda não tem viagens cadastradas. Crie a primeira para começar a planejar." />
         </View>
       ) : (
         <FlatList
@@ -166,11 +163,5 @@ const styles = StyleSheet.create({
   },
   noMargin: {
     marginBottom: 0,
-  },
-  emptyText: {
-    fontSize: 14,
-    fontFamily: fonts.serif.regular,
-    color: colors.text.secondary,
-    textAlign: "center",
   },
 });

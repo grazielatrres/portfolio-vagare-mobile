@@ -12,6 +12,8 @@ export { DayField } from './DayField';
 export type { DayFieldProps } from './DayField';
 export { Divider } from './Divider';
 export type { DividerProps } from './Divider';
+export { EmptyState } from './EmptyState';
+export type { EmptyStateProps } from './EmptyState';
 export { FormError } from './FormError';
 export type { FormErrorProps } from './FormError';
 export { Input } from './Input';

@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Ionicons } from '@expo/vector-icons';
 import { ActivityIndicator, ScrollView, StyleSheet, Text, View } from 'react-native';
 
-import { Button, FormError } from '@/components';
+import { Button, EmptyState, FormError } from '@/components';
 import { useActivitiesQuery } from '@/hooks/useActivitiesQuery';
 import { ApiError } from '@/services/api';
 import { Activity } from '@/services/activities';
@@ -70,9 +70,12 @@ export function ItineraryTab({ trip }: ItineraryTabProps) {
           showsVerticalScrollIndicator={false}
         >
           {dayGroups.length === 0 ? (
-            <Text style={styles.emptyText}>
-              Nenhuma atividade cadastrada ainda. Adicione a primeira ao roteiro.
-            </Text>
+            showForm ? null : (
+              <EmptyState
+                message="Nenhuma atividade cadastrada ainda. Adicione a primeira ao roteiro."
+                style={styles.emptyState}
+              />
+            )
           ) : (
             dayGroups.map((group) => (
               <View key={group.date} style={styles.dayGroup}>
@@ -131,12 +134,8 @@ const styles = StyleSheet.create({
   noMargin: {
     marginBottom: 0,
   },
-  emptyText: {
+  emptyState: {
     marginTop: spacing.lg,
-    fontSize: 14,
-    fontFamily: fonts.serif.regular,
-    color: colors.text.secondary,
-    textAlign: 'center',
   },
   dayGroup: {
     marginBottom: spacing.lg,

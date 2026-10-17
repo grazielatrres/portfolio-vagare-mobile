@@ -85,7 +85,11 @@ export function CalendarTab({ trip }: CalendarTabProps) {
                 <Pressable
                   key={date}
                   onPress={() => setSelectedDate(date)}
-                  style={[styles.dayCard, isSelected && styles.dayCardSelected]}
+                  style={({ pressed }) => [
+                    styles.dayCard,
+                    isSelected && styles.dayCardSelected,
+                    pressed && styles.dayCardPressed,
+                  ]}
                 >
                   <Text
                     style={[
@@ -175,6 +179,9 @@ const styles = StyleSheet.create({
   dayCardSelected: {
     backgroundColor: colors.accentSoft,
     borderColor: colors.accent,
+  },
+  dayCardPressed: {
+    opacity: 0.7,
   },
   dayDate: {
     fontSize: 15,

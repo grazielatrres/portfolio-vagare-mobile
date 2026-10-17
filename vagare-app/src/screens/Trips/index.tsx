@@ -1,0 +1,167 @@
+import { useState } from "react";
+import { Ionicons } from "@expo/vector-icons";
+import { router } from "expo-router";
+import {
+  ActivityIndicator,
+  FlatList,
+  RefreshControl,
+  StyleSheet,
+  Text,
+  View,
+} from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+
+import { Button, EmptyState, FormError } from "@/components";
+import { useAuth } from "@/contexts/AuthContext";
+import { useTripsQuery } from "@/hooks/useTripsQuery";
+import { ApiError } from "@/services/api";
+import { colors, fonts, spacing } from "@/theme";
+import { getGreeting } from "@/utils/format";
+import { TripCard } from "./components/TripCard";
+
+export function Trips() {
+  const { user } = useAuth();
+  const insets = useSafeAreaInsets();
+  const { data, isPending, isError, error, refetch } = useTripsQuery();
+  const [refreshing, setRefreshing] = useState(false);
+
+  const trips = data?.trips ?? [];
+  const isOffline = data?.isOffline ?? false;
+
+  async function handleRefresh() {
+    setRefreshing(true);
+    try {
+      await refetch();
+    } finally {
+      setRefreshing(false);
+    }
+  }
+
+  return (
+    <View style={[styles.root, { paddingTop: insets.top + spacing.md }]}>
+      <View style={styles.header}>
+        <Text style={styles.greeting}>{getGreeting()},</Text>
+        <Text style={styles.name}>{user?.name}</Text>
+      </View>
+
+      <Button
+        title="Criar nova viagem"
+        icon={<Ionicons name="add" size={20} color={colors.surface} />}
+        style={styles.createButton}
+        onPress={() => router.push("/trip/create")}
+      />
+
+      <Text style={styles.sectionTitle}>Minhas viagens</Text>
+
+      {isOffline ? (
+        <View style={styles.offlineBanner}>
+          <Ionicons
+            name="cloud-offline-outline"
+            size={16}
+            color={colors.text.secondary}
+          />
+          <Text style={styles.offlineBannerText}>
+            Sem conexão — mostrando as viagens salvas neste dispositivo
+          </Text>
+        </View>
+      ) : null}
+
+      {isPending ? (
+        <ActivityIndicator color={colors.accent} style={styles.stateSpacing} />
+      ) : isError ? (
+        <View style={styles.stateSpacing}>
+          <FormError
+            message={
+              error instanceof ApiError
+                ? error.message
+                : "Não foi possível carregar as viagens."
+            }
+            style={styles.noMargin}
+          />
+          <Button
+            title="Tentar novamente"
+            variant="outline"
+            onPress={() => refetch()}
+          />
+        </View>
+      ) : trips.length === 0 ? (
+        <View style={styles.stateSpacing}>
+          <EmptyState message="Você ainda não tem viagens cadastradas. Crie a primeira para começar a planejar." />
+        </View>
+      ) : (
+        <FlatList
+          data={trips}
+          keyExtractor={(trip) => trip.id}
+          renderItem={({ item }) => <TripCard trip={item} />}
+          showsVerticalScrollIndicator={false}
+          style={styles.list}
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={handleRefresh}
+              tintColor={colors.accent}
+              colors={[colors.accent]}
+            />
+          }
+        />
+      )}
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  root: {
+    flex: 1,
+    backgroundColor: colors.background,
+    paddingHorizontal: spacing.lg,
+  },
+  header: {
+    marginBottom: spacing.lg,
+  },
+  greeting: {
+    fontSize: 16,
+    fontFamily: fonts.serif.regular,
+    color: colors.text.secondary,
+  },
+  name: {
+    fontSize: 26,
+    fontFamily: fonts.serif.bold,
+    color: colors.text.primary,
+  },
+  createButton: {
+    marginBottom: spacing.xl,
+  },
+  sectionTitle: {
+    fontSize: 18,
+    fontFamily: fonts.serif.bold,
+    color: colors.text.primary,
+    marginBottom: spacing.md,
+  },
+  offlineBanner: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing.xs,
+    backgroundColor: colors.surface,
+    borderWidth: 1,
+    borderColor: colors.border.default,
+    borderRadius: 10,
+    padding: spacing.sm,
+    marginBottom: spacing.md,
+  },
+  offlineBannerText: {
+    flex: 1,
+    fontSize: 13,
+    fontFamily: fonts.serif.regular,
+    color: colors.text.secondary,
+  },
+  list: {
+    flex: 1,
+  },
+  stateSpacing: {
+    marginTop: spacing.lg,
+    gap: spacing.md,
+  },
+  noMargin: {
+    marginBottom: 0,
+  },
+});

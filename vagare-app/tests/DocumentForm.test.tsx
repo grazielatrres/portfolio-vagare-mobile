@@ -1,10 +1,11 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { fireEvent, render, screen, waitFor } from '@testing-library/react-native';
 
-jest.mock('@/contexts/AuthContext', () => require('@/test/mockAuth').authContextMock);
+import { DocumentForm } from '@/screens/TripDetail/components/DocumentForm';
+import { buildInfo, buildTrip, mockJsonResponse } from './helpers/fixtures';
 
-import { DocumentForm } from './DocumentForm';
-import { buildInfo, buildTrip, mockJsonResponse } from '@/test/fixtures';
+// eslint-disable-next-line @typescript-eslint/no-require-imports -- jest.mock factories must use require, not import, to work with hoisting
+jest.mock('@/contexts/AuthContext', () => require('./helpers/mockAuth').authContextMock);
 
 const trip = buildTrip();
 

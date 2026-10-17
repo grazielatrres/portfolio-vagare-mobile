@@ -17,29 +17,37 @@ export function ResetPassword({ token, onDone }: ResetPasswordProps) {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [passwordError, setPasswordError] = useState<string | null>(null);
+  const [confirmPasswordError, setConfirmPasswordError] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
 
   async function handleSubmit() {
     setError(null);
+    setPasswordError(null);
+    setConfirmPasswordError(null);
 
     if (!token) {
       setError('Link de redefinição inválido. Solicite um novo.');
       return;
     }
 
-    if (!password || !confirmPassword) {
-      setError('Preencha os dois campos para continuar.');
-      return;
+    let hasError = false;
+    if (!password) {
+      setPasswordError('Informe uma senha.');
+      hasError = true;
+    } else if (password.length < 6) {
+      setPasswordError('A senha deve ter no mínimo 6 caracteres.');
+      hasError = true;
     }
-
-    if (password.length < 6) {
-      setError('A senha deve ter no mínimo 6 caracteres.');
-      return;
+    if (!confirmPassword) {
+      setConfirmPasswordError('Confirme sua senha.');
+      hasError = true;
+    } else if (password && password !== confirmPassword) {
+      setConfirmPasswordError('As senhas não coincidem.');
+      hasError = true;
     }
-
-    if (password !== confirmPassword) {
-      setError('As senhas não coincidem.');
+    if (hasError) {
       return;
     }
 
@@ -84,14 +92,22 @@ export function ResetPassword({ token, onDone }: ResetPasswordProps) {
           label="Nova senha"
           placeholder="Mínimo 6 caracteres"
           value={password}
-          onChangeText={setPassword}
+          onChangeText={(text) => {
+            setPassword(text);
+            setPasswordError(null);
+          }}
+          error={passwordError}
           containerStyle={styles.field}
         />
         <PasswordInput
           label="Confirmar nova senha"
           placeholder="Repita a senha"
           value={confirmPassword}
-          onChangeText={setConfirmPassword}
+          onChangeText={(text) => {
+            setConfirmPassword(text);
+            setConfirmPasswordError(null);
+          }}
+          error={confirmPasswordError}
           containerStyle={styles.field}
         />
 

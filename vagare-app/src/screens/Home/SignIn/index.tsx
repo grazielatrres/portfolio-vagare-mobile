@@ -19,23 +19,43 @@ export function SignIn({ onBack }: SignInProps) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [nameError, setNameError] = useState<string | null>(null);
+  const [emailError, setEmailError] = useState<string | null>(null);
+  const [passwordError, setPasswordError] = useState<string | null>(null);
+  const [confirmPasswordError, setConfirmPasswordError] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   async function handleSubmit() {
     setError(null);
+    setNameError(null);
+    setEmailError(null);
+    setPasswordError(null);
+    setConfirmPasswordError(null);
 
-    if (!name || !email || !password || !confirmPassword) {
-      setError('Preencha todos os campos para continuar.');
-      return;
+    let hasError = false;
+    if (!name) {
+      setNameError('Informe seu nome completo.');
+      hasError = true;
     }
-
-    if (password.length < 6) {
-      setError('A senha deve ter no mínimo 6 caracteres.');
-      return;
+    if (!email) {
+      setEmailError('Informe seu email.');
+      hasError = true;
     }
-
-    if (password !== confirmPassword) {
-      setError('As senhas não coincidem.');
+    if (!password) {
+      setPasswordError('Informe uma senha.');
+      hasError = true;
+    } else if (password.length < 6) {
+      setPasswordError('A senha deve ter no mínimo 6 caracteres.');
+      hasError = true;
+    }
+    if (!confirmPassword) {
+      setConfirmPasswordError('Confirme sua senha.');
+      hasError = true;
+    } else if (password && password !== confirmPassword) {
+      setConfirmPasswordError('As senhas não coincidem.');
+      hasError = true;
+    }
+    if (hasError) {
       return;
     }
 
@@ -59,7 +79,11 @@ export function SignIn({ onBack }: SignInProps) {
           label="Nome completo"
           placeholder="Seu nome"
           value={name}
-          onChangeText={setName}
+          onChangeText={(text) => {
+            setName(text);
+            setNameError(null);
+          }}
+          error={nameError}
           autoCapitalize="words"
           containerStyle={styles.field}
         />
@@ -67,7 +91,11 @@ export function SignIn({ onBack }: SignInProps) {
           label="Email"
           placeholder="seu@email.com"
           value={email}
-          onChangeText={setEmail}
+          onChangeText={(text) => {
+            setEmail(text);
+            setEmailError(null);
+          }}
+          error={emailError}
           keyboardType="email-address"
           autoCapitalize="none"
           autoCorrect={false}
@@ -77,14 +105,22 @@ export function SignIn({ onBack }: SignInProps) {
           label="Senha"
           placeholder="Mínimo 6 caracteres"
           value={password}
-          onChangeText={setPassword}
+          onChangeText={(text) => {
+            setPassword(text);
+            setPasswordError(null);
+          }}
+          error={passwordError}
           containerStyle={styles.field}
         />
         <PasswordInput
           label="Confirmar senha"
           placeholder="Repita a senha"
           value={confirmPassword}
-          onChangeText={setConfirmPassword}
+          onChangeText={(text) => {
+            setConfirmPassword(text);
+            setConfirmPasswordError(null);
+          }}
+          error={confirmPasswordError}
           containerStyle={styles.field}
         />
 

@@ -44,13 +44,15 @@ export function DocumentForm({ trip, info, onCancel, onSuccess }: DocumentFormPr
   );
   const [number, setNumber] = useState(details.number ?? '');
   const [description, setDescription] = useState(info?.description ?? '');
+  const [documentTypeError, setDocumentTypeError] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   async function handleSubmit() {
     setError(null);
+    setDocumentTypeError(null);
 
     if (!documentType.trim()) {
-      setError('Tipo de documento é obrigatório');
+      setDocumentTypeError('Tipo de documento é obrigatório');
       return;
     }
 
@@ -94,7 +96,11 @@ export function DocumentForm({ trip, info, onCancel, onSuccess }: DocumentFormPr
         required
         placeholder="Ex: Passaporte, Visto, Seguro viagem"
         value={documentType}
-        onChangeText={setDocumentType}
+        onChangeText={(text) => {
+          setDocumentType(text);
+          setDocumentTypeError(null);
+        }}
+        error={documentTypeError}
         containerStyle={styles.field}
       />
 

@@ -19,14 +19,26 @@ export function Login({ onCreateAccount, onForgotPassword }: LoginProps) {
   const { signInWithGoogle, isReady: isGoogleReady } = useGoogleAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [emailError, setEmailError] = useState<string | null>(null);
+  const [passwordError, setPasswordError] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
 
   async function handleSubmit() {
     setError(null);
+    setEmailError(null);
+    setPasswordError(null);
 
-    if (!email || !password) {
-      setError('Informe e-mail e senha para continuar.');
+    let hasError = false;
+    if (!email) {
+      setEmailError('Informe seu email.');
+      hasError = true;
+    }
+    if (!password) {
+      setPasswordError('Informe sua senha.');
+      hasError = true;
+    }
+    if (hasError) {
       return;
     }
 
@@ -67,7 +79,11 @@ export function Login({ onCreateAccount, onForgotPassword }: LoginProps) {
           label="Email"
           placeholder="seu@email.com"
           value={email}
-          onChangeText={setEmail}
+          onChangeText={(text) => {
+            setEmail(text);
+            setEmailError(null);
+          }}
+          error={emailError}
           keyboardType="email-address"
           autoCapitalize="none"
           autoCorrect={false}
@@ -77,7 +93,11 @@ export function Login({ onCreateAccount, onForgotPassword }: LoginProps) {
           label="Senha"
           placeholder="Sua senha"
           value={password}
-          onChangeText={setPassword}
+          onChangeText={(text) => {
+            setPassword(text);
+            setPasswordError(null);
+          }}
+          error={passwordError}
           containerStyle={styles.field}
         />
 

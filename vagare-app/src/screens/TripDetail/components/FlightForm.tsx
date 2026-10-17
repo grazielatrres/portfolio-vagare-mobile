@@ -38,18 +38,28 @@ export function FlightForm({ trip, info, onCancel, onSuccess }: FlightFormProps)
   const [destination, setDestination] = useState(details.destination ?? '');
   const [time, setTime] = useState(details.time ?? '');
   const [flightNumber, setFlightNumber] = useState(details.flightNumber ?? '');
+  const [airlineError, setAirlineError] = useState<string | null>(null);
+  const [timeError, setTimeError] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   async function handleSubmit() {
     setError(null);
+    setAirlineError(null);
+    setTimeError(null);
+
+    let hasError = false;
 
     if (!airline.trim()) {
-      setError('Companhia aérea é obrigatória');
-      return;
+      setAirlineError('Companhia aérea é obrigatória');
+      hasError = true;
     }
 
     if (time.trim() && !TIME_PATTERN.test(time.trim())) {
-      setError('Horário inválido. Use o formato HH:mm');
+      setTimeError('Horário inválido. Use o formato HH:mm');
+      hasError = true;
+    }
+
+    if (hasError) {
       return;
     }
 
@@ -95,7 +105,11 @@ export function FlightForm({ trip, info, onCancel, onSuccess }: FlightFormProps)
         required
         placeholder="Ex: Aegean Airlines"
         value={airline}
-        onChangeText={setAirline}
+        onChangeText={(text) => {
+          setAirline(text);
+          setAirlineError(null);
+        }}
+        error={airlineError}
         containerStyle={styles.field}
       />
 
@@ -130,7 +144,11 @@ export function FlightForm({ trip, info, onCancel, onSuccess }: FlightFormProps)
           label="Horário"
           placeholder="00:00"
           value={time}
-          onChangeText={(text) => setTime(maskTimeInput(text))}
+          onChangeText={(text) => {
+            setTime(maskTimeInput(text));
+            setTimeError(null);
+          }}
+          error={timeError}
           keyboardType="number-pad"
           maxLength={5}
           containerStyle={styles.rowItem}

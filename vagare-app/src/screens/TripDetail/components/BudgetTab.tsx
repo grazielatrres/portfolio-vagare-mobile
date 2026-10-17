@@ -29,6 +29,8 @@ export function BudgetTab({ trip }: BudgetTabProps) {
   const [description, setDescription] = useState('');
   const [costDigits, setCostDigits] = useState('');
   const [category, setCategory] = useState<string | null>(null);
+  const [descriptionError, setDescriptionError] = useState<string | null>(null);
+  const [amountError, setAmountError] = useState<string | null>(null);
   const [formError, setFormError] = useState<string | null>(null);
 
   const currency = trip.currency;
@@ -38,21 +40,31 @@ export function BudgetTab({ trip }: BudgetTabProps) {
     setDescription('');
     setCostDigits('');
     setCategory(null);
+    setDescriptionError(null);
+    setAmountError(null);
     setFormError(null);
     setShowForm(false);
   }
 
   async function handleAddExpense() {
     setFormError(null);
+    setDescriptionError(null);
+    setAmountError(null);
+
+    let hasError = false;
 
     if (!description.trim()) {
-      setFormError('Descrição é obrigatória');
-      return;
+      setDescriptionError('Descrição é obrigatória');
+      hasError = true;
     }
 
     const amount = costDigits ? digitsToAmount(costDigits) : 0;
     if (amount <= 0) {
-      setFormError('Valor deve ser maior que zero');
+      setAmountError('Valor deve ser maior que zero');
+      hasError = true;
+    }
+
+    if (hasError) {
       return;
     }
 
@@ -117,7 +129,11 @@ export function BudgetTab({ trip }: BudgetTabProps) {
                 required
                 placeholder="Ex: Jantar no centro"
                 value={description}
-                onChangeText={setDescription}
+                onChangeText={(text) => {
+                  setDescription(text);
+                  setDescriptionError(null);
+                }}
+                error={descriptionError}
                 containerStyle={styles.field}
               />
 
@@ -127,7 +143,11 @@ export function BudgetTab({ trip }: BudgetTabProps) {
                   required
                   placeholder={formatAmountFromDigits('', currency)}
                   value={formattedCost}
-                  onChangeText={(text) => setCostDigits(text.replace(/\D/g, ''))}
+                  onChangeText={(text) => {
+                    setCostDigits(text.replace(/\D/g, ''));
+                    setAmountError(null);
+                  }}
+                  error={amountError}
                   keyboardType="number-pad"
                   selection={{ start: formattedCost.length, end: formattedCost.length }}
                   containerStyle={styles.formRowItem}

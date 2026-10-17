@@ -15,15 +15,17 @@ export interface ForgotPasswordProps {
 export function ForgotPassword({ onBack }: ForgotPasswordProps) {
   const [email, setEmail] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [emailError, setEmailError] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
 
   async function handleSubmit() {
     setError(null);
+    setEmailError(null);
     setSuccess(null);
 
     if (!email) {
-      setError('Informe seu email para continuar.');
+      setEmailError('Informe seu email para continuar.');
       return;
     }
 
@@ -54,7 +56,11 @@ export function ForgotPassword({ onBack }: ForgotPasswordProps) {
           label="Email"
           placeholder="seu@email.com"
           value={email}
-          onChangeText={setEmail}
+          onChangeText={(text) => {
+            setEmail(text);
+            setEmailError(null);
+          }}
+          error={emailError}
           keyboardType="email-address"
           autoCapitalize="none"
           autoCorrect={false}

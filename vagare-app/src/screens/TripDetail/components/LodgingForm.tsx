@@ -36,18 +36,28 @@ export function LodgingForm({ trip, info, onCancel, onSuccess }: LodgingFormProp
   const [checkOut, setCheckOut] = useState<Date | null>(
     details.checkOut ? fromISODate(details.checkOut) : null,
   );
+  const [hotelNameError, setHotelNameError] = useState<string | null>(null);
+  const [checkOutError, setCheckOutError] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   async function handleSubmit() {
     setError(null);
+    setHotelNameError(null);
+    setCheckOutError(null);
+
+    let hasError = false;
 
     if (!hotelName.trim()) {
-      setError('Nome do hotel é obrigatório');
-      return;
+      setHotelNameError('Nome do hotel é obrigatório');
+      hasError = true;
     }
 
     if (checkIn && checkOut && checkOut.getTime() < checkIn.getTime()) {
-      setError('Check-out deve ser igual ou posterior ao check-in');
+      setCheckOutError('Check-out deve ser igual ou posterior ao check-in');
+      hasError = true;
+    }
+
+    if (hasError) {
       return;
     }
 
@@ -91,7 +101,11 @@ export function LodgingForm({ trip, info, onCancel, onSuccess }: LodgingFormProp
         required
         placeholder="Ex: Grand Hotel"
         value={hotelName}
-        onChangeText={setHotelName}
+        onChangeText={(text) => {
+          setHotelName(text);
+          setHotelNameError(null);
+        }}
+        error={hotelNameError}
         containerStyle={styles.field}
       />
 
@@ -115,7 +129,11 @@ export function LodgingForm({ trip, info, onCancel, onSuccess }: LodgingFormProp
         <DayField
           label="Check-out"
           value={checkOut}
-          onChange={setCheckOut}
+          onChange={(date) => {
+            setCheckOut(date);
+            setCheckOutError(null);
+          }}
+          error={checkOutError}
           minimumDate={checkIn ?? tripStart}
           maximumDate={tripEnd}
           containerStyle={styles.rowItem}

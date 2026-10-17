@@ -14,6 +14,7 @@ import { colors, fonts, spacing } from '@/theme';
 export interface InputProps extends TextInputProps {
   label?: string;
   required?: boolean;
+  error?: string | null;
   containerStyle?: ViewStyle;
   labelStyle?: TextStyle;
   inputStyle?: TextStyle;
@@ -24,6 +25,7 @@ export const Input = forwardRef<TextInput, InputProps>(function Input(
   {
     label,
     required,
+    error,
     placeholder,
     containerStyle,
     labelStyle,
@@ -45,13 +47,19 @@ export const Input = forwardRef<TextInput, InputProps>(function Input(
       <View style={styles.inputWrapper}>
         <TextInput
           ref={ref}
-          style={[styles.input, rightElement ? styles.inputWithRightElement : null, inputStyle]}
+          style={[
+            styles.input,
+            rightElement ? styles.inputWithRightElement : null,
+            error ? styles.inputError : null,
+            inputStyle,
+          ]}
           placeholder={placeholder}
           placeholderTextColor={placeholderTextColor}
           {...textInputProps}
         />
         {rightElement ? <View style={styles.rightElement}>{rightElement}</View> : null}
       </View>
+      {error ? <Text style={styles.errorText}>{error}</Text> : null}
     </View>
   );
 });
@@ -86,6 +94,15 @@ const styles = StyleSheet.create({
   },
   inputWithRightElement: {
     paddingRight: spacing.xl + spacing.sm,
+  },
+  inputError: {
+    borderColor: colors.danger,
+  },
+  errorText: {
+    marginTop: spacing.xs,
+    fontSize: 13,
+    fontFamily: fonts.serif.regular,
+    color: colors.danger,
   },
   rightElement: {
     position: 'absolute',

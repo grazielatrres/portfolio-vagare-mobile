@@ -65,6 +65,8 @@ export function AddActivityForm({
   );
   const [location, setLocation] = useState(activity?.location ?? "");
   const [description, setDescription] = useState(activity?.description ?? "");
+  const [nameError, setNameError] = useState<string | null>(null);
+  const [timeError, setTimeError] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   const currency = trip.currency;
@@ -79,14 +81,22 @@ export function AddActivityForm({
 
   async function handleSubmit() {
     setError(null);
+    setNameError(null);
+    setTimeError(null);
+
+    let hasError = false;
 
     if (!name.trim()) {
-      setError("Nome é obrigatório");
-      return;
+      setNameError("Nome é obrigatório");
+      hasError = true;
     }
 
     if (time.trim() && !TIME_PATTERN.test(time.trim())) {
-      setError("Horário inválido. Use o formato HH:mm");
+      setTimeError("Horário inválido. Use o formato HH:mm");
+      hasError = true;
+    }
+
+    if (hasError) {
       return;
     }
 
@@ -137,7 +147,11 @@ export function AddActivityForm({
         required
         placeholder="Ex: Red Beach"
         value={name}
-        onChangeText={setName}
+        onChangeText={(text) => {
+          setName(text);
+          setNameError(null);
+        }}
+        error={nameError}
         containerStyle={styles.field}
       />
 
@@ -155,7 +169,11 @@ export function AddActivityForm({
         label="Horário"
         placeholder="00:00"
         value={time}
-        onChangeText={(text) => setTime(maskTimeInput(text))}
+        onChangeText={(text) => {
+          setTime(maskTimeInput(text));
+          setTimeError(null);
+        }}
+        error={timeError}
         keyboardType="number-pad"
         maxLength={5}
         containerStyle={styles.field}

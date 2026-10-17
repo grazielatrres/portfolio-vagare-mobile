@@ -44,6 +44,10 @@ export function CreateTrip({ onBack, onCreated }: CreateTripProps) {
   const [budgetDigits, setBudgetDigits] = useState('');
   const [currency, setCurrency] = useState<CurrencyCode>('BRL');
   const [numberOfPeople, setNumberOfPeople] = useState('');
+  const [nameError, setNameError] = useState<string | null>(null);
+  const [destinationError, setDestinationError] = useState<string | null>(null);
+  const [periodError, setPeriodError] = useState<string | null>(null);
+  const [numberOfPeopleError, setNumberOfPeopleError] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   const formattedBudget = budgetDigits ? formatAmountFromDigits(budgetDigits, currency) : '';
@@ -65,30 +69,29 @@ export function CreateTrip({ onBack, onCreated }: CreateTripProps) {
 
   async function handleSubmit() {
     setError(null);
+    setNameError(null);
+    setDestinationError(null);
+    setPeriodError(null);
+    setNumberOfPeopleError(null);
+
+    let hasError = false;
 
     if (!name.trim()) {
-      setError('Nome é obrigatório');
-      return;
+      setNameError('Nome é obrigatório');
+      hasError = true;
     }
 
     if (!destination.trim()) {
-      setError('Destino é obrigatório');
-      return;
+      setDestinationError('Destino é obrigatório');
+      hasError = true;
     }
 
-    if (!startDate) {
-      setError('Data de início é obrigatória');
-      return;
-    }
-
-    if (!endDate) {
-      setError('Data de término é obrigatória');
-      return;
-    }
-
-    if (endDate.getTime() < startDate.getTime()) {
-      setError('A data de término deve ser igual ou posterior à data de início');
-      return;
+    if (!startDate || !endDate) {
+      setPeriodError('Período da viagem é obrigatório');
+      hasError = true;
+    } else if (endDate.getTime() < startDate.getTime()) {
+      setPeriodError('A data de término deve ser igual ou posterior à data de início');
+      hasError = true;
     }
 
     const parsedBudget = budgetDigits ? digitsToAmount(budgetDigits) : null;
@@ -97,9 +100,13 @@ export function CreateTrip({ onBack, onCreated }: CreateTripProps) {
     if (numberOfPeople.trim()) {
       parsedNumberOfPeople = Number(numberOfPeople);
       if (!Number.isInteger(parsedNumberOfPeople) || parsedNumberOfPeople < 1) {
-        setError('Número de pessoas deve ser pelo menos 1');
-        return;
+        setNumberOfPeopleError('Número de pessoas deve ser pelo menos 1');
+        hasError = true;
       }
+    }
+
+    if (hasError || !startDate || !endDate) {
+      return;
     }
 
     try {
@@ -142,15 +149,23 @@ export function CreateTrip({ onBack, onCreated }: CreateTripProps) {
             required
             placeholder="Ex: Férias de verão"
             value={name}
-            onChangeText={setName}
+            onChangeText={(text) => {
+              setName(text);
+              setNameError(null);
+            }}
+            error={nameError}
             containerStyle={styles.field}
           />
           <DestinationField
             label="Destino"
             required
             value={destination}
-            onChangeText={handleDestinationChange}
+            onChangeText={(text) => {
+              handleDestinationChange(text);
+              setDestinationError(null);
+            }}
             onSelectPlace={handleSelectPlace}
+            error={destinationError}
             containerStyle={styles.field}
           />
 
@@ -159,8 +174,12 @@ export function CreateTrip({ onBack, onCreated }: CreateTripProps) {
             required
             startDate={startDate}
             endDate={endDate}
-            onChange={handlePeriodChange}
+            onChange={(nextStart, nextEnd) => {
+              handlePeriodChange(nextStart, nextEnd);
+              setPeriodError(null);
+            }}
             minimumDate={today}
+            error={periodError}
             containerStyle={styles.field}
           />
 
@@ -178,7 +197,11 @@ export function CreateTrip({ onBack, onCreated }: CreateTripProps) {
             label="Número de pessoas"
             placeholder="Ex: 2"
             value={numberOfPeople}
-            onChangeText={(text) => setNumberOfPeople(text.replace(/\D/g, ''))}
+            onChangeText={(text) => {
+              setNumberOfPeople(text.replace(/\D/g, ''));
+              setNumberOfPeopleError(null);
+            }}
+            error={numberOfPeopleError}
             keyboardType="number-pad"
             containerStyle={styles.field}
           />

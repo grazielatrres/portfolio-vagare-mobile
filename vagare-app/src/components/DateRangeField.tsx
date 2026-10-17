@@ -43,6 +43,7 @@ LocaleConfig.defaultLocale = 'pt-br';
 export interface DateRangeFieldProps {
   label: string;
   required?: boolean;
+  error?: string | null;
   startDate: Date | null;
   endDate: Date | null;
   onChange: (startDate: Date, endDate: Date) => void;
@@ -88,6 +89,7 @@ function buildMarkedDates(start: string | null, end: string | null): MarkedDates
 export function DateRangeField({
   label,
   required,
+  error,
   startDate,
   endDate,
   onChange,
@@ -136,6 +138,7 @@ export function DateRangeField({
         <Input
           label={label}
           required={required}
+          error={error}
           placeholder="Selecione o período"
           value={formatRange(startDate, endDate)}
           editable={false}

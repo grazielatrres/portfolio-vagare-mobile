@@ -12,6 +12,7 @@ import { CalendarTab } from './components/CalendarTab';
 import { ComingSoon } from './components/ComingSoon';
 import { ItineraryTab } from './components/ItineraryTab';
 import { TripTabKey, TripTabs } from './components/TripTabs';
+import { WeatherTab } from './components/WeatherTab';
 
 export interface TripDetailProps {
   tripId: string;
@@ -56,11 +57,7 @@ export function TripDetail({ tripId, onBack }: TripDetailProps) {
             ) : activeTab === 'calendario' ? (
               <CalendarTab trip={trip} />
             ) : activeTab === 'clima' ? (
-              <ComingSoon
-                icon="cloud-outline"
-                title="Clima"
-                description="Em breve você vai poder consultar a previsão do tempo para cada dia da viagem."
-              />
+              <WeatherTab trip={trip} />
             ) : activeTab === 'orcamento' ? (
               <ComingSoon
                 icon="wallet-outline"

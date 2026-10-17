@@ -8,7 +8,7 @@ import { ApiError } from '@/services/api';
 import { Trip } from '@/services/trips';
 import { colors, fonts, spacing } from '@/theme';
 import { groupByDay } from '@/utils/activities';
-import { formatDateShort } from '@/utils/format';
+import { formatDateWithWeekday } from '@/utils/format';
 import { ActivityCard } from './ActivityCard';
 import { AddActivityForm } from './AddActivityForm';
 
@@ -54,9 +54,7 @@ export function ItineraryTab({ trip }: ItineraryTabProps) {
           ) : (
             dayGroups.map((group) => (
               <View key={group.date} style={styles.dayGroup}>
-                <Text style={styles.dayHeader}>
-                  Dia {group.dayNumber} · {formatDateShort(group.date)}
-                </Text>
+                <Text style={styles.dayHeader}>{formatDateWithWeekday(group.date)}</Text>
                 {group.activities.map((activity) => (
                   <ActivityCard key={activity.id} activity={activity} trip={trip} />
                 ))}

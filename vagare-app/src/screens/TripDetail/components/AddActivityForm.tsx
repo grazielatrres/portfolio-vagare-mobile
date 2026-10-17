@@ -4,36 +4,46 @@ import { Ionicons } from '@expo/vector-icons';
 
 import { Button, DayField, FormError, Input, SelectField } from '@/components';
 import { useCreateActivityMutation } from '@/hooks/useCreateActivityMutation';
+import { useUpdateActivityMutation } from '@/hooks/useUpdateActivityMutation';
 import { ApiError } from '@/services/api';
+import { Activity } from '@/services/activities';
 import { Trip } from '@/services/trips';
 import { colors, fonts, spacing } from '@/theme';
 import { ACTIVITY_CATEGORIES } from '@/utils/activityCategory';
 import { PERIOD_LABELS, derivePeriodFromTime } from '@/utils/activityPeriod';
-import { digitsToAmount, formatAmountFromDigits } from '@/utils/currency';
-import { fromISODate, maskTimeInput, toISODate } from '@/utils/date';
+import { amountToDigits, digitsToAmount, formatAmountFromDigits } from '@/utils/currency';
+import { formatTime, fromISODate, maskTimeInput, toISODate } from '@/utils/date';
 import { dayNumberInTrip } from '@/utils/format';
 
 export interface AddActivityFormProps {
   trip: Trip;
+  activity?: Activity;
   onCancel: () => void;
-  onCreated: () => void;
+  onSuccess: () => void;
 }
 
 const TIME_PATTERN = /^([01]\d|2[0-3]):([0-5]\d)$/;
 
-export function AddActivityForm({ trip, onCancel, onCreated }: AddActivityFormProps) {
-  const { mutateAsync, isPending } = useCreateActivityMutation(trip.id);
+export function AddActivityForm({ trip, activity, onCancel, onSuccess }: AddActivityFormProps) {
+  const isEditMode = !!activity;
+  const createMutation = useCreateActivityMutation(trip.id);
+  const updateMutation = useUpdateActivityMutation(trip.id);
+  const isPending = isEditMode ? updateMutation.isPending : createMutation.isPending;
 
   const tripStart = fromISODate(trip.startDate);
   const tripEnd = fromISODate(trip.endDate);
 
-  const [name, setName] = useState('');
-  const [selectedDate, setSelectedDate] = useState<Date | null>(null);
-  const [time, setTime] = useState('');
-  const [category, setCategory] = useState<string | null>(null);
-  const [costDigits, setCostDigits] = useState('');
-  const [location, setLocation] = useState('');
-  const [description, setDescription] = useState('');
+  const [name, setName] = useState(activity?.name ?? '');
+  const [selectedDate, setSelectedDate] = useState<Date | null>(
+    activity ? fromISODate(activity.date) : null,
+  );
+  const [time, setTime] = useState(activity?.time ? formatTime(activity.time) : '');
+  const [category, setCategory] = useState<string | null>(activity?.category ?? null);
+  const [costDigits, setCostDigits] = useState(
+    activity?.estimatedCost ? amountToDigits(Number(activity.estimatedCost)) : '',
+  );
+  const [location, setLocation] = useState(activity?.location ?? '');
+  const [description, setDescription] = useState(activity?.description ?? '');
   const [error, setError] = useState<string | null>(null);
 
   const currency = trip.currency;
@@ -54,28 +64,40 @@ export function AddActivityForm({ trip, onCancel, onCreated }: AddActivityFormPr
       return;
     }
 
+    const payload = {
+      name: name.trim(),
+      date: toISODate(activeDate),
+      time: time.trim() || null,
+      period: derivedPeriod,
+      category,
+      estimatedCost: costDigits ? digitsToAmount(costDigits) : null,
+      location: location.trim() || null,
+      description: description.trim() || null,
+    };
+
     try {
-      await mutateAsync({
-        name: name.trim(),
-        date: toISODate(activeDate),
-        time: time.trim() || null,
-        period: derivedPeriod,
-        category,
-        estimatedCost: costDigits ? digitsToAmount(costDigits) : null,
-        location: location.trim() || null,
-        description: description.trim() || null,
-      });
-      onCreated();
+      if (isEditMode && activity) {
+        await updateMutation.mutateAsync({ id: activity.id, payload });
+      } else {
+        await createMutation.mutateAsync(payload);
+      }
+      onSuccess();
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : 'Não foi possível adicionar a atividade.');
+      setError(
+        err instanceof ApiError
+          ? err.message
+          : isEditMode
+            ? 'Não foi possível salvar a atividade.'
+            : 'Não foi possível adicionar a atividade.',
+      );
     }
   }
 
   return (
     <View style={styles.card}>
       <View style={styles.header}>
-        <Ionicons name="add" size={20} color={colors.text.primary} />
-        <Text style={styles.title}>Nova atividade</Text>
+        <Ionicons name={isEditMode ? 'create-outline' : 'add'} size={20} color={colors.text.primary} />
+        <Text style={styles.title}>{isEditMode ? 'Editar atividade' : 'Nova atividade'}</Text>
       </View>
 
       <Input
@@ -162,7 +184,9 @@ export function AddActivityForm({ trip, onCancel, onCreated }: AddActivityFormPr
           style={styles.actionButton}
         />
         <Button
-          title={isPending ? 'Adicionando...' : 'Adicionar'}
+          title={
+            isEditMode ? (isPending ? 'Salvando...' : 'Salvar') : isPending ? 'Adicionando...' : 'Adicionar'
+          }
           onPress={handleSubmit}
           disabled={isPending}
           style={styles.actionButton}

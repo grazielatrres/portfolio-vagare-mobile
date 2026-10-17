@@ -6,22 +6,24 @@ import { ConfirmDialog, FormError } from '@/components';
 import { useDeleteActivityMutation } from '@/hooks/useDeleteActivityMutation';
 import { ApiError } from '@/services/api';
 import { Activity } from '@/services/activities';
+import { Trip } from '@/services/trips';
 import { colors, fonts, spacing } from '@/theme';
 import { PERIOD_LABELS } from '@/utils/activityPeriod';
-import { CurrencyCode, formatCurrencyValue } from '@/utils/currency';
+import { formatCurrencyValue } from '@/utils/currency';
 import { formatTime } from '@/utils/date';
+import { AddActivityForm } from './AddActivityForm';
 
 type IconName = keyof typeof Ionicons.glyphMap;
 
 export interface ActivityCardProps {
   activity: Activity;
-  tripId: string;
-  currency: CurrencyCode;
+  trip: Trip;
 }
 
-export function ActivityCard({ activity, tripId, currency }: ActivityCardProps) {
-  const { mutate: deleteActivity, isPending } = useDeleteActivityMutation(tripId);
+export function ActivityCard({ activity, trip }: ActivityCardProps) {
+  const { mutate: deleteActivity, isPending } = useDeleteActivityMutation(trip.id);
   const [confirmVisible, setConfirmVisible] = useState(false);
+  const [editing, setEditing] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   function handleConfirmDelete() {
@@ -34,6 +36,17 @@ export function ActivityCard({ activity, tripId, currency }: ActivityCardProps) 
     });
   }
 
+  if (editing) {
+    return (
+      <AddActivityForm
+        trip={trip}
+        activity={activity}
+        onCancel={() => setEditing(false)}
+        onSuccess={() => setEditing(false)}
+      />
+    );
+  }
+
   const detailRows: { icon: IconName; text: string }[] = [];
   if (activity.time) {
     detailRows.push({ icon: 'time-outline', text: formatTime(activity.time) });
@@ -44,7 +57,7 @@ export function ActivityCard({ activity, tripId, currency }: ActivityCardProps) 
   if (activity.estimatedCost !== null) {
     detailRows.push({
       icon: 'wallet-outline',
-      text: formatCurrencyValue(activity.estimatedCost, currency),
+      text: formatCurrencyValue(activity.estimatedCost, trip.currency),
     });
   }
   if (activity.description) {
@@ -59,61 +72,40 @@ export function ActivityCard({ activity, tripId, currency }: ActivityCardProps) 
           <Text style={styles.name}>{activity.name}</Text>
         </View>
 
-        {activity.period || activity.category ? (
-          <View style={styles.actions}>
-            {activity.period ? (
-              <View style={styles.periodBadge}>
-                <Text style={styles.periodBadgeText}>{PERIOD_LABELS[activity.period]}</Text>
-              </View>
-            ) : null}
-            {activity.category ? (
-              <View style={styles.categoryBadge}>
-                <Text style={styles.categoryBadgeText}>{activity.category}</Text>
-              </View>
-            ) : null}
-          </View>
-        ) : null}
-      </View>
-
-      <View style={styles.details}>
-        {detailRows.map((item, index) => {
-          const isLast = index === detailRows.length - 1;
-          return (
-            <View key={item.icon} style={styles.row}>
-              <Ionicons name={item.icon} size={20} color={colors.text.secondary} />
-              <Text style={styles.rowText}>{item.text}</Text>
-              {isLast ? (
-                <Pressable
-                  onPress={() => setConfirmVisible(true)}
-                  disabled={isPending}
-                  hitSlop={12}
-                >
-                  {isPending ? (
-                    <ActivityIndicator size="small" color={colors.danger} />
-                  ) : (
-                    <Ionicons name="trash-outline" size={20} color={colors.danger} />
-                  )}
-                </Pressable>
-              ) : null}
+        <View style={styles.actions}>
+          {activity.period ? (
+            <View style={styles.periodBadge}>
+              <Text style={styles.periodBadgeText}>{PERIOD_LABELS[activity.period]}</Text>
             </View>
-          );
-        })}
-
-        {detailRows.length === 0 ? (
-          <Pressable
-            onPress={() => setConfirmVisible(true)}
-            disabled={isPending}
-            hitSlop={12}
-            style={styles.standaloneDeleteButton}
-          >
+          ) : null}
+          {activity.category ? (
+            <View style={styles.categoryBadge}>
+              <Text style={styles.categoryBadgeText}>{activity.category}</Text>
+            </View>
+          ) : null}
+          <Pressable onPress={() => setEditing(true)} hitSlop={12}>
+            <Ionicons name="create-outline" size={20} color={colors.text.secondary} />
+          </Pressable>
+          <Pressable onPress={() => setConfirmVisible(true)} disabled={isPending} hitSlop={12}>
             {isPending ? (
               <ActivityIndicator size="small" color={colors.danger} />
             ) : (
               <Ionicons name="trash-outline" size={20} color={colors.danger} />
             )}
           </Pressable>
-        ) : null}
+        </View>
       </View>
+
+      {detailRows.length > 0 ? (
+        <View style={styles.details}>
+          {detailRows.map((item) => (
+            <View key={item.icon} style={styles.row}>
+              <Ionicons name={item.icon} size={20} color={colors.text.secondary} />
+              <Text style={styles.rowText}>{item.text}</Text>
+            </View>
+          ))}
+        </View>
+      ) : null}
 
       <FormError message={error} style={styles.errorText} />
 
@@ -200,9 +192,6 @@ const styles = StyleSheet.create({
     fontFamily: fonts.serif.regular,
     color: colors.text.secondary,
     lineHeight: 20,
-  },
-  standaloneDeleteButton: {
-    alignSelf: 'flex-end',
   },
   errorText: {
     marginTop: spacing.sm,

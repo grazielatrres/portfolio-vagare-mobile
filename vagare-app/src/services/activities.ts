@@ -38,6 +38,19 @@ export function createActivity(token: string, tripId: string, payload: CreateAct
   });
 }
 
+export function updateActivity(
+  token: string,
+  tripId: string,
+  id: string,
+  payload: CreateActivityPayload,
+) {
+  return apiRequest<Activity>(`/trips/${tripId}/activities/${id}`, {
+    method: 'PUT',
+    token,
+    body: payload,
+  });
+}
+
 export function deleteActivity(token: string, tripId: string, id: string) {
   return apiRequest<void>(`/trips/${tripId}/activities/${id}`, { method: 'DELETE', token });
 }

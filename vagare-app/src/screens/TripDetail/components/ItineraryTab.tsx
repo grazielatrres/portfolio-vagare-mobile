@@ -58,12 +58,7 @@ export function ItineraryTab({ trip }: ItineraryTabProps) {
                   Dia {group.dayNumber} · {formatDateShort(group.date)}
                 </Text>
                 {group.activities.map((activity) => (
-                  <ActivityCard
-                    key={activity.id}
-                    activity={activity}
-                    tripId={trip.id}
-                    currency={trip.currency}
-                  />
+                  <ActivityCard key={activity.id} activity={activity} trip={trip} />
                 ))}
               </View>
             ))
@@ -73,7 +68,7 @@ export function ItineraryTab({ trip }: ItineraryTabProps) {
             <AddActivityForm
               trip={trip}
               onCancel={() => setShowForm(false)}
-              onCreated={() => setShowForm(false)}
+              onSuccess={() => setShowForm(false)}
             />
           ) : (
             <Button

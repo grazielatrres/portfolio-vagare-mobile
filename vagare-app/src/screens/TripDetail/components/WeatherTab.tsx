@@ -6,7 +6,7 @@ import { useWeatherQuery } from '@/hooks/useWeatherQuery';
 import { ApiError } from '@/services/api';
 import { Trip } from '@/services/trips';
 import { colors, fonts, spacing } from '@/theme';
-import { dayNumberInTrip, formatDateFull } from '@/utils/format';
+import { formatDateFull, formatDateWithWeekday } from '@/utils/format';
 import { capitalize, mapWeatherIcon } from '@/utils/weatherIcon';
 
 const FORECAST_WINDOW_DAYS = 5;
@@ -65,7 +65,7 @@ export function WeatherTab({ trip }: WeatherTabProps) {
                 <View style={styles.left}>
                   <Ionicons name={mapWeatherIcon(day.icon)} size={28} color={colors.accent} />
                   <View>
-                    <Text style={styles.dayLabel}>Dia {dayNumberInTrip(trip.startDate, day.date)}</Text>
+                    <Text style={styles.dayLabel}>{formatDateWithWeekday(day.date)}</Text>
                     <Text style={styles.condition}>{capitalize(day.condition)}</Text>
                   </View>
                 </View>

@@ -8,9 +8,12 @@ import { ApiError } from '@/services/api';
 import { colors, fonts, spacing } from '@/theme';
 import { formatCurrencyValue } from '@/utils/currency';
 import { countTripDays, formatDateFull } from '@/utils/format';
-import { ComingSoon } from './components/ComingSoon';
+import { BudgetTab } from './components/BudgetTab';
+import { CalendarTab } from './components/CalendarTab';
+import { InfoTab } from './components/InfoTab';
 import { ItineraryTab } from './components/ItineraryTab';
 import { TripTabKey, TripTabs } from './components/TripTabs';
+import { WeatherTab } from './components/WeatherTab';
 
 export interface TripDetailProps {
   tripId: string;
@@ -53,29 +56,13 @@ export function TripDetail({ tripId, onBack }: TripDetailProps) {
             {activeTab === 'roteiro' ? (
               <ItineraryTab trip={trip} />
             ) : activeTab === 'calendario' ? (
-              <ComingSoon
-                icon="calendar-outline"
-                title="Calendário"
-                description="Em breve você vai poder ver o roteiro distribuído num calendário mensal."
-              />
+              <CalendarTab trip={trip} />
             ) : activeTab === 'clima' ? (
-              <ComingSoon
-                icon="cloud-outline"
-                title="Clima"
-                description="Em breve você vai poder consultar a previsão do tempo para cada dia da viagem."
-              />
+              <WeatherTab trip={trip} />
             ) : activeTab === 'orcamento' ? (
-              <ComingSoon
-                icon="wallet-outline"
-                title="Orçamento"
-                description="Em breve você vai poder registrar gastos e acompanhar o saldo da viagem."
-              />
+              <BudgetTab trip={trip} />
             ) : (
-              <ComingSoon
-                icon="information-circle-outline"
-                title="Info"
-                description="Em breve você vai poder guardar dados de voo e hospedagem aqui."
-              />
+              <InfoTab trip={trip} />
             )}
           </View>
         </>

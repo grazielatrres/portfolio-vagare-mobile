@@ -1,5 +1,6 @@
-import { useEffect, useRef, useState } from 'react';
+import { useState } from 'react';
 import { ActivityIndicator, Pressable, StyleSheet, Text, View, ViewStyle } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 
 import { PlaceSuggestion, searchPlaces } from '@/services/geocoding';
 import { colors, fonts, spacing } from '@/theme';
@@ -14,7 +15,6 @@ export interface DestinationFieldProps {
   containerStyle?: ViewStyle;
 }
 
-const DEBOUNCE_MS = 350;
 const MIN_QUERY_LENGTH = 3;
 
 export function DestinationField({
@@ -27,50 +27,42 @@ export function DestinationField({
 }: DestinationFieldProps) {
   const [results, setResults] = useState<PlaceSuggestion[]>([]);
   const [loading, setLoading] = useState(false);
-  const [isOpen, setIsOpen] = useState(false);
-  const requestId = useRef(0);
+  const [hint, setHint] = useState<string | null>(null);
 
-  useEffect(() => {
+  async function handleSearch() {
     const query = value.trim();
-
     if (query.length < MIN_QUERY_LENGTH) {
-      const reset = setTimeout(() => {
-        setResults([]);
-        setLoading(false);
-      }, 0);
-      return () => clearTimeout(reset);
+      setHint('Digite ao menos 3 letras pra buscar.');
+      return;
     }
 
-    const currentRequest = ++requestId.current;
-
-    const timeout = setTimeout(async () => {
-      setLoading(true);
-      try {
-        const places = await searchPlaces(query);
-        if (requestId.current === currentRequest) {
-          setResults(places);
-        }
-      } catch {
-        if (requestId.current === currentRequest) {
-          setResults([]);
-        }
-      } finally {
-        if (requestId.current === currentRequest) {
-          setLoading(false);
-        }
+    setLoading(true);
+    setHint(null);
+    try {
+      const places = await searchPlaces(query);
+      setResults(places);
+      if (places.length === 0) {
+        setHint('Nenhum destino encontrado.');
       }
-    }, DEBOUNCE_MS);
+    } catch (err) {
+      setResults([]);
+      setHint(err instanceof Error ? err.message : 'Não foi possível buscar destinos.');
+    } finally {
+      setLoading(false);
+    }
+  }
 
-    return () => clearTimeout(timeout);
-  }, [value]);
+  function handleChangeText(text: string) {
+    onChangeText(text);
+    setResults([]);
+    setHint(null);
+  }
 
   function handleSelect(place: PlaceSuggestion) {
     onSelectPlace(place);
     setResults([]);
-    setIsOpen(false);
+    setHint(null);
   }
-
-  const showDropdown = isOpen && (loading || results.length > 0);
 
   return (
     <View style={[styles.container, containerStyle]}>
@@ -79,32 +71,33 @@ export function DestinationField({
         required={required}
         placeholder="Ex: Santorini, Grécia"
         value={value}
-        onChangeText={(text) => {
-          onChangeText(text);
-          setIsOpen(true);
-        }}
-        onFocus={() => setIsOpen(true)}
-        onBlur={() => setTimeout(() => setIsOpen(false), 150)}
+        onChangeText={handleChangeText}
+        returnKeyType="search"
+        onSubmitEditing={handleSearch}
+        rightElement={
+          <Pressable onPress={handleSearch} disabled={loading} hitSlop={12}>
+            {loading ? (
+              <ActivityIndicator size="small" color={colors.accent} />
+            ) : (
+              <Ionicons name="search" size={20} color={colors.accent} />
+            )}
+          </Pressable>
+        }
       />
 
-      {showDropdown ? (
+      {hint ? <Text style={styles.hint}>{hint}</Text> : null}
+
+      {results.length > 0 ? (
         <View style={styles.dropdown}>
-          {loading ? (
-            <View style={styles.loadingRow}>
-              <ActivityIndicator size="small" color={colors.accent} />
-              <Text style={styles.loadingText}>Buscando destinos...</Text>
-            </View>
-          ) : (
-            results.map((place, index) => (
-              <Pressable
-                key={`${place.label}-${index}`}
-                onPress={() => handleSelect(place)}
-                style={[styles.option, index === results.length - 1 && styles.optionLast]}
-              >
-                <Text style={styles.optionText}>{place.label}</Text>
-              </Pressable>
-            ))
-          )}
+          {results.map((place, index) => (
+            <Pressable
+              key={`${place.label}-${index}`}
+              onPress={() => handleSelect(place)}
+              style={[styles.option, index === results.length - 1 && styles.optionLast]}
+            >
+              <Text style={styles.optionText}>{place.label}</Text>
+            </Pressable>
+          ))}
         </View>
       ) : null}
     </View>
@@ -115,6 +108,12 @@ const styles = StyleSheet.create({
   container: {
     alignSelf: 'stretch',
   },
+  hint: {
+    marginTop: spacing.xs,
+    fontSize: 13,
+    fontFamily: fonts.serif.regular,
+    color: colors.text.secondary,
+  },
   dropdown: {
     marginTop: spacing.xs,
     backgroundColor: colors.surface,
@@ -122,18 +121,6 @@ const styles = StyleSheet.create({
     borderColor: colors.border.default,
     borderRadius: 10,
     overflow: 'hidden',
-  },
-  loadingRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.sm,
-    paddingVertical: spacing.sm,
-    paddingHorizontal: spacing.md,
-  },
-  loadingText: {
-    fontSize: 14,
-    fontFamily: fonts.serif.regular,
-    color: colors.text.secondary,
   },
   option: {
     paddingVertical: spacing.sm,

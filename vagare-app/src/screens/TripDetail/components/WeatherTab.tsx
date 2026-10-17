@@ -1,14 +1,29 @@
-import { useState } from 'react';
 import { Ionicons } from '@expo/vector-icons';
-import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, ScrollView, StyleSheet, Text, View } from 'react-native';
 
 import { Button, EmptyState, FormError } from '@/components';
 import { useWeatherQuery } from '@/hooks/useWeatherQuery';
 import { ApiError } from '@/services/api';
 import { Trip } from '@/services/trips';
 import { colors, fonts, spacing } from '@/theme';
-import { dayNumberInTrip } from '@/utils/format';
+import { dayNumberInTrip, formatDateFull } from '@/utils/format';
 import { capitalize, mapWeatherIcon } from '@/utils/weatherIcon';
+
+const FORECAST_WINDOW_DAYS = 5;
+
+function buildEmptyWeatherMessage(trip: Trip): string {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const daysUntilStart = Math.ceil(
+    (new Date(trip.startDate).getTime() - today.getTime()) / (1000 * 60 * 60 * 24),
+  );
+
+  if (daysUntilStart > FORECAST_WINDOW_DAYS) {
+    return `A previsão do tempo só fica disponível a partir de ${FORECAST_WINDOW_DAYS} dias antes da viagem. Volte mais perto de ${formatDateFull(trip.startDate)} pra conferir.`;
+  }
+
+  return 'Não foi possível encontrar a previsão do tempo para os dias desta viagem.';
+}
 
 export interface WeatherTabProps {
   trip: Trip;
@@ -16,13 +31,7 @@ export interface WeatherTabProps {
 
 export function WeatherTab({ trip }: WeatherTabProps) {
   const { data, isPending, isError, error, refetch } = useWeatherQuery(trip.id);
-  const [hiddenDates, setHiddenDates] = useState<Set<string>>(new Set());
-
-  const visibleDays = (data ?? []).filter((day) => !hiddenDates.has(day.date));
-
-  function handleRemove(date: string) {
-    setHiddenDates((prev) => new Set(prev).add(date));
-  }
+  const days = data ?? [];
 
   return (
     <View style={styles.root}>
@@ -48,13 +57,10 @@ export function WeatherTab({ trip }: WeatherTabProps) {
         >
           <Text style={styles.sectionTitle}>Previsão do tempo</Text>
 
-          {visibleDays.length === 0 ? (
-            <EmptyState
-              message="Não há previsão do tempo disponível para os dias desta viagem. A previsão cobre apenas os próximos 5 dias."
-              style={styles.emptyState}
-            />
+          {days.length === 0 ? (
+            <EmptyState message={buildEmptyWeatherMessage(trip)} style={styles.emptyState} />
           ) : (
-            visibleDays.map((day) => (
+            days.map((day) => (
               <View key={day.date} style={styles.card}>
                 <View style={styles.left}>
                   <Ionicons name={mapWeatherIcon(day.icon)} size={28} color={colors.accent} />
@@ -64,14 +70,9 @@ export function WeatherTab({ trip }: WeatherTabProps) {
                   </View>
                 </View>
 
-                <View style={styles.right}>
-                  <View style={styles.tempRow}>
-                    <Ionicons name="thermometer-outline" size={16} color={colors.accent} />
-                    <Text style={styles.temperature}>{day.temperature}°C</Text>
-                  </View>
-                  <Pressable onPress={() => handleRemove(day.date)} hitSlop={12}>
-                    <Ionicons name="trash-outline" size={20} color={colors.text.secondary} />
-                  </Pressable>
+                <View style={styles.tempRow}>
+                  <Ionicons name="thermometer-outline" size={16} color={colors.accent} />
+                  <Text style={styles.temperature}>{day.temperature}°C</Text>
                 </View>
               </View>
             ))
@@ -138,13 +139,8 @@ const styles = StyleSheet.create({
     fontFamily: fonts.serif.regular,
     color: colors.text.secondary,
   },
-  right: {
-    flexShrink: 0,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.md,
-  },
   tempRow: {
+    flexShrink: 0,
     flexDirection: 'row',
     alignItems: 'center',
     gap: spacing.xs,

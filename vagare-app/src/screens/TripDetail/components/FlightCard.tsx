@@ -62,10 +62,15 @@ export function FlightCard({ info, trip }: FlightCardProps) {
         </View>
 
         <View style={styles.actions}>
-          <Pressable onPress={() => setEditing(true)} hitSlop={12}>
+          <Pressable testID="edit-button" onPress={() => setEditing(true)} hitSlop={12}>
             <Ionicons name="create-outline" size={20} color={colors.text.secondary} />
           </Pressable>
-          <Pressable onPress={() => setConfirmVisible(true)} disabled={isPending} hitSlop={12}>
+          <Pressable
+            testID="delete-button"
+            onPress={() => setConfirmVisible(true)}
+            disabled={isPending}
+            hitSlop={12}
+          >
             {isPending ? (
               <ActivityIndicator size="small" color={colors.danger} />
             ) : (

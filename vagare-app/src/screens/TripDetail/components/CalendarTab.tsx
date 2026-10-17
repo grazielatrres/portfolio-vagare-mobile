@@ -7,7 +7,7 @@ import { ApiError } from '@/services/api';
 import { Trip } from '@/services/trips';
 import { colors, fonts, spacing } from '@/theme';
 import { DayGroup, groupByDay, tripDayDates } from '@/utils/activities';
-import { formatDateShort, formatDateWithWeekday } from '@/utils/format';
+import { formatDateCompact, formatDateWithWeekday } from '@/utils/format';
 import { CalendarActivityRow } from './CalendarActivityRow';
 
 export interface CalendarTabProps {
@@ -68,11 +68,14 @@ export function CalendarTab({ trip }: CalendarTabProps) {
                   onPress={() => setSelectedDate(date)}
                   style={[styles.dayCard, isSelected && styles.dayCardSelected]}
                 >
-                  <Text style={[styles.dayDate, isSelected && styles.dayDateSelected]}>
-                    {formatDateShort(date)}
+                  <Text
+                    style={[styles.dayDate, isSelected && styles.dayDateSelected]}
+                    numberOfLines={1}
+                  >
+                    {formatDateCompact(date)}
                   </Text>
                   {count > 0 ? (
-                    <Text style={styles.dayCount}>
+                    <Text style={styles.dayCount} numberOfLines={1}>
                       {count} {count === 1 ? 'atividade' : 'atividades'}
                     </Text>
                   ) : null}
@@ -129,15 +132,15 @@ const styles = StyleSheet.create({
     marginBottom: spacing.lg,
   },
   dayCard: {
-    flexBasis: '22%',
-    flexGrow: 0,
+    width: '22.5%',
+    height: 72,
     alignItems: 'center',
+    justifyContent: 'center',
     gap: spacing.xs,
     backgroundColor: colors.surface,
     borderWidth: 2,
     borderColor: colors.border.default,
     borderRadius: 12,
-    paddingVertical: spacing.sm,
     paddingHorizontal: spacing.xs,
   },
   dayCardSelected: {
@@ -145,7 +148,7 @@ const styles = StyleSheet.create({
     borderColor: colors.accent,
   },
   dayDate: {
-    fontSize: 16,
+    fontSize: 15,
     fontFamily: fonts.serif.bold,
     color: colors.text.primary,
   },

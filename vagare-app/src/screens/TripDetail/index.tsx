@@ -8,6 +8,7 @@ import { ApiError } from '@/services/api';
 import { colors, fonts, spacing } from '@/theme';
 import { formatCurrencyValue } from '@/utils/currency';
 import { countTripDays, formatDateFull } from '@/utils/format';
+import { BudgetTab } from './components/BudgetTab';
 import { CalendarTab } from './components/CalendarTab';
 import { ComingSoon } from './components/ComingSoon';
 import { ItineraryTab } from './components/ItineraryTab';
@@ -59,11 +60,7 @@ export function TripDetail({ tripId, onBack }: TripDetailProps) {
             ) : activeTab === 'clima' ? (
               <WeatherTab trip={trip} />
             ) : activeTab === 'orcamento' ? (
-              <ComingSoon
-                icon="wallet-outline"
-                title="Orçamento"
-                description="Em breve você vai poder registrar gastos e acompanhar o saldo da viagem."
-              />
+              <BudgetTab trip={trip} />
             ) : (
               <ComingSoon
                 icon="information-circle-outline"

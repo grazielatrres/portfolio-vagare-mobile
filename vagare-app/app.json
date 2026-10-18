@@ -1,10 +1,10 @@
 {
   "expo": {
-    "name": "vagare-app",
+    "name": "Vagare",
     "slug": "vagare-app",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/images/icon.png",
+    "icon": "./assets/images/icon-ios.png",
     "scheme": [
       "vagareapp",
       "com.googleusercontent.apps.879185611069-qc5gntnfljkqt9c22cmnh272okk50vkb"

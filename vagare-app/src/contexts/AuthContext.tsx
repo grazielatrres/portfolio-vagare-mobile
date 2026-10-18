@@ -1,5 +1,11 @@
-import { createContext, ReactNode, useContext, useEffect, useState } from 'react';
-import * as SecureStore from 'expo-secure-store';
+import * as SecureStore from "expo-secure-store";
+import {
+  createContext,
+  ReactNode,
+  useContext,
+  useEffect,
+  useState,
+} from "react";
 
 import {
   AuthUser,
@@ -7,12 +13,14 @@ import {
   login as loginRequest,
   logout as logoutRequest,
   register as registerRequest,
-} from '@/services/auth';
-import { queryClient } from '@/services/queryClient';
-import { clearTripsCache } from '@/services/tripsCache';
+} from "@/services/auth";
+import { getAppMeta, setAppMeta } from "@/services/database";
+import { queryClient } from "@/services/queryClient";
+import { clearTripsCache } from "@/services/tripsCache";
 
-const TOKEN_KEY = 'vagare.auth.token';
-const USER_KEY = 'vagare.auth.user';
+const TOKEN_KEY = "vagare.auth.token";
+const USER_KEY = "vagare.auth.user";
+const INSTALL_MARKER_KEY = "install_marker";
 
 interface AuthContextValue {
   user: AuthUser | null;
@@ -35,6 +43,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     async function restoreSession() {
+      const hasInstallMarker = await getAppMeta(INSTALL_MARKER_KEY);
+
+      if (!hasInstallMarker) {
+        await SecureStore.deleteItemAsync(TOKEN_KEY);
+        await SecureStore.deleteItemAsync(USER_KEY);
+        await setAppMeta(INSTALL_MARKER_KEY, "1");
+        setIsRestoring(false);
+        return;
+      }
+
       const [storedToken, storedUser] = await Promise.all([
         SecureStore.getItemAsync(TOKEN_KEY),
         SecureStore.getItemAsync(USER_KEY),
@@ -108,7 +126,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     queryClient.clear();
   }
 
-  const value = { user, token, isLoading, isRestoring, login, register, loginWithGoogle, logout };
+  const value = {
+    user,
+    token,
+    isLoading,
+    isRestoring,
+    login,
+    register,
+    loginWithGoogle,
+    logout,
+  };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
@@ -116,7 +143,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 export function useAuth() {
   const context = useContext(AuthContext);
   if (!context) {
-    throw new Error('useAuth deve ser usado dentro de um AuthProvider');
+    throw new Error("useAuth deve ser usado dentro de um AuthProvider");
   }
   return context;
 }

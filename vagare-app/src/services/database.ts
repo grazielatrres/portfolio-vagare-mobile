@@ -23,6 +23,11 @@ export async function getDatabase() {
           createdAt TEXT NOT NULL,
           updatedAt TEXT NOT NULL
         );
+
+        CREATE TABLE IF NOT EXISTS app_meta (
+          key TEXT PRIMARY KEY NOT NULL,
+          value TEXT NOT NULL
+        );
       `);
 
       try {
@@ -36,4 +41,18 @@ export async function getDatabase() {
   }
 
   return databasePromise;
+}
+
+export async function getAppMeta(key: string): Promise<string | null> {
+  const db = await getDatabase();
+  const row = await db.getFirstAsync<{ value: string }>(
+    'SELECT value FROM app_meta WHERE key = ?',
+    [key],
+  );
+  return row?.value ?? null;
+}
+
+export async function setAppMeta(key: string, value: string): Promise<void> {
+  const db = await getDatabase();
+  await db.runAsync('INSERT OR REPLACE INTO app_meta (key, value) VALUES (?, ?)', [key, value]);
 }

@@ -4,9 +4,10 @@
   "version": "1.0.0",
   "scripts": {
     "start": "expo start",
+    "restart": "expo start -c",
     "dev": "expo start",
-    "android": "expo run:android",
-    "ios": "expo run:ios",
+    "android": "expo run:android --device",
+    "ios": "expo run:ios --device",
     "web": "expo start --web",
     "lint": "eslint app src tests",
     "lint:fix": "eslint app src tests --fix",

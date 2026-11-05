@@ -6,6 +6,7 @@ import { useEffect } from 'react';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import { AuthProvider, useAuth } from '@/contexts/AuthContext';
+import { ToastProvider } from '@/contexts/ToastContext';
 import { useSerifFonts } from '@/hooks/useSerifFonts';
 import { queryClient } from '@/services/queryClient';
 
@@ -52,9 +53,11 @@ export default function RootLayout() {
     <SafeAreaProvider>
       <QueryClientProvider client={queryClient}>
         <AuthProvider>
-          <SplashScreenController fontsLoaded={fontsLoaded} />
-          <StatusBar style="dark" />
-          {fontsLoaded && <RootNavigator />}
+          <ToastProvider>
+            <SplashScreenController fontsLoaded={fontsLoaded} />
+            <StatusBar style="dark" />
+            {fontsLoaded && <RootNavigator />}
+          </ToastProvider>
         </AuthProvider>
       </QueryClientProvider>
     </SafeAreaProvider>

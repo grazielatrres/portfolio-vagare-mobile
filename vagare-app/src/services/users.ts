@@ -11,6 +11,18 @@ export interface UserProfile {
   };
 }
 
+export interface UpdateProfilePayload {
+  name: string;
+}
+
 export function getMe(token: string) {
   return apiRequest<UserProfile>('/users/me', { token });
+}
+
+export function updateMe(token: string, payload: UpdateProfilePayload) {
+  return apiRequest<UserProfile>('/users/me', { method: 'PUT', token, body: payload });
+}
+
+export function deleteMe(token: string) {
+  return apiRequest<void>('/users/me', { method: 'DELETE', token });
 }

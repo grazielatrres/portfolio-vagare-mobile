@@ -10,6 +10,7 @@ import {
 } from '@/services/auth';
 import { queryClient } from '@/services/queryClient';
 import { clearTripsCache } from '@/services/tripsCache';
+import { deleteMe } from '@/services/users';
 
 const TOKEN_KEY = 'vagare.auth.token';
 const USER_KEY = 'vagare.auth.user';
@@ -23,6 +24,8 @@ interface AuthContextValue {
   register: (name: string, email: string, password: string) => Promise<void>;
   loginWithGoogle: (idToken: string) => Promise<void>;
   logout: () => Promise<void>;
+  updateUser: (patch: Partial<AuthUser>) => Promise<void>;
+  deleteAccount: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
@@ -108,7 +111,36 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     queryClient.clear();
   }
 
-  const value = { user, token, isLoading, isRestoring, login, register, loginWithGoogle, logout };
+  async function updateUser(patch: Partial<AuthUser>) {
+    if (!user) {
+      return;
+    }
+    const nextUser = { ...user, ...patch };
+    setUser(nextUser);
+    await SecureStore.setItemAsync(USER_KEY, JSON.stringify(nextUser));
+  }
+
+  async function deleteAccount() {
+    if (token) {
+      await deleteMe(token);
+    }
+    await clearSession();
+    await clearTripsCache();
+    queryClient.clear();
+  }
+
+  const value = {
+    user,
+    token,
+    isLoading,
+    isRestoring,
+    login,
+    register,
+    loginWithGoogle,
+    logout,
+    updateUser,
+    deleteAccount,
+  };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }

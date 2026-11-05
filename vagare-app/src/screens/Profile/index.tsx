@@ -1,4 +1,5 @@
-import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
+import { useState } from 'react';
+import { ActivityIndicator, Pressable, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -9,12 +10,18 @@ import { useTripsQuery } from '@/hooks/useTripsQuery';
 import { ApiError } from '@/services/api';
 import { colors, fonts, spacing } from '@/theme';
 import { countDistinctCountries } from '@/utils/format';
+import { EditProfileForm } from './components/EditProfileForm';
+
+const COMPACT_WIDTH_BREAKPOINT = 380;
 
 export function Profile() {
   const { user, logout, isLoading: isLoggingOut } = useAuth();
   const insets = useSafeAreaInsets();
+  const { width } = useWindowDimensions();
   const profileQuery = useProfileQuery();
   const tripsQuery = useTripsQuery();
+
+  const [isEditing, setIsEditing] = useState(false);
 
   const isPending = profileQuery.isPending || tripsQuery.isPending;
   const isError = profileQuery.isError || tripsQuery.isError;
@@ -24,25 +31,46 @@ export function Profile() {
     ? countDistinctCountries(tripsQuery.data.trips.map((trip) => trip.destination))
     : null;
 
-  const name = profileQuery.data?.name ?? user?.name;
-  const email = profileQuery.data?.email ?? user?.email;
+  const name = profileQuery.data?.name ?? user?.name ?? '';
+  const email = profileQuery.data?.email ?? user?.email ?? '';
+
+  const isCompact = width < COMPACT_WIDTH_BREAKPOINT;
 
   return (
     <View style={[styles.root, { paddingTop: insets.top + spacing.md }]}>
       <Text style={styles.title}>Meu Perfil</Text>
 
-      <View style={styles.profileRow}>
-        <View style={styles.avatar}>
-          <Ionicons name="person-outline" size={28} color={colors.accent} />
-        </View>
-        <View style={styles.profileInfo}>
-          <Text style={styles.name}>{name}</Text>
-          <View style={styles.emailRow}>
-            <Ionicons name="mail-outline" size={14} color={colors.text.secondary} />
-            <Text style={styles.email}>{email}</Text>
+      {isEditing ? (
+        <EditProfileForm
+          name={name}
+          email={email}
+          onCancel={() => setIsEditing(false)}
+          onSaved={() => setIsEditing(false)}
+        />
+      ) : (
+        <View style={styles.profileRow}>
+          <View style={styles.avatar}>
+            <Ionicons name="person-outline" size={28} color={colors.accent} />
           </View>
+          <View style={styles.profileInfo}>
+            <Text style={styles.name}>{name}</Text>
+            <View style={styles.emailRow}>
+              <Ionicons name="mail-outline" size={14} color={colors.text.secondary} />
+              <Text style={styles.email}>{email}</Text>
+            </View>
+          </View>
+          <Pressable
+            onPress={() => setIsEditing(true)}
+            hitSlop={12}
+            accessibilityRole="button"
+            accessibilityLabel="Editar dados do perfil"
+            style={styles.editButton}
+          >
+            <Ionicons name="create-outline" size={20} color={colors.text.secondary} />
+            {!isCompact ? <Text style={styles.editButtonText}>Editar</Text> : null}
+          </Pressable>
         </View>
-      </View>
+      )}
 
       <View style={styles.card}>
         <Text style={styles.cardTitle}>Estatísticas</Text>
@@ -131,6 +159,21 @@ const styles = StyleSheet.create({
   email: {
     fontSize: 14,
     fontFamily: fonts.serif.regular,
+    color: colors.text.secondary,
+  },
+  editButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.xs,
+    minWidth: 44,
+    minHeight: 44,
+    paddingHorizontal: spacing.sm,
+    justifyContent: 'center',
+    borderRadius: 10,
+  },
+  editButtonText: {
+    fontSize: 16,
+    fontFamily: fonts.serif.medium,
     color: colors.text.secondary,
   },
   card: {

@@ -19,6 +19,10 @@ export function digitsToAmount(digits: string): number {
   return Number(digits) / 100;
 }
 
+export function amountToDigits(value: number): string {
+  return Math.round(value * 100).toString();
+}
+
 export function formatAmountFromDigits(digits: string, currency: CurrencyCode): string {
   return formatCurrencyValue(digitsToAmount(digits), currency);
 }

@@ -2,9 +2,18 @@ import { useMemo, useState } from 'react';
 import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { BackButton, Button, CurrencyPicker, DateRangeField, FormError, Input } from '@/components';
+import {
+  BackButton,
+  Button,
+  CurrencyPicker,
+  DateRangeField,
+  DestinationField,
+  FormError,
+  Input,
+} from '@/components';
 import { useCreateTripMutation } from '@/hooks/useCreateTripMutation';
 import { ApiError } from '@/services/api';
+import { PlaceSuggestion } from '@/services/geocoding';
 import { colors, fonts, spacing } from '@/theme';
 import { toISODate } from '@/utils/date';
 import { CurrencyCode, digitsToAmount, formatAmountFromDigits } from '@/utils/currency';
@@ -27,6 +36,9 @@ export function CreateTrip({ onBack, onCreated }: CreateTripProps) {
 
   const [name, setName] = useState('');
   const [destination, setDestination] = useState('');
+  const [coordinates, setCoordinates] = useState<{ latitude: number; longitude: number } | null>(
+    null,
+  );
   const [startDate, setStartDate] = useState<Date | null>(null);
   const [endDate, setEndDate] = useState<Date | null>(null);
   const [budgetDigits, setBudgetDigits] = useState('');
@@ -39,6 +51,16 @@ export function CreateTrip({ onBack, onCreated }: CreateTripProps) {
   function handlePeriodChange(nextStartDate: Date, nextEndDate: Date) {
     setStartDate(nextStartDate);
     setEndDate(nextEndDate);
+  }
+
+  function handleDestinationChange(text: string) {
+    setDestination(text);
+    setCoordinates(null);
+  }
+
+  function handleSelectPlace(place: PlaceSuggestion) {
+    setDestination(place.label);
+    setCoordinates({ latitude: place.latitude, longitude: place.longitude });
   }
 
   async function handleSubmit() {
@@ -84,6 +106,8 @@ export function CreateTrip({ onBack, onCreated }: CreateTripProps) {
       await mutateAsync({
         name: name.trim(),
         destination: destination.trim(),
+        latitude: coordinates?.latitude ?? null,
+        longitude: coordinates?.longitude ?? null,
         startDate: toISODate(startDate),
         endDate: toISODate(endDate),
         budget: parsedBudget,
@@ -121,12 +145,12 @@ export function CreateTrip({ onBack, onCreated }: CreateTripProps) {
             onChangeText={setName}
             containerStyle={styles.field}
           />
-          <Input
+          <DestinationField
             label="Destino"
             required
-            placeholder="Ex: Santorini, Grécia"
             value={destination}
-            onChangeText={setDestination}
+            onChangeText={handleDestinationChange}
+            onSelectPlace={handleSelectPlace}
             containerStyle={styles.field}
           />
 

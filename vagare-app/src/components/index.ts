@@ -10,6 +10,8 @@ export { DateRangeField } from './DateRangeField';
 export type { DateRangeFieldProps } from './DateRangeField';
 export { DayField } from './DayField';
 export type { DayFieldProps } from './DayField';
+export { DestinationField } from './DestinationField';
+export type { DestinationFieldProps } from './DestinationField';
 export { Divider } from './Divider';
 export type { DividerProps } from './Divider';
 export { EmptyState } from './EmptyState';

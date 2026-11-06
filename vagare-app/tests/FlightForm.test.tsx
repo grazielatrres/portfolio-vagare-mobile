@@ -1,5 +1,6 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { fireEvent, render, screen, waitFor } from '@testing-library/react-native';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import { ToastProvider } from '@/contexts/ToastContext';
 import { FlightForm } from '@/screens/TripDetail/components/FlightForm';
@@ -13,11 +14,13 @@ const trip = buildTrip();
 function renderForm(props: Partial<React.ComponentProps<typeof FlightForm>> = {}) {
   const queryClient = new QueryClient();
   return render(
-    <QueryClientProvider client={queryClient}>
-      <ToastProvider>
-        <FlightForm trip={trip} onCancel={jest.fn()} onSuccess={jest.fn()} {...props} />
-      </ToastProvider>
-    </QueryClientProvider>,
+    <SafeAreaProvider>
+      <QueryClientProvider client={queryClient}>
+        <ToastProvider>
+          <FlightForm trip={trip} onCancel={jest.fn()} onSuccess={jest.fn()} {...props} />
+        </ToastProvider>
+      </QueryClientProvider>
+    </SafeAreaProvider>,
   );
 }
 

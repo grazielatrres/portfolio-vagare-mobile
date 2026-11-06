@@ -1,7 +1,9 @@
 import { renderHook, waitFor } from '@testing-library/react-native';
 
-import { ApiError } from '@/services/api';
 import { useTripsQuery } from '@/hooks/useTripsQuery';
+import { ApiError } from '@/services/api';
+import { listTrips } from '@/services/trips';
+import { getCachedTrips, saveTripsToCache } from '@/services/tripsCache';
 import { buildTrip } from './helpers/fixtures';
 import { createQueryWrapper } from './helpers/queryWrapper';
 
@@ -9,9 +11,6 @@ import { createQueryWrapper } from './helpers/queryWrapper';
 jest.mock('@/contexts/AuthContext', () => require('./helpers/mockAuth').authContextMock);
 jest.mock('@/services/trips');
 jest.mock('@/services/tripsCache');
-
-import { listTrips } from '@/services/trips';
-import { getCachedTrips, saveTripsToCache } from '@/services/tripsCache';
 
 const listTripsMock = listTrips as jest.Mock;
 const getCachedTripsMock = getCachedTrips as jest.Mock;

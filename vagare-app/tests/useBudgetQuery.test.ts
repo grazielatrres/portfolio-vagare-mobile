@@ -21,7 +21,7 @@ describe('useBudgetQuery', () => {
     const summary = buildBudgetSummary();
     getBudgetSummaryMock.mockResolvedValue(summary);
 
-    const { result } = renderHook(() => useBudgetQuery('trip-1'), {
+    const { result } = await renderHook(() => useBudgetQuery('trip-1'), {
       wrapper: createQueryWrapper(),
     });
 
@@ -32,7 +32,7 @@ describe('useBudgetQuery', () => {
   });
 
   it('não dispara a busca quando o id da viagem está vazio', () => {
-    const { result } = renderHook(() => useBudgetQuery(''), { wrapper: createQueryWrapper() });
+    const { result } = await renderHook(() => useBudgetQuery(''), { wrapper: createQueryWrapper() });
 
     expect(result.current.fetchStatus).toBe('idle');
     expect(getBudgetSummaryMock).not.toHaveBeenCalled();

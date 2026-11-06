@@ -27,7 +27,7 @@ describe('useProfileQuery', () => {
     };
     getMeMock.mockResolvedValue(profile);
 
-    const { result } = renderHook(() => useProfileQuery(), { wrapper: createQueryWrapper() });
+    const { result } = await renderHook(() => useProfileQuery(), { wrapper: createQueryWrapper() });
 
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
 

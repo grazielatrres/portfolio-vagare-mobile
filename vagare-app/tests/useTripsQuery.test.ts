@@ -27,7 +27,7 @@ describe('useTripsQuery', () => {
     listTripsMock.mockResolvedValue(trips);
     saveTripsToCacheMock.mockResolvedValue(undefined);
 
-    const { result } = renderHook(() => useTripsQuery(), { wrapper: createQueryWrapper() });
+    const { result } = await renderHook(() => useTripsQuery(), { wrapper: createQueryWrapper() });
 
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
 
@@ -41,7 +41,7 @@ describe('useTripsQuery', () => {
     listTripsMock.mockRejectedValue(new ApiError(0, 'Sem conexão'));
     getCachedTripsMock.mockResolvedValue(cachedTrips);
 
-    const { result } = renderHook(() => useTripsQuery(), { wrapper: createQueryWrapper() });
+    const { result } = await renderHook(() => useTripsQuery(), { wrapper: createQueryWrapper() });
 
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
 
@@ -52,7 +52,7 @@ describe('useTripsQuery', () => {
     listTripsMock.mockRejectedValue(new ApiError(0, 'Sem conexão'));
     getCachedTripsMock.mockResolvedValue([]);
 
-    const { result } = renderHook(() => useTripsQuery(), { wrapper: createQueryWrapper() });
+    const { result } = await renderHook(() => useTripsQuery(), { wrapper: createQueryWrapper() });
 
     await waitFor(() => expect(result.current.isError).toBe(true));
 

@@ -21,7 +21,7 @@ describe('useActivitiesQuery', () => {
     const activities = [buildActivity()];
     listActivitiesMock.mockResolvedValue(activities);
 
-    const { result } = renderHook(() => useActivitiesQuery('trip-1'), {
+    const { result } = await renderHook(() => useActivitiesQuery('trip-1'), {
       wrapper: createQueryWrapper(),
     });
 

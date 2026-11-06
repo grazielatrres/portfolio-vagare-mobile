@@ -24,7 +24,7 @@ describe('useCreateTripMutation', () => {
     createTripMock.mockResolvedValue(trip);
     const invalidateSpy = jest.spyOn(queryClient, 'invalidateQueries');
 
-    const { result } = renderHook(() => useCreateTripMutation(), {
+    const { result } = await renderHook(() => useCreateTripMutation(), {
       wrapper: createQueryWrapper(),
     });
 

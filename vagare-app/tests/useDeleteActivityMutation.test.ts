@@ -23,7 +23,7 @@ describe('useDeleteActivityMutation', () => {
     deleteActivityMock.mockResolvedValue(undefined);
     const invalidateSpy = jest.spyOn(queryClient, 'invalidateQueries');
 
-    const { result } = renderHook(() => useDeleteActivityMutation('trip-1'), {
+    const { result } = await renderHook(() => useDeleteActivityMutation('trip-1'), {
       wrapper: createQueryWrapper(),
     });
 

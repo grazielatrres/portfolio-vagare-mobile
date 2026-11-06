@@ -22,7 +22,7 @@ describe('useWeatherQuery', () => {
     ];
     getTripWeatherMock.mockResolvedValue(forecast);
 
-    const { result } = renderHook(() => useWeatherQuery('trip-1'), {
+    const { result } = await renderHook(() => useWeatherQuery('trip-1'), {
       wrapper: createQueryWrapper(),
     });
 
@@ -35,7 +35,7 @@ describe('useWeatherQuery', () => {
   it('não tenta novamente quando a busca falha', async () => {
     getTripWeatherMock.mockRejectedValue(new Error('falha na API de clima'));
 
-    const { result } = renderHook(() => useWeatherQuery('trip-1'), {
+    const { result } = await renderHook(() => useWeatherQuery('trip-1'), {
       wrapper: createQueryWrapper(),
     });
 

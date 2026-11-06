@@ -25,7 +25,7 @@ describe('useCreateActivityMutation', () => {
     createActivityMock.mockResolvedValue(activity);
     const invalidateSpy = jest.spyOn(queryClient, 'invalidateQueries');
 
-    const { result } = renderHook(() => useCreateActivityMutation('trip-1'), {
+    const { result } = await renderHook(() => useCreateActivityMutation('trip-1'), {
       wrapper: createQueryWrapper(),
     });
 

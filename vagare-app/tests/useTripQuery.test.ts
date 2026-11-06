@@ -21,7 +21,7 @@ describe('useTripQuery', () => {
     const trip = buildTrip({ id: 'trip-42' });
     getTripMock.mockResolvedValue(trip);
 
-    const { result } = renderHook(() => useTripQuery('trip-42'), {
+    const { result } = await renderHook(() => useTripQuery('trip-42'), {
       wrapper: createQueryWrapper(),
     });
 
@@ -31,8 +31,8 @@ describe('useTripQuery', () => {
     expect(result.current.data).toEqual(trip);
   });
 
-  it('não dispara a busca quando o id está vazio', () => {
-    const { result } = renderHook(() => useTripQuery(''), { wrapper: createQueryWrapper() });
+  it('não dispara a busca quando o id está vazio', async () => {
+    const { result } = await renderHook(() => useTripQuery(''), { wrapper: createQueryWrapper() });
 
     expect(result.current.fetchStatus).toBe('idle');
     expect(getTripMock).not.toHaveBeenCalled();

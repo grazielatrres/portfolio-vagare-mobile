@@ -24,7 +24,7 @@ describe('useCreateExpenseMutation', () => {
     createExpenseMock.mockResolvedValue(expense);
     const invalidateSpy = jest.spyOn(queryClient, 'invalidateQueries');
 
-    const { result } = renderHook(() => useCreateExpenseMutation('trip-1'), {
+    const { result } = await renderHook(() => useCreateExpenseMutation('trip-1'), {
       wrapper: createQueryWrapper(),
     });
 

@@ -2,9 +2,10 @@ import { useState } from 'react';
 import { Ionicons } from '@expo/vector-icons';
 import { ActivityIndicator, ScrollView, StyleSheet, Text, View } from 'react-native';
 
-import { Button, FormError, Input, SelectField } from '@/components';
+import { Button, FormError, Input, OfflineBanner, SelectField } from '@/components';
 import { useBudgetQuery } from '@/hooks/useBudgetQuery';
 import { useCreateExpenseMutation } from '@/hooks/useCreateExpenseMutation';
+import { usePendingMutationsQuery } from '@/hooks/usePendingMutationsQuery';
 import { ApiError } from '@/services/api';
 import { BudgetSummary } from '@/services/budget';
 import { Trip } from '@/services/trips';
@@ -22,8 +23,13 @@ export interface BudgetTabProps {
 }
 
 export function BudgetTab({ trip }: BudgetTabProps) {
-  const { data, isPending, isError, error, refetch } = useBudgetQuery(trip.id);
+  const { data: queryData, isPending, isError, error, refetch } = useBudgetQuery(trip.id);
+  const { data: pendingMutations } = usePendingMutationsQuery(trip.id);
   const { mutateAsync, isPending: isSaving } = useCreateExpenseMutation(trip.id);
+
+  const data = queryData?.summary;
+  const isOffline = queryData?.isOffline ?? false;
+  const pendingCount = pendingMutations?.length ?? 0;
 
   const [showForm, setShowForm] = useState(false);
   const [description, setDescription] = useState('');
@@ -89,6 +95,16 @@ export function BudgetTab({ trip }: BudgetTabProps) {
           contentContainerStyle={styles.scrollContent}
           showsVerticalScrollIndicator={false}
         >
+          {isOffline ? (
+            <OfflineBanner message="Sem conexão — mostrando o orçamento salvo neste dispositivo" />
+          ) : null}
+          {pendingCount > 0 ? (
+            <OfflineBanner
+              tone="pending"
+              message={`${pendingCount} alteração(ões) aguardando sincronização`}
+            />
+          ) : null}
+
           <BudgetSummaryCard summary={data} currency={currency} />
 
           {data.expenses.items.map((expense) => (

@@ -40,6 +40,58 @@ const migrations: Migration[] = [
       }
     },
   },
+  {
+    version: 2,
+    up: async (db) => {
+      await db.execAsync(`
+        CREATE TABLE IF NOT EXISTS activities (
+          id TEXT PRIMARY KEY NOT NULL,
+          tripId TEXT NOT NULL,
+          name TEXT NOT NULL,
+          date TEXT NOT NULL,
+          time TEXT,
+          location TEXT,
+          period TEXT,
+          category TEXT,
+          estimatedCost TEXT,
+          description TEXT
+        );
+        CREATE INDEX IF NOT EXISTS idx_activities_tripId ON activities(tripId);
+
+        CREATE TABLE IF NOT EXISTS expenses (
+          id TEXT PRIMARY KEY NOT NULL,
+          tripId TEXT NOT NULL,
+          description TEXT NOT NULL,
+          amount TEXT NOT NULL,
+          currency TEXT NOT NULL,
+          category TEXT
+        );
+        CREATE INDEX IF NOT EXISTS idx_expenses_tripId ON expenses(tripId);
+
+        CREATE TABLE IF NOT EXISTS infos (
+          id TEXT PRIMARY KEY NOT NULL,
+          tripId TEXT NOT NULL,
+          type TEXT NOT NULL,
+          title TEXT NOT NULL,
+          description TEXT,
+          date TEXT,
+          details TEXT
+        );
+        CREATE INDEX IF NOT EXISTS idx_infos_tripId ON infos(tripId);
+
+        CREATE TABLE IF NOT EXISTS pending_mutations (
+          id TEXT PRIMARY KEY NOT NULL,
+          tripId TEXT NOT NULL,
+          entityType TEXT NOT NULL,
+          operation TEXT NOT NULL,
+          localId TEXT NOT NULL,
+          payload TEXT NOT NULL,
+          createdAt TEXT NOT NULL
+        );
+        CREATE INDEX IF NOT EXISTS idx_pending_mutations_tripId ON pending_mutations(tripId);
+      `);
+    },
+  },
 ];
 
 async function runMigrations(db: SQLite.SQLiteDatabase): Promise<void> {

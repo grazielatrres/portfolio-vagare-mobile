@@ -69,10 +69,14 @@ describe('AuthContext - limpeza local em logout/deleteAccount', () => {
     (SecureStore.setItemAsync as jest.Mock).mockResolvedValue(undefined);
     (SecureStore.deleteItemAsync as jest.Mock).mockResolvedValue(undefined);
     (clearTripsCache as jest.Mock).mockResolvedValue(undefined);
+    (clearActivitiesCache as jest.Mock).mockResolvedValue(undefined);
+    (clearExpensesCache as jest.Mock).mockResolvedValue(undefined);
+    (clearInfosCache as jest.Mock).mockResolvedValue(undefined);
+    (clearPendingMutations as jest.Mock).mockResolvedValue(undefined);
     (deleteMe as jest.Mock).mockResolvedValue(undefined);
   });
 
-  it('logout limpa sessão e queryClient mesmo se clearTripsCache falhar', async () => {
+  it('logout limpa sessão, todos os caches e queryClient mesmo se clearTripsCache falhar', async () => {
     (clearTripsCache as jest.Mock).mockRejectedValue(new Error('sqlite indisponível'));
 
     const { result } = await renderHook(() => useAuth(), { wrapper: AuthProvider });
@@ -83,12 +87,16 @@ describe('AuthContext - limpeza local em logout/deleteAccount', () => {
     });
 
     expect(clearTripsCache).toHaveBeenCalled();
+    expect(clearActivitiesCache).toHaveBeenCalled();
+    expect(clearExpensesCache).toHaveBeenCalled();
+    expect(clearInfosCache).toHaveBeenCalled();
+    expect(clearPendingMutations).toHaveBeenCalled();
     expect(SecureStore.deleteItemAsync).toHaveBeenCalledWith(TOKEN_KEY);
     expect(SecureStore.deleteItemAsync).toHaveBeenCalledWith(USER_KEY);
     expect(queryClient.clear).toHaveBeenCalled();
   });
 
-  it('deleteAccount limpa sessão e queryClient mesmo se clearTripsCache falhar', async () => {
+  it('deleteAccount limpa sessão, todos os caches e queryClient mesmo se clearTripsCache falhar', async () => {
     (clearTripsCache as jest.Mock).mockRejectedValue(new Error('sqlite indisponível'));
 
     const { result } = await renderHook(() => useAuth(), { wrapper: AuthProvider });
@@ -99,6 +107,10 @@ describe('AuthContext - limpeza local em logout/deleteAccount', () => {
     });
 
     expect(clearTripsCache).toHaveBeenCalled();
+    expect(clearActivitiesCache).toHaveBeenCalled();
+    expect(clearExpensesCache).toHaveBeenCalled();
+    expect(clearInfosCache).toHaveBeenCalled();
+    expect(clearPendingMutations).toHaveBeenCalled();
     expect(SecureStore.deleteItemAsync).toHaveBeenCalledWith(TOKEN_KEY);
     expect(SecureStore.deleteItemAsync).toHaveBeenCalledWith(USER_KEY);
     expect(queryClient.clear).toHaveBeenCalled();
@@ -115,6 +127,10 @@ describe('AuthContext - limpeza local em logout/deleteAccount', () => {
     });
 
     expect(clearTripsCache).not.toHaveBeenCalled();
+    expect(clearActivitiesCache).not.toHaveBeenCalled();
+    expect(clearExpensesCache).not.toHaveBeenCalled();
+    expect(clearInfosCache).not.toHaveBeenCalled();
+    expect(clearPendingMutations).not.toHaveBeenCalled();
     expect(queryClient.clear).not.toHaveBeenCalled();
     expect(SecureStore.deleteItemAsync).not.toHaveBeenCalled();
   });

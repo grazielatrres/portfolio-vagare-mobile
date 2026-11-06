@@ -1,7 +1,3 @@
-jest.mock('@/services/database', () => ({
-  getDatabase: jest.fn(),
-}));
-
 import { getDatabase } from '@/services/database';
 import {
   clearTripsCache,
@@ -9,6 +5,10 @@ import {
   getCachedTrips,
   saveTripsToCache,
 } from '@/services/tripsCache';
+
+jest.mock('@/services/database', () => ({
+  getDatabase: jest.fn(),
+}));
 
 const trip = {
   id: 't1',

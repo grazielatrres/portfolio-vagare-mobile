@@ -11,7 +11,7 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import { Button, EmptyState, FormError } from "@/components";
+import { Button, EmptyState, FormError, OfflineBanner } from "@/components";
 import { useAuth } from "@/contexts/AuthContext";
 import { useTripsQuery } from "@/hooks/useTripsQuery";
 import { ApiError } from "@/services/api";
@@ -54,16 +54,7 @@ export function Trips() {
       <Text style={styles.sectionTitle}>Minhas viagens</Text>
 
       {isOffline ? (
-        <View style={styles.offlineBanner}>
-          <Ionicons
-            name="cloud-offline-outline"
-            size={16}
-            color={colors.text.secondary}
-          />
-          <Text style={styles.offlineBannerText}>
-            Sem conexão — mostrando as viagens salvas neste dispositivo
-          </Text>
-        </View>
+        <OfflineBanner message="Sem conexão — mostrando as viagens salvas neste dispositivo" />
       ) : null}
 
       {isPending ? (
@@ -136,23 +127,6 @@ const styles = StyleSheet.create({
     fontFamily: fonts.serif.bold,
     color: colors.text.primary,
     marginBottom: spacing.md,
-  },
-  offlineBanner: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: spacing.xs,
-    backgroundColor: colors.surface,
-    borderWidth: 1,
-    borderColor: colors.border.default,
-    borderRadius: 10,
-    padding: spacing.sm,
-    marginBottom: spacing.md,
-  },
-  offlineBannerText: {
-    flex: 1,
-    fontSize: 13,
-    fontFamily: fonts.serif.regular,
-    color: colors.text.secondary,
   },
   list: {
     flex: 1,

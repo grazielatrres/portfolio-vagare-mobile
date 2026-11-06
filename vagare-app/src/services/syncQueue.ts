@@ -157,6 +157,15 @@ async function applyMutation(
   }
 }
 
+export async function clearPendingMutations(): Promise<void> {
+  try {
+    const db = await getDatabase();
+    await db.runAsync('DELETE FROM pending_mutations');
+  } catch (error) {
+    logError('syncQueue.clearPendingMutations', error);
+  }
+}
+
 let isDraining = false;
 
 export async function drainPendingMutations(token: string | null): Promise<void> {

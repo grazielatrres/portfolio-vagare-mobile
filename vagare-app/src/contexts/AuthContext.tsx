@@ -8,8 +8,12 @@ import {
   logout as logoutRequest,
   register as registerRequest,
 } from '@/services/auth';
+import { clearActivitiesCache } from '@/services/activitiesCache';
+import { clearExpensesCache } from '@/services/expensesCache';
+import { clearInfosCache } from '@/services/infosCache';
 import { logError } from '@/services/logger';
 import { queryClient } from '@/services/queryClient';
+import { clearPendingMutations } from '@/services/syncQueue';
 import { clearTripsCache } from '@/services/tripsCache';
 import { deleteMe } from '@/services/users';
 
@@ -114,6 +118,30 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         await clearTripsCache();
       } catch (error) {
         logError('AuthContext.clearTripsCache', error);
+      }
+
+      try {
+        await clearActivitiesCache();
+      } catch (error) {
+        logError('AuthContext.clearActivitiesCache', error);
+      }
+
+      try {
+        await clearExpensesCache();
+      } catch (error) {
+        logError('AuthContext.clearExpensesCache', error);
+      }
+
+      try {
+        await clearInfosCache();
+      } catch (error) {
+        logError('AuthContext.clearInfosCache', error);
+      }
+
+      try {
+        await clearPendingMutations();
+      } catch (error) {
+        logError('AuthContext.clearPendingMutations', error);
       }
     } finally {
       queryClient.clear();

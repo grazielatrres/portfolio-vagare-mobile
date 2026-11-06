@@ -1,6 +1,8 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { fireEvent, render, screen, waitFor } from '@testing-library/react-native';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
 
+import { ToastProvider } from '@/contexts/ToastContext';
 import { DocumentForm } from '@/screens/TripDetail/components/DocumentForm';
 import { buildInfo, buildTrip, mockJsonResponse } from './helpers/fixtures';
 
@@ -12,9 +14,13 @@ const trip = buildTrip();
 function renderForm(props: Partial<React.ComponentProps<typeof DocumentForm>> = {}) {
   const queryClient = new QueryClient();
   return render(
-    <QueryClientProvider client={queryClient}>
-      <DocumentForm trip={trip} onCancel={jest.fn()} onSuccess={jest.fn()} {...props} />
-    </QueryClientProvider>,
+    <SafeAreaProvider>
+      <QueryClientProvider client={queryClient}>
+        <ToastProvider>
+          <DocumentForm trip={trip} onCancel={jest.fn()} onSuccess={jest.fn()} {...props} />
+        </ToastProvider>
+      </QueryClientProvider>
+    </SafeAreaProvider>,
   );
 }
 

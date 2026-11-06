@@ -1,6 +1,7 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { render, screen } from '@testing-library/react-native';
 
+import { ToastProvider } from '@/contexts/ToastContext';
 import { InfoTab } from '@/screens/TripDetail/components/InfoTab';
 import { buildInfo, buildTrip, mockJsonResponse } from './helpers/fixtures';
 
@@ -13,7 +14,9 @@ async function renderTab() {
   const queryClient = new QueryClient();
   await render(
     <QueryClientProvider client={queryClient}>
-      <InfoTab trip={trip} />
+      <ToastProvider>
+        <InfoTab trip={trip} />
+      </ToastProvider>
     </QueryClientProvider>,
   );
 }

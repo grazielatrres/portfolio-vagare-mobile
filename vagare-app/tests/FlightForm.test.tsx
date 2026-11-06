@@ -1,6 +1,7 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { fireEvent, render, screen, waitFor } from '@testing-library/react-native';
 
+import { ToastProvider } from '@/contexts/ToastContext';
 import { FlightForm } from '@/screens/TripDetail/components/FlightForm';
 import { buildInfo, buildTrip, mockJsonResponse } from './helpers/fixtures';
 
@@ -13,7 +14,9 @@ function renderForm(props: Partial<React.ComponentProps<typeof FlightForm>> = {}
   const queryClient = new QueryClient();
   return render(
     <QueryClientProvider client={queryClient}>
-      <FlightForm trip={trip} onCancel={jest.fn()} onSuccess={jest.fn()} {...props} />
+      <ToastProvider>
+        <FlightForm trip={trip} onCancel={jest.fn()} onSuccess={jest.fn()} {...props} />
+      </ToastProvider>
     </QueryClientProvider>,
   );
 }

@@ -191,15 +191,12 @@ describe('syncQueue', () => {
       payload: { name: 'A', date: '2026-01-01' },
     });
 
-    let resolveCreate: (value: unknown) => void = () => {};
-    (createActivity as jest.Mock).mockImplementation(
-      () => new Promise((resolve) => { resolveCreate = resolve; }),
-    );
+    (createActivity as jest.Mock).mockResolvedValue({ id: 'real-1', tripId: 't1', name: 'A' });
 
+    // isDraining é marcado de forma síncrona no início de drainPendingMutations,
+    // então a segunda chamada já retorna sem tocar no banco/rede.
     const first = drainPendingMutations('token-1');
     const second = drainPendingMutations('token-1');
-
-    resolveCreate({ id: 'real-1', tripId: 't1', name: 'A' });
     await Promise.all([first, second]);
 
     expect(createActivity).toHaveBeenCalledTimes(1);

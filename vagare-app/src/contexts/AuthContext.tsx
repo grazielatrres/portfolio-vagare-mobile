@@ -8,6 +8,7 @@ import {
   logout as logoutRequest,
   register as registerRequest,
 } from '@/services/auth';
+import { logError } from '@/services/logger';
 import { queryClient } from '@/services/queryClient';
 import { clearTripsCache } from '@/services/tripsCache';
 import { deleteMe } from '@/services/users';
@@ -98,6 +99,27 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }
 
+  // Limpa todo o estado local em sequência, sem deixar a falha de um passo
+  // impedir os seguintes. queryClient.clear() é a única garantia final: roda
+  // no finally mesmo se algo acima lançar um erro inesperado.
+  async function clearLocalState() {
+    try {
+      try {
+        await clearSession();
+      } catch (error) {
+        logError('AuthContext.clearSession', error);
+      }
+
+      try {
+        await clearTripsCache();
+      } catch (error) {
+        logError('AuthContext.clearTripsCache', error);
+      }
+    } finally {
+      queryClient.clear();
+    }
+  }
+
   async function logout() {
     if (token) {
       try {
@@ -106,9 +128,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         // sessão pode já ter expirado no servidor; segue com o logout local
       }
     }
-    await clearSession();
-    await clearTripsCache();
-    queryClient.clear();
+    await clearLocalState();
   }
 
   async function updateUser(patch: Partial<AuthUser>) {
@@ -121,12 +141,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   async function deleteAccount() {
+    // Se a exclusão no servidor falhar (ex.: rede), propaga o erro e NÃO
+    // limpa o estado local — a conta ainda existe, a sessão deve continuar.
     if (token) {
       await deleteMe(token);
     }
-    await clearSession();
-    await clearTripsCache();
-    queryClient.clear();
+    await clearLocalState();
   }
 
   const value = {

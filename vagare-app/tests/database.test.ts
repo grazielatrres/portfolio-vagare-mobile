@@ -26,12 +26,14 @@ describe('database.getDatabase', () => {
 
   it('não memoiza falha na abertura — a próxima chamada tenta de novo e tem sucesso', async () => {
     jest.doMock('expo-sqlite', () => ({ openDatabaseAsync: jest.fn() }));
+    // eslint-disable-next-line @typescript-eslint/no-require-imports -- precisa de require() dinâmico para pegar o mock registrado por jest.doMock acima
     const SQLite = require('expo-sqlite');
     const db = createFakeDb();
     (SQLite.openDatabaseAsync as jest.Mock)
       .mockRejectedValueOnce(new Error('disco indisponível'))
       .mockResolvedValueOnce(db);
 
+    // eslint-disable-next-line @typescript-eslint/no-require-imports -- módulo precisa ser carregado de novo após jest.resetModules()
     const { getDatabase } = require('@/services/database');
 
     await expect(getDatabase()).rejects.toThrow('disco indisponível');
@@ -44,10 +46,12 @@ describe('database.getDatabase', () => {
 
   it('roda a migração apenas uma vez mesmo com múltiplas chamadas', async () => {
     jest.doMock('expo-sqlite', () => ({ openDatabaseAsync: jest.fn() }));
+    // eslint-disable-next-line @typescript-eslint/no-require-imports -- precisa de require() dinâmico para pegar o mock registrado por jest.doMock acima
     const SQLite = require('expo-sqlite');
     const db = createFakeDb();
     (SQLite.openDatabaseAsync as jest.Mock).mockResolvedValue(db);
 
+    // eslint-disable-next-line @typescript-eslint/no-require-imports -- módulo precisa ser carregado de novo após jest.resetModules()
     const { getDatabase } = require('@/services/database');
 
     await getDatabase();
@@ -63,10 +67,12 @@ describe('database.getDatabase', () => {
 
   it('não reaplica migrations já marcadas em PRAGMA user_version', async () => {
     jest.doMock('expo-sqlite', () => ({ openDatabaseAsync: jest.fn() }));
+    // eslint-disable-next-line @typescript-eslint/no-require-imports -- precisa de require() dinâmico para pegar o mock registrado por jest.doMock acima
     const SQLite = require('expo-sqlite');
     const db = createFakeDb(2);
     (SQLite.openDatabaseAsync as jest.Mock).mockResolvedValue(db);
 
+    // eslint-disable-next-line @typescript-eslint/no-require-imports -- módulo precisa ser carregado de novo após jest.resetModules()
     const { getDatabase } = require('@/services/database');
     await getDatabase();
 

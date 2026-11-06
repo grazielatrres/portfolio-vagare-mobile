@@ -1,3 +1,15 @@
+import { createActivity, updateActivity } from '@/services/activities';
+import { removeActivityFromCache } from '@/services/activitiesCache';
+import { ApiError } from '@/services/api';
+import { getDatabase } from '@/services/database';
+import { queryClient } from '@/services/queryClient';
+import {
+  discardLocalEntity,
+  drainPendingMutations,
+  enqueueMutation,
+  getPendingMutations,
+} from '@/services/syncQueue';
+
 jest.mock('expo-crypto', () => ({
   randomUUID: jest.fn(() => `uuid-${Math.random().toString(36).slice(2)}`),
 }));
@@ -41,20 +53,8 @@ jest.mock('@/services/queryClient', () => ({
   queryClient: { invalidateQueries: jest.fn() },
 }));
 
-import { createActivity, updateActivity } from '@/services/activities';
-import { removeActivityFromCache } from '@/services/activitiesCache';
-import { ApiError } from '@/services/api';
-import { getDatabase } from '@/services/database';
-import { queryClient } from '@/services/queryClient';
-import {
-  discardLocalEntity,
-  drainPendingMutations,
-  enqueueMutation,
-  getPendingMutations,
-} from '@/services/syncQueue';
-
 function createFakeDb() {
-  let rows: Array<Record<string, unknown>> = [];
+  let rows: Record<string, unknown>[] = [];
 
   return {
     runAsync: jest.fn(async (sql: string, params: unknown[] = []) => {

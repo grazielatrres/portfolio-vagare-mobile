@@ -1,7 +1,3 @@
-jest.mock('@/services/database', () => ({
-  getDatabase: jest.fn(),
-}));
-
 import {
   clearActivitiesCache,
   getCachedActivities,
@@ -10,6 +6,10 @@ import {
   upsertActivityToCache,
 } from '@/services/activitiesCache';
 import { getDatabase } from '@/services/database';
+
+jest.mock('@/services/database', () => ({
+  getDatabase: jest.fn(),
+}));
 
 const activity = {
   id: 'a1',

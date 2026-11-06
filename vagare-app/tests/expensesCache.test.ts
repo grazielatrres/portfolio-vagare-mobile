@@ -1,7 +1,3 @@
-jest.mock('@/services/database', () => ({
-  getDatabase: jest.fn(),
-}));
-
 import { getDatabase } from '@/services/database';
 import {
   clearExpensesCache,
@@ -10,6 +6,10 @@ import {
   saveExpensesToCache,
   upsertExpenseToCache,
 } from '@/services/expensesCache';
+
+jest.mock('@/services/database', () => ({
+  getDatabase: jest.fn(),
+}));
 
 const expense = {
   id: 'e1',

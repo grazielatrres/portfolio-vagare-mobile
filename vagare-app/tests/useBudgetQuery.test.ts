@@ -31,7 +31,7 @@ describe('useBudgetQuery', () => {
     expect(result.current.data).toEqual(summary);
   });
 
-  it('não dispara a busca quando o id da viagem está vazio', () => {
+  it('não dispara a busca quando o id da viagem está vazio', async () => {
     const { result } = await renderHook(() => useBudgetQuery(''), { wrapper: createQueryWrapper() });
 
     expect(result.current.fetchStatus).toBe('idle');

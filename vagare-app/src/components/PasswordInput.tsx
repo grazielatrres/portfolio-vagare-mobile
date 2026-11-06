@@ -16,7 +16,12 @@ export function PasswordInput(props: PasswordInputProps) {
       {...props}
       secureTextEntry={!visible}
       rightElement={
-        <Pressable onPress={() => setVisible((prev) => !prev)} hitSlop={8}>
+        <Pressable
+          onPress={() => setVisible((prev) => !prev)}
+          hitSlop={8}
+          accessibilityRole="button"
+          accessibilityLabel={visible ? 'Esconder senha' : 'Mostrar senha'}
+        >
           <Ionicons
             name={visible ? 'eye-off-outline' : 'eye-outline'}
             size={20}

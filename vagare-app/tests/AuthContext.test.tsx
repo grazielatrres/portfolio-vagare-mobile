@@ -2,7 +2,11 @@ import { act, renderHook, waitFor } from '@testing-library/react-native';
 import * as SecureStore from 'expo-secure-store';
 
 import { AuthProvider, useAuth } from '@/contexts/AuthContext';
+import { clearActivitiesCache } from '@/services/activitiesCache';
+import { clearExpensesCache } from '@/services/expensesCache';
+import { clearInfosCache } from '@/services/infosCache';
 import { queryClient } from '@/services/queryClient';
+import { clearPendingMutations } from '@/services/syncQueue';
 import { clearTripsCache } from '@/services/tripsCache';
 import { deleteMe } from '@/services/users';
 
@@ -25,6 +29,22 @@ jest.mock('@/services/users', () => ({
 
 jest.mock('@/services/tripsCache', () => ({
   clearTripsCache: jest.fn(),
+}));
+
+jest.mock('@/services/activitiesCache', () => ({
+  clearActivitiesCache: jest.fn(),
+}));
+
+jest.mock('@/services/expensesCache', () => ({
+  clearExpensesCache: jest.fn(),
+}));
+
+jest.mock('@/services/infosCache', () => ({
+  clearInfosCache: jest.fn(),
+}));
+
+jest.mock('@/services/syncQueue', () => ({
+  clearPendingMutations: jest.fn(),
 }));
 
 jest.mock('@/services/queryClient', () => ({

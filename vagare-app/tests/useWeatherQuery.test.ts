@@ -1,13 +1,12 @@
 import { renderHook, waitFor } from '@testing-library/react-native';
 
 import { useWeatherQuery } from '@/hooks/useWeatherQuery';
+import { getTripWeather } from '@/services/weather';
 import { createQueryWrapper } from './helpers/queryWrapper';
 
 // eslint-disable-next-line @typescript-eslint/no-require-imports -- jest.mock factories must use require, not import, to work with hoisting
 jest.mock('@/contexts/AuthContext', () => require('./helpers/mockAuth').authContextMock);
 jest.mock('@/services/weather');
-
-import { getTripWeather } from '@/services/weather';
 
 const getTripWeatherMock = getTripWeather as jest.Mock;
 

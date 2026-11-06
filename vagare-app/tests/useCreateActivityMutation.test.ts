@@ -3,6 +3,7 @@ import { renderHook, waitFor } from '@testing-library/react-native';
 import { activitiesQueryKey } from '@/hooks/useActivitiesQuery';
 import { budgetQueryKey } from '@/hooks/useBudgetQuery';
 import { useCreateActivityMutation } from '@/hooks/useCreateActivityMutation';
+import { createActivity } from '@/services/activities';
 import { queryClient } from '@/services/queryClient';
 import { buildActivity } from './helpers/fixtures';
 import { createQueryWrapper } from './helpers/queryWrapper';
@@ -10,8 +11,6 @@ import { createQueryWrapper } from './helpers/queryWrapper';
 // eslint-disable-next-line @typescript-eslint/no-require-imports -- jest.mock factories must use require, not import, to work with hoisting
 jest.mock('@/contexts/AuthContext', () => require('./helpers/mockAuth').authContextMock);
 jest.mock('@/services/activities');
-
-import { createActivity } from '@/services/activities';
 
 const createActivityMock = createActivity as jest.Mock;
 

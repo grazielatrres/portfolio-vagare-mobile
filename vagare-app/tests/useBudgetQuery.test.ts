@@ -1,14 +1,13 @@
 import { renderHook, waitFor } from '@testing-library/react-native';
 
 import { useBudgetQuery } from '@/hooks/useBudgetQuery';
+import { getBudgetSummary } from '@/services/budget';
 import { buildBudgetSummary } from './helpers/fixtures';
 import { createQueryWrapper } from './helpers/queryWrapper';
 
 // eslint-disable-next-line @typescript-eslint/no-require-imports -- jest.mock factories must use require, not import, to work with hoisting
 jest.mock('@/contexts/AuthContext', () => require('./helpers/mockAuth').authContextMock);
 jest.mock('@/services/budget');
-
-import { getBudgetSummary } from '@/services/budget';
 
 const getBudgetSummaryMock = getBudgetSummary as jest.Mock;
 

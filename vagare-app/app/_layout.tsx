@@ -8,6 +8,7 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { AuthProvider, useAuth } from '@/contexts/AuthContext';
 import { ToastProvider } from '@/contexts/ToastContext';
 import { useSerifFonts } from '@/hooks/useSerifFonts';
+import { useSyncQueueDrain } from '@/hooks/useSyncQueueDrain';
 import { queryClient } from '@/services/queryClient';
 
 SplashScreen.preventAutoHideAsync();
@@ -21,6 +22,11 @@ function SplashScreenController({ fontsLoaded }: { fontsLoaded: boolean }) {
     }
   }, [fontsLoaded, isRestoring]);
 
+  return null;
+}
+
+function SyncQueueController() {
+  useSyncQueueDrain();
   return null;
 }
 
@@ -55,6 +61,7 @@ export default function RootLayout() {
         <AuthProvider>
           <ToastProvider>
             <SplashScreenController fontsLoaded={fontsLoaded} />
+            <SyncQueueController />
             <StatusBar style="dark" />
             {fontsLoaded && <RootNavigator />}
           </ToastProvider>

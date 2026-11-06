@@ -20,6 +20,8 @@ export { FormError } from './FormError';
 export type { FormErrorProps } from './FormError';
 export { Input } from './Input';
 export type { InputProps } from './Input';
+export { OfflineBanner } from './OfflineBanner';
+export type { OfflineBannerProps, OfflineBannerTone } from './OfflineBanner';
 export { PasswordInput } from './PasswordInput';
 export type { PasswordInputProps } from './PasswordInput';
 export { SelectField } from './SelectField';

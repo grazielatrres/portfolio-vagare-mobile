@@ -44,6 +44,11 @@ export async function saveTripsToCache(trips: Trip[]): Promise<void> {
   }
 }
 
+export async function getCachedTripById(tripId: string): Promise<Trip | null> {
+  const trips = await getCachedTrips();
+  return trips.find((trip) => trip.id === tripId) ?? null;
+}
+
 export async function clearTripsCache(): Promise<void> {
   try {
     const db = await getDatabase();

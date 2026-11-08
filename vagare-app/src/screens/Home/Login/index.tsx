@@ -78,7 +78,7 @@ export function Login({ onCreateAccount, onForgotPassword }: LoginProps) {
           placeholder="Sua senha"
           value={password}
           onChangeText={setPassword}
-          containerStyle={styles.field}
+          containerStyle={styles.passwordField}
         />
 
         <Pressable style={styles.forgotPassword} onPress={onForgotPassword} hitSlop={8}>
@@ -137,6 +137,9 @@ const styles = StyleSheet.create({
   },
   field: {
     marginBottom: spacing.md,
+  },
+  passwordField: {
+    marginBottom: spacing.sm,
   },
   section: {
     marginBottom: spacing.lg,

@@ -1,5 +1,5 @@
 import { createContext, ReactNode, useCallback, useContext, useRef, useState } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { AccessibilityInfo, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { colors, fonts, spacing } from '@/theme';
@@ -27,6 +27,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
       clearTimeout(timeoutRef.current);
     }
     setToast(next);
+    AccessibilityInfo.announceForAccessibility(`${next.title}. ${next.message}`);
     timeoutRef.current = setTimeout(() => setToast(null), DISPLAY_MS);
   }, []);
 
@@ -34,11 +35,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
     <ToastContext.Provider value={{ showToast }}>
       {children}
       {toast ? (
-        <View
-          style={[styles.container, { top: insets.top + spacing.md }]}
-          accessibilityRole="alert"
-          accessibilityLiveRegion="polite"
-        >
+        <View style={[styles.container, { top: insets.top + spacing.md }]} accessibilityRole="alert">
           <Text style={styles.title}>{toast.title}</Text>
           <Text style={styles.message}>{toast.message}</Text>
         </View>

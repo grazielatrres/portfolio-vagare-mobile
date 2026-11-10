@@ -5,3 +5,4 @@ cd "$(dirname "$0")/../vagare-app"
 
 yarn lint
 yarn typecheck
+yarn test

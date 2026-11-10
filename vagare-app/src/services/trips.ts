@@ -6,6 +6,8 @@ export interface Trip {
   userId: string;
   name: string;
   destination: string;
+  latitude: string | null;
+  longitude: string | null;
   startDate: string;
   endDate: string;
   budget: string | null;
@@ -18,6 +20,8 @@ export interface Trip {
 export interface CreateTripPayload {
   name: string;
   destination: string;
+  latitude?: number | null;
+  longitude?: number | null;
   startDate: string;
   endDate: string;
   budget?: number | null;

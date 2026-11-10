@@ -8,8 +8,14 @@ import {
   logout as logoutRequest,
   register as registerRequest,
 } from '@/services/auth';
+import { clearActivitiesCache } from '@/services/activitiesCache';
+import { clearExpensesCache } from '@/services/expensesCache';
+import { clearInfosCache } from '@/services/infosCache';
+import { logError } from '@/services/logger';
 import { queryClient } from '@/services/queryClient';
+import { clearPendingMutations } from '@/services/syncQueue';
 import { clearTripsCache } from '@/services/tripsCache';
+import { deleteMe } from '@/services/users';
 
 const TOKEN_KEY = 'vagare.auth.token';
 const USER_KEY = 'vagare.auth.user';
@@ -23,6 +29,8 @@ interface AuthContextValue {
   register: (name: string, email: string, password: string) => Promise<void>;
   loginWithGoogle: (idToken: string) => Promise<void>;
   logout: () => Promise<void>;
+  updateUser: (patch: Partial<AuthUser>) => Promise<void>;
+  deleteAccount: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
@@ -95,6 +103,51 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }
 
+  // Limpa todo o estado local em sequência, sem deixar a falha de um passo
+  // impedir os seguintes. queryClient.clear() é a única garantia final: roda
+  // no finally mesmo se algo acima lançar um erro inesperado.
+  async function clearLocalState() {
+    try {
+      try {
+        await clearSession();
+      } catch (error) {
+        logError('AuthContext.clearSession', error);
+      }
+
+      try {
+        await clearTripsCache();
+      } catch (error) {
+        logError('AuthContext.clearTripsCache', error);
+      }
+
+      try {
+        await clearActivitiesCache();
+      } catch (error) {
+        logError('AuthContext.clearActivitiesCache', error);
+      }
+
+      try {
+        await clearExpensesCache();
+      } catch (error) {
+        logError('AuthContext.clearExpensesCache', error);
+      }
+
+      try {
+        await clearInfosCache();
+      } catch (error) {
+        logError('AuthContext.clearInfosCache', error);
+      }
+
+      try {
+        await clearPendingMutations();
+      } catch (error) {
+        logError('AuthContext.clearPendingMutations', error);
+      }
+    } finally {
+      queryClient.clear();
+    }
+  }
+
   async function logout() {
     if (token) {
       try {
@@ -103,12 +156,39 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         // sessão pode já ter expirado no servidor; segue com o logout local
       }
     }
-    await clearSession();
-    await clearTripsCache();
-    queryClient.clear();
+    await clearLocalState();
   }
 
-  const value = { user, token, isLoading, isRestoring, login, register, loginWithGoogle, logout };
+  async function updateUser(patch: Partial<AuthUser>) {
+    if (!user) {
+      return;
+    }
+    const nextUser = { ...user, ...patch };
+    setUser(nextUser);
+    await SecureStore.setItemAsync(USER_KEY, JSON.stringify(nextUser));
+  }
+
+  async function deleteAccount() {
+    // Se a exclusão no servidor falhar (ex.: rede), propaga o erro e NÃO
+    // limpa o estado local — a conta ainda existe, a sessão deve continuar.
+    if (token) {
+      await deleteMe(token);
+    }
+    await clearLocalState();
+  }
+
+  const value = {
+    user,
+    token,
+    isLoading,
+    isRestoring,
+    login,
+    register,
+    loginWithGoogle,
+    logout,
+    updateUser,
+    deleteAccount,
+  };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }

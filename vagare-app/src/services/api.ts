@@ -1,3 +1,5 @@
+import { notifyBackOnline } from './connectivity';
+
 const API_URL = process.env.EXPO_PUBLIC_API_URL ?? 'http://localhost:3000';
 
 export class ApiError extends Error {
@@ -32,6 +34,10 @@ export async function apiRequest<T>(path: string, options: ApiRequestOptions = {
   } catch {
     throw new ApiError(0, 'Não foi possível conectar ao servidor. Verifique sua conexão.');
   }
+
+  // Chegar ao servidor (independente do status HTTP) já confirma que a rede
+  // está de volta — sinal usado pela fila de sincronização offline.
+  notifyBackOnline();
 
   const isJson = response.headers.get('content-type')?.includes('application/json');
   const data = isJson ? await response.json() : null;

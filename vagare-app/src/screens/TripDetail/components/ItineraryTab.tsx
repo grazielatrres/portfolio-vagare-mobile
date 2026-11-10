@@ -2,13 +2,14 @@ import { useState } from 'react';
 import { Ionicons } from '@expo/vector-icons';
 import { ActivityIndicator, ScrollView, StyleSheet, Text, View } from 'react-native';
 
-import { Button, EmptyState, FormError } from '@/components';
+import { Button, EmptyState, FormError, OfflineBanner } from '@/components';
 import { useActivitiesQuery } from '@/hooks/useActivitiesQuery';
+import { usePendingMutationsQuery } from '@/hooks/usePendingMutationsQuery';
 import { ApiError } from '@/services/api';
-import { Activity } from '@/services/activities';
 import { Trip } from '@/services/trips';
 import { colors, fonts, spacing } from '@/theme';
-import { dayNumberInTrip, formatDateShort } from '@/utils/format';
+import { groupByDay } from '@/utils/activities';
+import { formatDateWithWeekday } from '@/utils/format';
 import { ActivityCard } from './ActivityCard';
 import { AddActivityForm } from './AddActivityForm';
 
@@ -16,35 +17,14 @@ export interface ItineraryTabProps {
   trip: Trip;
 }
 
-interface DayGroup {
-  date: string;
-  dayNumber: number;
-  activities: Activity[];
-}
-
-function groupByDay(activities: Activity[], tripStartDate: string): DayGroup[] {
-  const groups = new Map<string, Activity[]>();
-
-  for (const activity of activities) {
-    const key = activity.date;
-    const existing = groups.get(key) ?? [];
-    existing.push(activity);
-    groups.set(key, existing);
-  }
-
-  return Array.from(groups.entries())
-    .sort(([a], [b]) => (a < b ? -1 : 1))
-    .map(([date, dayActivities]) => ({
-      date,
-      dayNumber: dayNumberInTrip(tripStartDate, date),
-      activities: dayActivities,
-    }));
-}
-
 export function ItineraryTab({ trip }: ItineraryTabProps) {
-  const { data: activities, isPending, isError, error, refetch } = useActivitiesQuery(trip.id);
+  const { data, isPending, isError, error, refetch } = useActivitiesQuery(trip.id);
+  const { data: pendingMutations } = usePendingMutationsQuery(trip.id);
   const [showForm, setShowForm] = useState(false);
 
+  const activities = data?.activities;
+  const isOffline = data?.isOffline ?? false;
+  const pendingCount = pendingMutations?.length ?? 0;
   const dayGroups = activities ? groupByDay(activities, trip.startDate) : [];
 
   return (
@@ -69,6 +49,16 @@ export function ItineraryTab({ trip }: ItineraryTabProps) {
           contentContainerStyle={styles.scrollContent}
           showsVerticalScrollIndicator={false}
         >
+          {isOffline ? (
+            <OfflineBanner message="Sem conexão — mostrando o roteiro salvo neste dispositivo" />
+          ) : null}
+          {pendingCount > 0 ? (
+            <OfflineBanner
+              tone="pending"
+              message={`${pendingCount} alteração(ões) aguardando sincronização`}
+            />
+          ) : null}
+
           {dayGroups.length === 0 ? (
             showForm ? null : (
               <EmptyState
@@ -79,16 +69,9 @@ export function ItineraryTab({ trip }: ItineraryTabProps) {
           ) : (
             dayGroups.map((group) => (
               <View key={group.date} style={styles.dayGroup}>
-                <Text style={styles.dayHeader}>
-                  Dia {group.dayNumber} · {formatDateShort(group.date)}
-                </Text>
+                <Text style={styles.dayHeader}>{formatDateWithWeekday(group.date)}</Text>
                 {group.activities.map((activity) => (
-                  <ActivityCard
-                    key={activity.id}
-                    activity={activity}
-                    tripId={trip.id}
-                    currency={trip.currency}
-                  />
+                  <ActivityCard key={activity.id} activity={activity} trip={trip} />
                 ))}
               </View>
             ))
@@ -98,7 +81,7 @@ export function ItineraryTab({ trip }: ItineraryTabProps) {
             <AddActivityForm
               trip={trip}
               onCancel={() => setShowForm(false)}
-              onCreated={() => setShowForm(false)}
+              onSuccess={() => setShowForm(false)}
             />
           ) : (
             <Button

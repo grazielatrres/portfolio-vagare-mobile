@@ -1,0 +1,68 @@
+name: Publicar Produção (Play Store + App Store)
+
+on:
+  workflow_dispatch:
+    inputs:
+      platform:
+        description: Plataforma
+        type: choice
+        options: [all, android, ios]
+        default: all
+
+concurrency:
+  group: eas-production
+  cancel-in-progress: false
+
+jobs:
+  checks:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: yarn
+          cache-dependency-path: vagare-app/yarn.lock
+
+      - run: yarn install --frozen-lockfile
+        working-directory: vagare-app
+
+      - run: bash scripts/pr-checks.sh
+
+  build-and-submit:
+    needs: checks
+    runs-on: ubuntu-latest
+    # Ambiente do GitHub: permite exigir aprovação manual antes de publicar
+    # (Settings → Environments → production → Required reviewers).
+    environment: production
+    defaults:
+      run:
+        working-directory: vagare-app
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: yarn
+          cache-dependency-path: vagare-app/yarn.lock
+
+      - uses: expo/expo-github-action@v8
+        with:
+          eas-version: latest
+          packager: yarn
+          token: ${{ secrets.EXPO_TOKEN }}
+
+      - run: yarn install --frozen-lockfile
+
+      # O build roda na nuvem do EAS; --no-wait libera o runner e o envio às
+      # lojas acontece automaticamente no EAS quando o build termina.
+      - name: Build e envio às lojas (produção)
+        run: >
+          eas build
+          --platform ${{ inputs.platform || 'all' }}
+          --profile production
+          --auto-submit-with-profile production
+          --non-interactive
+          --no-wait

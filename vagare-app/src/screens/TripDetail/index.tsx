@@ -2,15 +2,18 @@ import { useState } from 'react';
 import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { BackButton, Button, FormError } from '@/components';
+import { BackButton, Button, FormError, OfflineBanner } from '@/components';
 import { useTripQuery } from '@/hooks/useTripQuery';
 import { ApiError } from '@/services/api';
 import { colors, fonts, spacing } from '@/theme';
 import { formatCurrencyValue } from '@/utils/currency';
 import { countTripDays, formatDateFull } from '@/utils/format';
-import { ComingSoon } from './components/ComingSoon';
+import { BudgetTab } from './components/BudgetTab';
+import { CalendarTab } from './components/CalendarTab';
+import { InfoTab } from './components/InfoTab';
 import { ItineraryTab } from './components/ItineraryTab';
 import { TripTabKey, TripTabs } from './components/TripTabs';
+import { WeatherTab } from './components/WeatherTab';
 
 export interface TripDetailProps {
   tripId: string;
@@ -19,7 +22,9 @@ export interface TripDetailProps {
 
 export function TripDetail({ tripId, onBack }: TripDetailProps) {
   const insets = useSafeAreaInsets();
-  const { data: trip, isPending, isError, error, refetch } = useTripQuery(tripId);
+  const { data, isPending, isError, error, refetch } = useTripQuery(tripId);
+  const trip = data?.trip;
+  const isOffline = data?.isOffline ?? false;
   const [activeTab, setActiveTab] = useState<TripTabKey>('roteiro');
 
   return (
@@ -40,6 +45,10 @@ export function TripDetail({ tripId, onBack }: TripDetailProps) {
         </View>
       ) : (
         <>
+          {isOffline ? (
+            <OfflineBanner message="Sem conexão — mostrando dados salvos neste dispositivo" />
+          ) : null}
+
           <Text style={styles.destination}>{trip.destination}</Text>
           <Text style={styles.subtitle}>
             {formatDateFull(trip.startDate)} – {formatDateFull(trip.endDate)} ·{' '}
@@ -53,29 +62,13 @@ export function TripDetail({ tripId, onBack }: TripDetailProps) {
             {activeTab === 'roteiro' ? (
               <ItineraryTab trip={trip} />
             ) : activeTab === 'calendario' ? (
-              <ComingSoon
-                icon="calendar-outline"
-                title="Calendário"
-                description="Em breve você vai poder ver o roteiro distribuído num calendário mensal."
-              />
+              <CalendarTab trip={trip} />
             ) : activeTab === 'clima' ? (
-              <ComingSoon
-                icon="cloud-outline"
-                title="Clima"
-                description="Em breve você vai poder consultar a previsão do tempo para cada dia da viagem."
-              />
+              <WeatherTab trip={trip} />
             ) : activeTab === 'orcamento' ? (
-              <ComingSoon
-                icon="wallet-outline"
-                title="Orçamento"
-                description="Em breve você vai poder registrar gastos e acompanhar o saldo da viagem."
-              />
+              <BudgetTab trip={trip} />
             ) : (
-              <ComingSoon
-                icon="information-circle-outline"
-                title="Info"
-                description="Em breve você vai poder guardar dados de voo e hospedagem aqui."
-              />
+              <InfoTab trip={trip} />
             )}
           </View>
         </>

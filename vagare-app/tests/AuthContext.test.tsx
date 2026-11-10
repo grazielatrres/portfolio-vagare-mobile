@@ -1,0 +1,137 @@
+import { act, renderHook, waitFor } from '@testing-library/react-native';
+import * as SecureStore from 'expo-secure-store';
+
+import { AuthProvider, useAuth } from '@/contexts/AuthContext';
+import { clearActivitiesCache } from '@/services/activitiesCache';
+import { clearExpensesCache } from '@/services/expensesCache';
+import { clearInfosCache } from '@/services/infosCache';
+import { queryClient } from '@/services/queryClient';
+import { clearPendingMutations } from '@/services/syncQueue';
+import { clearTripsCache } from '@/services/tripsCache';
+import { deleteMe } from '@/services/users';
+
+jest.mock('expo-secure-store', () => ({
+  getItemAsync: jest.fn(),
+  setItemAsync: jest.fn(),
+  deleteItemAsync: jest.fn(),
+}));
+
+jest.mock('@/services/auth', () => ({
+  login: jest.fn(),
+  register: jest.fn(),
+  googleLogin: jest.fn(),
+  logout: jest.fn().mockResolvedValue(undefined),
+}));
+
+jest.mock('@/services/users', () => ({
+  deleteMe: jest.fn().mockResolvedValue(undefined),
+}));
+
+jest.mock('@/services/tripsCache', () => ({
+  clearTripsCache: jest.fn(),
+}));
+
+jest.mock('@/services/activitiesCache', () => ({
+  clearActivitiesCache: jest.fn(),
+}));
+
+jest.mock('@/services/expensesCache', () => ({
+  clearExpensesCache: jest.fn(),
+}));
+
+jest.mock('@/services/infosCache', () => ({
+  clearInfosCache: jest.fn(),
+}));
+
+jest.mock('@/services/syncQueue', () => ({
+  clearPendingMutations: jest.fn(),
+}));
+
+jest.mock('@/services/queryClient', () => ({
+  queryClient: { clear: jest.fn() },
+}));
+
+const TOKEN_KEY = 'vagare.auth.token';
+const USER_KEY = 'vagare.auth.user';
+
+describe('AuthContext - limpeza local em logout/deleteAccount', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    (SecureStore.getItemAsync as jest.Mock).mockImplementation((key: string) => {
+      if (key === TOKEN_KEY) return Promise.resolve('tok-1');
+      if (key === USER_KEY) {
+        return Promise.resolve(
+          JSON.stringify({ id: 'u1', name: 'Graziela', email: 'g@vagare.app', provider: 'local' }),
+        );
+      }
+      return Promise.resolve(null);
+    });
+    (SecureStore.setItemAsync as jest.Mock).mockResolvedValue(undefined);
+    (SecureStore.deleteItemAsync as jest.Mock).mockResolvedValue(undefined);
+    (clearTripsCache as jest.Mock).mockResolvedValue(undefined);
+    (clearActivitiesCache as jest.Mock).mockResolvedValue(undefined);
+    (clearExpensesCache as jest.Mock).mockResolvedValue(undefined);
+    (clearInfosCache as jest.Mock).mockResolvedValue(undefined);
+    (clearPendingMutations as jest.Mock).mockResolvedValue(undefined);
+    (deleteMe as jest.Mock).mockResolvedValue(undefined);
+  });
+
+  it('logout limpa sessão, todos os caches e queryClient mesmo se clearTripsCache falhar', async () => {
+    (clearTripsCache as jest.Mock).mockRejectedValue(new Error('sqlite indisponível'));
+
+    const { result } = await renderHook(() => useAuth(), { wrapper: AuthProvider });
+    await waitFor(() => expect(result.current.isRestoring).toBe(false));
+
+    await act(async () => {
+      await result.current.logout();
+    });
+
+    expect(clearTripsCache).toHaveBeenCalled();
+    expect(clearActivitiesCache).toHaveBeenCalled();
+    expect(clearExpensesCache).toHaveBeenCalled();
+    expect(clearInfosCache).toHaveBeenCalled();
+    expect(clearPendingMutations).toHaveBeenCalled();
+    expect(SecureStore.deleteItemAsync).toHaveBeenCalledWith(TOKEN_KEY);
+    expect(SecureStore.deleteItemAsync).toHaveBeenCalledWith(USER_KEY);
+    expect(queryClient.clear).toHaveBeenCalled();
+  });
+
+  it('deleteAccount limpa sessão, todos os caches e queryClient mesmo se clearTripsCache falhar', async () => {
+    (clearTripsCache as jest.Mock).mockRejectedValue(new Error('sqlite indisponível'));
+
+    const { result } = await renderHook(() => useAuth(), { wrapper: AuthProvider });
+    await waitFor(() => expect(result.current.isRestoring).toBe(false));
+
+    await act(async () => {
+      await result.current.deleteAccount();
+    });
+
+    expect(clearTripsCache).toHaveBeenCalled();
+    expect(clearActivitiesCache).toHaveBeenCalled();
+    expect(clearExpensesCache).toHaveBeenCalled();
+    expect(clearInfosCache).toHaveBeenCalled();
+    expect(clearPendingMutations).toHaveBeenCalled();
+    expect(SecureStore.deleteItemAsync).toHaveBeenCalledWith(TOKEN_KEY);
+    expect(SecureStore.deleteItemAsync).toHaveBeenCalledWith(USER_KEY);
+    expect(queryClient.clear).toHaveBeenCalled();
+  });
+
+  it('deleteAccount não limpa estado local se a exclusão no servidor falhar', async () => {
+    (deleteMe as jest.Mock).mockRejectedValue(new Error('rede indisponível'));
+
+    const { result } = await renderHook(() => useAuth(), { wrapper: AuthProvider });
+    await waitFor(() => expect(result.current.isRestoring).toBe(false));
+
+    await act(async () => {
+      await expect(result.current.deleteAccount()).rejects.toThrow('rede indisponível');
+    });
+
+    expect(clearTripsCache).not.toHaveBeenCalled();
+    expect(clearActivitiesCache).not.toHaveBeenCalled();
+    expect(clearExpensesCache).not.toHaveBeenCalled();
+    expect(clearInfosCache).not.toHaveBeenCalled();
+    expect(clearPendingMutations).not.toHaveBeenCalled();
+    expect(queryClient.clear).not.toHaveBeenCalled();
+    expect(SecureStore.deleteItemAsync).not.toHaveBeenCalled();
+  });
+});

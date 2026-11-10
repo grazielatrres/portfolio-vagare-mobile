@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { BackButton, Button, FormError } from '@/components';
+import { BackButton, Button, FormError, OfflineBanner } from '@/components';
 import { useTripQuery } from '@/hooks/useTripQuery';
 import { ApiError } from '@/services/api';
 import { colors, fonts, spacing } from '@/theme';
@@ -22,7 +22,9 @@ export interface TripDetailProps {
 
 export function TripDetail({ tripId, onBack }: TripDetailProps) {
   const insets = useSafeAreaInsets();
-  const { data: trip, isPending, isError, error, refetch } = useTripQuery(tripId);
+  const { data, isPending, isError, error, refetch } = useTripQuery(tripId);
+  const trip = data?.trip;
+  const isOffline = data?.isOffline ?? false;
   const [activeTab, setActiveTab] = useState<TripTabKey>('roteiro');
 
   return (
@@ -43,6 +45,10 @@ export function TripDetail({ tripId, onBack }: TripDetailProps) {
         </View>
       ) : (
         <>
+          {isOffline ? (
+            <OfflineBanner message="Sem conexão — mostrando dados salvos neste dispositivo" />
+          ) : null}
+
           <Text style={styles.destination}>{trip.destination}</Text>
           <Text style={styles.subtitle}>
             {formatDateFull(trip.startDate)} – {formatDateFull(trip.endDate)} ·{' '}

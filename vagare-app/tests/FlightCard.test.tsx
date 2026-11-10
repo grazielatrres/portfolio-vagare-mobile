@@ -1,6 +1,8 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { fireEvent, render, screen, waitFor } from '@testing-library/react-native';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
 
+import { ToastProvider } from '@/contexts/ToastContext';
 import { FlightCard } from '@/screens/TripDetail/components/FlightCard';
 import { buildInfo, buildTrip, mockJsonResponse } from './helpers/fixtures';
 
@@ -13,9 +15,13 @@ async function renderCard() {
   const queryClient = new QueryClient();
   const info = buildInfo();
   await render(
-    <QueryClientProvider client={queryClient}>
-      <FlightCard info={info} trip={trip} />
-    </QueryClientProvider>,
+    <SafeAreaProvider>
+      <QueryClientProvider client={queryClient}>
+        <ToastProvider>
+          <FlightCard info={info} trip={trip} />
+        </ToastProvider>
+      </QueryClientProvider>
+    </SafeAreaProvider>,
   );
   return info;
 }

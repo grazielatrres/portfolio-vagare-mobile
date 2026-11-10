@@ -1,0 +1,118 @@
+name: Release
+
+run-name: "Release ${{ inputs.ambiente }} · ${{ inputs.plataforma }}"
+
+on:
+  workflow_dispatch:
+    inputs:
+      ambiente:
+        description: Ambiente (development = develop → Play interno + TestFlight · production = main → lojas)
+        type: choice
+        options: [development, production]
+        default: development
+      plataforma:
+        description: Plataforma
+        type: choice
+        options: [all, android, ios]
+        default: all
+
+concurrency:
+  group: release-${{ inputs.ambiente }}
+  cancel-in-progress: false
+
+jobs:
+  checks:
+    name: Verificações (${{ inputs.ambiente == 'production' && 'main' || 'develop' }})
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          ref: ${{ inputs.ambiente == 'production' && 'main' || 'develop' }}
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: yarn
+          cache-dependency-path: vagare-app/yarn.lock
+
+      - run: yarn install --frozen-lockfile
+        working-directory: vagare-app
+
+      - name: Lint, typecheck e testes
+        run: bash scripts/pr-checks.sh
+
+      - name: Resumo
+        run: |
+          {
+            echo "## Release ${{ inputs.ambiente }}"
+            echo
+            echo "| Ambiente | Branch | Plataforma | Commit |"
+            echo "|---|---|---|---|"
+            echo "| ${{ inputs.ambiente }} | ${{ inputs.ambiente == 'production' && 'main' || 'develop' }} | ${{ inputs.plataforma }} | \`$(git rev-parse --short HEAD)\` |"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+  dev-android:
+    name: Development · Android (Play interno)
+    needs: checks
+    if: inputs.ambiente == 'development' && inputs.plataforma != 'ios'
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          ref: develop
+      - uses: ./.github/actions/eas-build-submit
+        with:
+          platform: android
+          profile: development-store
+          expo-token: ${{ secrets.EXPO_TOKEN }}
+
+  dev-ios:
+    name: Development · iOS (TestFlight)
+    needs: checks
+    if: inputs.ambiente == 'development' && inputs.plataforma != 'android'
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          ref: develop
+      - uses: ./.github/actions/eas-build-submit
+        with:
+          platform: ios
+          profile: development-store
+          expo-token: ${{ secrets.EXPO_TOKEN }}
+
+  prod-android:
+    name: Produção · Android (Play Store)
+    needs: checks
+    if: inputs.ambiente == 'production' && inputs.plataforma != 'ios'
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    environment: production
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          ref: main
+      - uses: ./.github/actions/eas-build-submit
+        with:
+          platform: android
+          profile: production
+          expo-token: ${{ secrets.EXPO_TOKEN }}
+
+  prod-ios:
+    name: Produção · iOS (App Store)
+    needs: checks
+    if: inputs.ambiente == 'production' && inputs.plataforma != 'android'
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    environment: production
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          ref: main
+      - uses: ./.github/actions/eas-build-submit
+        with:
+          platform: ios
+          profile: production
+          expo-token: ${{ secrets.EXPO_TOKEN }}

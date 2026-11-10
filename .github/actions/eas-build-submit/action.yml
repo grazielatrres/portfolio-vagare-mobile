@@ -1,0 +1,60 @@
+name: EAS build + submit
+description: Instala dependências, gera o build no EAS e envia para a loja.
+
+inputs:
+  platform:
+    description: android ou ios
+    required: true
+  profile:
+    description: Perfil do eas.json (build e submit)
+    required: true
+  expo-token:
+    description: Token de acesso do Expo
+    required: true
+
+runs:
+  using: composite
+  steps:
+    - uses: actions/setup-node@v5
+      with:
+        node-version: 22
+        cache: yarn
+        cache-dependency-path: vagare-app/yarn.lock
+
+    - uses: expo/expo-github-action@v8
+      with:
+        eas-version: latest
+        packager: yarn
+        token: ${{ inputs.expo-token }}
+
+    - name: Instalar dependências
+      shell: bash
+      working-directory: vagare-app
+      run: yarn install --frozen-lockfile
+
+    - name: Build e envio à loja
+      shell: bash
+      working-directory: vagare-app
+      run: |
+        eas build \
+          --platform ${{ inputs.platform }} \
+          --profile ${{ inputs.profile }} \
+          --auto-submit-with-profile ${{ inputs.profile }} \
+          --non-interactive \
+          --json > build.json
+
+    - name: Resumo
+      if: always()
+      shell: bash
+      working-directory: vagare-app
+      run: |
+        if [ ! -s build.json ]; then
+          echo "### ❌ ${{ inputs.platform }}: build não gerado" >> "$GITHUB_STEP_SUMMARY"
+          exit 0
+        fi
+        jq -r --arg platform "${{ inputs.platform }}" '.[] |
+          "### ✅ \($platform): versão \(.appVersion) (build \(.appBuildVersion))\n\n" +
+          "- Perfil: `\(.buildProfile)`\n" +
+          "- Commit: `\(.gitCommitHash // "-")`\n" +
+          "- [Ver build no Expo](https://expo.dev/accounts/vagare-app/projects/vagare-app/builds/\(.id))\n"
+        ' build.json >> "$GITHUB_STEP_SUMMARY"

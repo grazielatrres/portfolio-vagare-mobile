@@ -18,6 +18,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
+        with:
+          ref: develop
 
       - uses: actions/setup-node@v5
         with:
@@ -38,6 +40,8 @@ jobs:
         working-directory: vagare-app
     steps:
       - uses: actions/checkout@v5
+        with:
+          ref: develop
 
       - uses: actions/setup-node@v5
         with:

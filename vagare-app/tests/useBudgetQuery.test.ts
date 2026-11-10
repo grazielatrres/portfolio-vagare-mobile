@@ -27,7 +27,7 @@ describe('useBudgetQuery', () => {
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
 
     expect(getBudgetSummaryMock).toHaveBeenCalledWith('test-token', 'trip-1');
-    expect(result.current.data).toEqual(summary);
+    expect(result.current.data).toEqual({ summary, isOffline: false });
   });
 
   it('não dispara a busca quando o id da viagem está vazio', async () => {

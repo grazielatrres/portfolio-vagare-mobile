@@ -44,3 +44,21 @@ export function updateExpense(
 export function deleteExpense(token: string, tripId: string, id: string) {
   return apiRequest<void>(`/trips/${tripId}/expenses/${id}`, { method: 'DELETE', token });
 }
+
+// Monta a entidade local a partir do payload do formulário, usada quando a
+// criação/edição acontece offline e ainda não existe (ou não foi atualizada)
+// resposta real do servidor.
+export function buildExpenseFromPayload(
+  id: string,
+  tripId: string,
+  payload: CreateExpensePayload,
+): Expense {
+  return {
+    id,
+    tripId,
+    description: payload.description,
+    amount: String(payload.amount),
+    currency: payload.currency ?? 'BRL',
+    category: payload.category ?? null,
+  };
+}

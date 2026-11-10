@@ -27,7 +27,7 @@ describe('useTripQuery', () => {
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
 
     expect(getTripMock).toHaveBeenCalledWith('test-token', 'trip-42');
-    expect(result.current.data).toEqual(trip);
+    expect(result.current.data).toEqual({ trip, isOffline: false });
   });
 
   it('não dispara a busca quando o id está vazio', async () => {

@@ -27,6 +27,6 @@ describe('useActivitiesQuery', () => {
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
 
     expect(listActivitiesMock).toHaveBeenCalledWith('test-token', 'trip-1');
-    expect(result.current.data).toEqual(activities);
+    expect(result.current.data).toEqual({ activities, isOffline: false });
   });
 });

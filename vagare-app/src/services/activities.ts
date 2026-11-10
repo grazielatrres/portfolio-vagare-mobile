@@ -54,3 +54,25 @@ export function updateActivity(
 export function deleteActivity(token: string, tripId: string, id: string) {
   return apiRequest<void>(`/trips/${tripId}/activities/${id}`, { method: 'DELETE', token });
 }
+
+// Monta a entidade local a partir do payload do formulário, usada quando a
+// criação/edição acontece offline e ainda não existe (ou não foi atualizada)
+// resposta real do servidor.
+export function buildActivityFromPayload(
+  id: string,
+  tripId: string,
+  payload: CreateActivityPayload,
+): Activity {
+  return {
+    id,
+    tripId,
+    name: payload.name,
+    date: payload.date,
+    time: payload.time ?? null,
+    location: payload.location ?? null,
+    period: payload.period ?? null,
+    category: payload.category ?? null,
+    estimatedCost: payload.estimatedCost != null ? String(payload.estimatedCost) : null,
+    description: payload.description ?? null,
+  };
+}

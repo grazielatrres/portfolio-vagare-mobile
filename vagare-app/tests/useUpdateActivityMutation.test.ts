@@ -10,6 +10,8 @@ import { createQueryWrapper } from './helpers/queryWrapper';
 
 // eslint-disable-next-line @typescript-eslint/no-require-imports -- jest.mock factories must use require, not import, to work with hoisting
 jest.mock('@/contexts/AuthContext', () => require('./helpers/mockAuth').authContextMock);
+// eslint-disable-next-line @typescript-eslint/no-require-imports -- jest.mock factories must use require, not import, to work with hoisting
+jest.mock('@/contexts/ToastContext', () => require('./helpers/mockToast').toastContextMock);
 jest.mock('@/services/activities');
 
 const updateActivityMock = updateActivity as jest.Mock;

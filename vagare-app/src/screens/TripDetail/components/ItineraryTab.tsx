@@ -2,8 +2,9 @@ import { useState } from 'react';
 import { Ionicons } from '@expo/vector-icons';
 import { ActivityIndicator, ScrollView, StyleSheet, Text, View } from 'react-native';
 
-import { Button, EmptyState, FormError } from '@/components';
+import { Button, EmptyState, FormError, OfflineBanner } from '@/components';
 import { useActivitiesQuery } from '@/hooks/useActivitiesQuery';
+import { usePendingMutationsQuery } from '@/hooks/usePendingMutationsQuery';
 import { ApiError } from '@/services/api';
 import { Trip } from '@/services/trips';
 import { colors, fonts, spacing } from '@/theme';
@@ -17,9 +18,13 @@ export interface ItineraryTabProps {
 }
 
 export function ItineraryTab({ trip }: ItineraryTabProps) {
-  const { data: activities, isPending, isError, error, refetch } = useActivitiesQuery(trip.id);
+  const { data, isPending, isError, error, refetch } = useActivitiesQuery(trip.id);
+  const { data: pendingMutations } = usePendingMutationsQuery(trip.id);
   const [showForm, setShowForm] = useState(false);
 
+  const activities = data?.activities;
+  const isOffline = data?.isOffline ?? false;
+  const pendingCount = pendingMutations?.length ?? 0;
   const dayGroups = activities ? groupByDay(activities, trip.startDate) : [];
 
   return (
@@ -44,6 +49,16 @@ export function ItineraryTab({ trip }: ItineraryTabProps) {
           contentContainerStyle={styles.scrollContent}
           showsVerticalScrollIndicator={false}
         >
+          {isOffline ? (
+            <OfflineBanner message="Sem conexão — mostrando o roteiro salvo neste dispositivo" />
+          ) : null}
+          {pendingCount > 0 ? (
+            <OfflineBanner
+              tone="pending"
+              message={`${pendingCount} alteração(ões) aguardando sincronização`}
+            />
+          ) : null}
+
           {dayGroups.length === 0 ? (
             showForm ? null : (
               <EmptyState

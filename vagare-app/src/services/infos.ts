@@ -65,3 +65,18 @@ export function updateInfo(
 export function deleteInfo(token: string, tripId: string, id: string) {
   return apiRequest<void>(`/trips/${tripId}/infos/${id}`, { method: 'DELETE', token });
 }
+
+// Monta a entidade local a partir do payload do formulário, usada quando a
+// criação/edição acontece offline e ainda não existe (ou não foi atualizada)
+// resposta real do servidor.
+export function buildInfoFromPayload(id: string, tripId: string, payload: CreateInfoPayload): Info {
+  return {
+    id,
+    tripId,
+    type: payload.type,
+    title: payload.title,
+    description: payload.description ?? null,
+    date: payload.date ?? null,
+    details: payload.details ?? null,
+  };
+}

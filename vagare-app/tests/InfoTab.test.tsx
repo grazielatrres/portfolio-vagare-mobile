@@ -1,6 +1,8 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { render, screen } from '@testing-library/react-native';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
 
+import { ToastProvider } from '@/contexts/ToastContext';
 import { InfoTab } from '@/screens/TripDetail/components/InfoTab';
 import { buildInfo, buildTrip, mockJsonResponse } from './helpers/fixtures';
 
@@ -12,9 +14,13 @@ const trip = buildTrip();
 async function renderTab() {
   const queryClient = new QueryClient();
   await render(
-    <QueryClientProvider client={queryClient}>
-      <InfoTab trip={trip} />
-    </QueryClientProvider>,
+    <SafeAreaProvider>
+      <QueryClientProvider client={queryClient}>
+        <ToastProvider>
+          <InfoTab trip={trip} />
+        </ToastProvider>
+      </QueryClientProvider>
+    </SafeAreaProvider>,
   );
 }
 

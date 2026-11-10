@@ -27,21 +27,26 @@ describe('getGreeting', () => {
   });
 });
 
+// A pontuação das abreviações (ex.: "set." vs "set", "sáb.," vs "sáb,") e o tipo
+// de espaço variam conforme a versão do ICU do Node, então os testes de datas
+// abreviadas usam regex tolerante a essas diferenças.
 describe('formatDateShort', () => {
   it('formata a data no padrão "dia de mês" em pt-BR', () => {
-    expect(formatDateShort('2026-09-05')).toBe('5 de set.');
+    expect(formatDateShort('2026-09-05')).toMatch(/^5\sde\sset\.?$/);
   });
 });
 
 describe('formatDateCompact', () => {
   it('formata a data como "dia mês"', () => {
-    expect(formatDateCompact('2026-09-05')).toBe('5 set.');
+    expect(formatDateCompact('2026-09-05')).toMatch(/^5\sset\.?$/);
   });
 });
 
 describe('formatDateRange', () => {
   it('junta as duas datas com um travessão', () => {
-    expect(formatDateRange('2026-09-01', '2026-09-10')).toBe('1 de set. – 10 de set.');
+    expect(formatDateRange('2026-09-01', '2026-09-10')).toMatch(
+      /^1\sde\sset\.? – 10\sde\sset\.?$/,
+    );
   });
 });
 
@@ -53,7 +58,7 @@ describe('formatDateFull', () => {
 
 describe('formatDateWithWeekday', () => {
   it('inclui o dia da semana abreviado', () => {
-    expect(formatDateWithWeekday('2026-09-05')).toBe('sáb., 5 de set.');
+    expect(formatDateWithWeekday('2026-09-05')).toMatch(/^sáb\.?,?\s5\sde\sset\.?$/);
   });
 });
 

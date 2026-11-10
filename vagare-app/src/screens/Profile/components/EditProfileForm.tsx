@@ -48,6 +48,11 @@ export function EditProfileForm({ name, email, onCancel, onSaved }: EditProfileF
       return;
     }
 
+    if (trimmedName === name) {
+      onSaved();
+      return;
+    }
+
     setFormError(null);
 
     try {

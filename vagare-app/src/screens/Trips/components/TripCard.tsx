@@ -66,7 +66,7 @@ export function TripCard({ trip }: TripCardProps) {
 
       <View style={styles.rowItem}>
         <Ionicons name="location-outline" size={16} color={colors.accent} />
-        <Text style={styles.plannedText}>Nenhum dia planejado ainda</Text>
+        <Text style={styles.plannedText}>Nenhuma atividade planejada ainda</Text>
       </View>
 
       <FormError message={error} style={styles.errorText} />

@@ -2,6 +2,8 @@ import { useQuery } from '@tanstack/react-query';
 
 import { useAuth } from '@/contexts/AuthContext';
 import { ApiError } from '@/services/api';
+import { logError } from '@/services/logger';
+import { prefetchTripsForOffline } from '@/services/offlinePrefetch';
 import { listTrips } from '@/services/trips';
 import { getCachedTrips, saveTripsToCache } from '@/services/tripsCache';
 
@@ -16,6 +18,10 @@ export function useTripsQuery() {
       try {
         const trips = await listTrips(token as string);
         await saveTripsToCache(trips);
+        // Em segundo plano: a lista aparece já, os detalhes vão para o cache.
+        prefetchTripsForOffline(token as string, trips).catch((error) =>
+          logError('useTripsQuery.prefetch', error),
+        );
         return { trips, isOffline: false as const };
       } catch (err) {
         if (err instanceof ApiError && err.status === 0) {

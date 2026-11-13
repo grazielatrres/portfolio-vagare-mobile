@@ -7,6 +7,7 @@ import {
 import { createActivity, deleteActivity, updateActivity } from './activities';
 import { ApiError } from './api';
 import { getDatabase } from './database';
+import { LOCAL_ID_PREFIX } from './localId';
 import {
   removeExpenseFromCache,
   upsertExpenseToCache,
@@ -30,7 +31,7 @@ export interface PendingMutation {
   createdAt: string;
 }
 
-export const LOCAL_ID_PREFIX = 'local-';
+export { LOCAL_ID_PREFIX };
 
 export function generateLocalId(): string {
   return `${LOCAL_ID_PREFIX}${Crypto.randomUUID()}`;
@@ -90,15 +91,19 @@ export async function discardLocalEntity(entityType: EntityType, localId: string
     logError('syncQueue.discardLocalEntity', error);
   }
 
+  await removeFromCache(entityType, localId);
+}
+
+async function removeFromCache(entityType: EntityType, id: string): Promise<void> {
   switch (entityType) {
     case 'activity':
-      await removeActivityFromCache(localId);
+      await removeActivityFromCache(id);
       break;
     case 'expense':
-      await removeExpenseFromCache(localId);
+      await removeExpenseFromCache(id);
       break;
     case 'info':
-      await removeInfoFromCache(localId);
+      await removeInfoFromCache(id);
       break;
   }
 }
@@ -191,14 +196,20 @@ export async function drainPendingMutations(token: string | null): Promise<void>
         await db.runAsync('DELETE FROM pending_mutations WHERE id = ?', [mutation.id]);
         affectedTripIds.add(mutation.tripId);
       } catch (error) {
-        if (error instanceof ApiError && error.status === 0) {
-          // Ainda offline: para aqui e preserva a ordem do que resta na fila.
+        if (error instanceof ApiError && (error.status === 0 || error.status === 401)) {
+          // Ainda offline, ou token recusado: não é rejeição da mutação em si.
+          // Para aqui e preserva a ordem do que resta na fila.
           break;
         }
         // Rejeição real do servidor (ex.: validação) — descarta para não
         // bloquear a fila para sempre.
         logError('syncQueue.drainPendingMutations', error);
         await db.runAsync('DELETE FROM pending_mutations WHERE id = ?', [mutation.id]);
+        if (mutation.operation === 'create' && isLocalId(resolvedId)) {
+          // Criação recusada: o item local nunca vai existir no servidor. O
+          // cache preserva ids local-* ao sincronizar, então remove aqui.
+          await removeFromCache(mutation.entityType, resolvedId);
+        }
         affectedTripIds.add(mutation.tripId);
       }
     }

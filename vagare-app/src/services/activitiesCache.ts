@@ -1,5 +1,6 @@
 import { Activity } from './activities';
 import { getDatabase } from './database';
+import { LOCAL_ID_PREFIX } from './localId';
 import { logError } from './logger';
 
 export async function getCachedActivities(tripId: string): Promise<Activity[]> {
@@ -20,7 +21,12 @@ export async function saveActivitiesToCache(tripId: string, activities: Activity
     const db = await getDatabase();
 
     await db.withTransactionAsync(async () => {
-      await db.runAsync('DELETE FROM activities WHERE tripId = ?', [tripId]);
+      // Preserva o que foi criado offline e ainda não sincronizou (id local-*):
+      // a lista do servidor ainda não tem esses itens.
+      await db.runAsync(
+        `DELETE FROM activities WHERE tripId = ? AND id NOT LIKE '${LOCAL_ID_PREFIX}%'`,
+        [tripId],
+      );
 
       for (const activity of activities) {
         await db.runAsync(

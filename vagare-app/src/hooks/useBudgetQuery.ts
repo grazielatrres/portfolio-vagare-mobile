@@ -4,6 +4,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { ApiError } from '@/services/api';
 import { getBudgetSummary } from '@/services/budget';
 import { getCachedBudgetSummary } from '@/services/budgetCache';
+import { saveExpensesToCache } from '@/services/expensesCache';
 
 export function budgetQueryKey(tripId: string) {
   return ['trips', tripId, 'budget'] as const;
@@ -17,6 +18,8 @@ export function useBudgetQuery(tripId: string) {
     queryFn: async () => {
       try {
         const summary = await getBudgetSummary(token as string, tripId);
+        // O resumo offline é recalculado a partir do cache local de despesas.
+        await saveExpensesToCache(tripId, summary.expenses.items);
         return { summary, isOffline: false as const };
       } catch (err) {
         if (err instanceof ApiError && err.status === 0) {

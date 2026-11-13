@@ -21,11 +21,9 @@ export function useInfosQuery(tripId: string) {
         return { infos, isOffline: false as const };
       } catch (err) {
         if (err instanceof ApiError && err.status === 0) {
+          // Lista vazia offline é válida: ver comentário em useActivitiesQuery.
           const cached = await getCachedInfos(tripId);
-          if (cached.length > 0) {
-            return { infos: cached, isOffline: true as const };
-          }
-          throw new ApiError(0, 'Sem conexão e nenhuma informação salva neste dispositivo ainda.');
+          return { infos: cached, isOffline: true as const };
         }
         throw err;
       }

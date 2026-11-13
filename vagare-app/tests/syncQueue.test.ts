@@ -154,6 +154,25 @@ describe('syncQueue', () => {
     await drainPendingMutations('token-1');
 
     await expect(getPendingMutations('t1')).resolves.toEqual([]);
+    // O item local de uma criação recusada sai do cache, senão fica órfão.
+    expect(removeActivityFromCache).toHaveBeenCalledWith('local-1');
+  });
+
+  it('preserva a fila quando o token é recusado (401)', async () => {
+    await enqueueMutation({
+      tripId: 't1',
+      entityType: 'activity',
+      operation: 'create',
+      localId: 'local-1',
+      payload: { name: 'A', date: '2026-01-01' },
+    });
+
+    (createActivity as jest.Mock).mockRejectedValueOnce(new ApiError(401, 'Token expirado'));
+
+    await drainPendingMutations('token-1');
+
+    await expect(getPendingMutations('t1')).resolves.toHaveLength(1);
+    expect(removeActivityFromCache).not.toHaveBeenCalled();
   });
 
   it('resolve create→update do mesmo localId para o id real do servidor ao drenar', async () => {

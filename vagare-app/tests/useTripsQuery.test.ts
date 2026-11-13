@@ -3,6 +3,7 @@ import { renderHook, waitFor } from '@testing-library/react-native';
 import { useTripsQuery } from '@/hooks/useTripsQuery';
 import { ApiError } from '@/services/api';
 import { listTrips } from '@/services/trips';
+import { prefetchTripsForOffline } from '@/services/offlinePrefetch';
 import { getCachedTrips, saveTripsToCache } from '@/services/tripsCache';
 import { buildTrip } from './helpers/fixtures';
 import { createQueryWrapper } from './helpers/queryWrapper';
@@ -11,6 +12,9 @@ import { createQueryWrapper } from './helpers/queryWrapper';
 jest.mock('@/contexts/AuthContext', () => require('./helpers/mockAuth').authContextMock);
 jest.mock('@/services/trips');
 jest.mock('@/services/tripsCache');
+jest.mock('@/services/offlinePrefetch', () => ({
+  prefetchTripsForOffline: jest.fn().mockResolvedValue(undefined),
+}));
 
 const listTripsMock = listTrips as jest.Mock;
 const getCachedTripsMock = getCachedTrips as jest.Mock;
@@ -32,6 +36,7 @@ describe('useTripsQuery', () => {
 
     expect(listTripsMock).toHaveBeenCalledWith('test-token');
     expect(saveTripsToCacheMock).toHaveBeenCalledWith(trips);
+    expect(prefetchTripsForOffline).toHaveBeenCalledWith('test-token', trips);
     expect(result.current.data).toEqual({ trips, isOffline: false });
   });
 

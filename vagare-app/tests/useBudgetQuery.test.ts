@@ -2,12 +2,14 @@ import { renderHook, waitFor } from '@testing-library/react-native';
 
 import { useBudgetQuery } from '@/hooks/useBudgetQuery';
 import { getBudgetSummary } from '@/services/budget';
+import { saveExpensesToCache } from '@/services/expensesCache';
 import { buildBudgetSummary } from './helpers/fixtures';
 import { createQueryWrapper } from './helpers/queryWrapper';
 
 // eslint-disable-next-line @typescript-eslint/no-require-imports -- jest.mock factories must use require, not import, to work with hoisting
 jest.mock('@/contexts/AuthContext', () => require('./helpers/mockAuth').authContextMock);
 jest.mock('@/services/budget');
+jest.mock('@/services/expensesCache');
 
 const getBudgetSummaryMock = getBudgetSummary as jest.Mock;
 
@@ -28,6 +30,8 @@ describe('useBudgetQuery', () => {
 
     expect(getBudgetSummaryMock).toHaveBeenCalledWith('test-token', 'trip-1');
     expect(result.current.data).toEqual({ summary, isOffline: false });
+    // Sem isso o orçamento offline era recalculado sem nenhuma despesa.
+    expect(saveExpensesToCache).toHaveBeenCalledWith('trip-1', summary.expenses.items);
   });
 
   it('não dispara a busca quando o id da viagem está vazio', async () => {

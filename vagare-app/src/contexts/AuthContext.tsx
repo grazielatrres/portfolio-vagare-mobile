@@ -1,17 +1,21 @@
-import { createContext, ReactNode, useContext, useEffect, useState } from 'react';
+import { createContext, ReactNode, useContext, useEffect, useRef, useState } from 'react';
 import * as SecureStore from 'expo-secure-store';
 
 import {
+  AuthResponse,
   AuthUser,
   googleLogin as googleLoginRequest,
   login as loginRequest,
   logout as logoutRequest,
+  refreshSession as refreshSessionRequest,
   register as registerRequest,
 } from '@/services/auth';
 import { clearActivitiesCache } from '@/services/activitiesCache';
+import { ApiError, setTokenRefresher } from '@/services/api';
 import { clearExpensesCache } from '@/services/expensesCache';
 import { clearInfosCache } from '@/services/infosCache';
 import { logError } from '@/services/logger';
+import { resetOfflinePrefetch } from '@/services/offlinePrefetch';
 import { queryClient } from '@/services/queryClient';
 import { clearPendingMutations } from '@/services/syncQueue';
 import { clearTripsCache } from '@/services/tripsCache';
@@ -19,6 +23,7 @@ import { deleteMe } from '@/services/users';
 
 const TOKEN_KEY = 'vagare.auth.token';
 const USER_KEY = 'vagare.auth.user';
+const REFRESH_TOKEN_KEY = 'vagare.auth.refreshToken';
 
 interface AuthContextValue {
   user: AuthUser | null;
@@ -40,15 +45,50 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [token, setToken] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [isRestoring, setIsRestoring] = useState(true);
+  // Refs espelham a sessão atual para o refresher (registrado uma vez só) ler
+  // sempre o valor mais recente, sem esperar re-render.
+  const tokenRef = useRef<string | null>(null);
+  const refreshTokenRef = useRef<string | null>(null);
+  const refreshPromiseRef = useRef<Promise<string | null> | null>(null);
+
+  // O access token dura pouco (JWT_EXPIRES_IN no backend). Quando o servidor
+  // recusa um token, o api.ts chama isto para trocá-lo pelo refresh token e
+  // repetir a requisição — o usuário continua conectado sem perceber.
+  useEffect(() => {
+    setTokenRefresher((rejectedToken) => {
+      // Token antigo que chegou atrasado: outra requisição já renovou (devolve o
+      // novo) ou a sessão já foi encerrada (devolve null).
+      if (rejectedToken !== tokenRef.current) {
+        return Promise.resolve(tokenRef.current);
+      }
+      // Várias queries falhando juntas compartilham uma única renovação — o
+      // refresh token é rotacionado, então duas chamadas paralelas derrubariam
+      // a sessão.
+      if (!refreshPromiseRef.current) {
+        refreshPromiseRef.current = renewSession().finally(() => {
+          refreshPromiseRef.current = null;
+        });
+      }
+      return refreshPromiseRef.current;
+    });
+    return () => setTokenRefresher(null);
+    // renewSession só usa refs, setters e funções de módulo — estável entre renders.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   useEffect(() => {
     async function restoreSession() {
-      const [storedToken, storedUser] = await Promise.all([
+      const [storedToken, storedUser, storedRefreshToken] = await Promise.all([
         SecureStore.getItemAsync(TOKEN_KEY),
         SecureStore.getItemAsync(USER_KEY),
+        SecureStore.getItemAsync(REFRESH_TOKEN_KEY),
       ]);
 
+      // Restaura mesmo com o access token expirado: a primeira requisição
+      // recebe 401 e renova sozinha via refresh token.
       if (storedToken && storedUser) {
+        tokenRef.current = storedToken;
+        refreshTokenRef.current = storedRefreshToken;
         setToken(storedToken);
         setUser(JSON.parse(storedUser));
       }
@@ -59,25 +99,65 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     restoreSession();
   }, []);
 
-  async function persistSession(nextToken: string, nextUser: AuthUser) {
+  async function persistSession({ token: nextToken, refreshToken, user: nextUser }: AuthResponse) {
+    tokenRef.current = nextToken;
+    refreshTokenRef.current = refreshToken;
     setToken(nextToken);
     setUser(nextUser);
+    // Refresh token primeiro: o anterior já foi invalidado no servidor, então
+    // é o dado que mais importa não perder se o app fechar no meio.
+    await SecureStore.setItemAsync(REFRESH_TOKEN_KEY, refreshToken);
     await SecureStore.setItemAsync(TOKEN_KEY, nextToken);
     await SecureStore.setItemAsync(USER_KEY, JSON.stringify(nextUser));
   }
 
   async function clearSession() {
+    tokenRef.current = null;
+    refreshTokenRef.current = null;
     setToken(null);
     setUser(null);
     await SecureStore.deleteItemAsync(TOKEN_KEY);
     await SecureStore.deleteItemAsync(USER_KEY);
+    await SecureStore.deleteItemAsync(REFRESH_TOKEN_KEY);
+  }
+
+  async function renewSession(): Promise<string | null> {
+    const refreshToken = refreshTokenRef.current;
+    if (!refreshToken) {
+      // Sessão salva antes do refresh token existir: não há como renovar.
+      await endExpiredSession();
+      return null;
+    }
+
+    try {
+      const response = await refreshSessionRequest(refreshToken);
+      await persistSession(response);
+      return response.token;
+    } catch (error) {
+      // Só desloga quando o servidor diz que a sessão acabou. Sem rede ou com
+      // erro no servidor, mantém a sessão e deixa a requisição falhar — o app
+      // segue no modo offline e tenta de novo depois.
+      if (error instanceof ApiError && (error.status === 401 || error.status === 400)) {
+        await endExpiredSession();
+        return null;
+      }
+      throw error;
+    }
+  }
+
+  async function endExpiredSession() {
+    try {
+      await clearLocalState();
+    } catch (error) {
+      logError('AuthContext.endExpiredSession', error);
+    }
   }
 
   async function login(email: string, password: string) {
     setIsLoading(true);
     try {
       const response = await loginRequest(email, password);
-      await persistSession(response.token, response.user);
+      await persistSession(response);
     } finally {
       setIsLoading(false);
     }
@@ -87,7 +167,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setIsLoading(true);
     try {
       const response = await registerRequest(name, email, password);
-      await persistSession(response.token, response.user);
+      await persistSession(response);
     } finally {
       setIsLoading(false);
     }
@@ -97,7 +177,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setIsLoading(true);
     try {
       const response = await googleLoginRequest(idToken);
-      await persistSession(response.token, response.user);
+      await persistSession(response);
     } finally {
       setIsLoading(false);
     }
@@ -144,14 +224,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         logError('AuthContext.clearPendingMutations', error);
       }
     } finally {
+      resetOfflinePrefetch();
       queryClient.clear();
     }
   }
 
   async function logout() {
-    if (token) {
+    const currentToken = tokenRef.current;
+    if (currentToken) {
       try {
-        await logoutRequest(token);
+        // Se o access token expirou, o api.ts renova e repete — assim a sessão
+        // é encerrada no servidor também, não só no aparelho.
+        await logoutRequest(currentToken);
       } catch {
         // sessão pode já ter expirado no servidor; segue com o logout local
       }
@@ -171,8 +255,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   async function deleteAccount() {
     // Se a exclusão no servidor falhar (ex.: rede), propaga o erro e NÃO
     // limpa o estado local — a conta ainda existe, a sessão deve continuar.
-    if (token) {
-      await deleteMe(token);
+    const currentToken = tokenRef.current;
+    if (currentToken) {
+      await deleteMe(currentToken);
     }
     await clearLocalState();
   }

@@ -13,9 +13,6 @@ const MIN_INTERVAL_MS = 5 * 60 * 1000;
 let lastRunAt = 0;
 let isRunning = false;
 
-// Baixa roteiro, despesas e informações de todas as viagens para o cache
-// local. Sem isto, só ficava disponível offline o que o usuário tivesse aberto
-// online antes — uma viagem nunca aberta aparecia vazia sem internet.
 export async function prefetchTripsForOffline(token: string, trips: Trip[]): Promise<void> {
   if (isRunning || Date.now() - lastRunAt < MIN_INTERVAL_MS) {
     return;
@@ -34,7 +31,6 @@ export async function prefetchTripsForOffline(token: string, trips: Trip[]): Pro
 
       const failures = results.filter((r): r is PromiseRejectedResult => r.status === 'rejected');
       if (failures.some((f) => f.reason instanceof ApiError && f.reason.status === 0)) {
-        // Caiu a conexão no meio: tenta de novo na próxima vez, sem esperar o intervalo.
         return;
       }
       failures.forEach((f) => logError('offlinePrefetch', f.reason));

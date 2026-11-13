@@ -21,7 +21,6 @@ export function useInfosQuery(tripId: string) {
         return { infos, isOffline: false as const };
       } catch (err) {
         if (err instanceof ApiError && err.status === 0) {
-          // Lista vazia offline é válida: ver comentário em useActivitiesQuery.
           const cached = await getCachedInfos(tripId);
           return { infos: cached, isOffline: true as const };
         }

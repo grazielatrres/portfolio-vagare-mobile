@@ -45,25 +45,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [token, setToken] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [isRestoring, setIsRestoring] = useState(true);
-  // Refs espelham a sessão atual para o refresher (registrado uma vez só) ler
-  // sempre o valor mais recente, sem esperar re-render.
   const tokenRef = useRef<string | null>(null);
   const refreshTokenRef = useRef<string | null>(null);
   const refreshPromiseRef = useRef<Promise<string | null> | null>(null);
 
-  // O access token dura pouco (JWT_EXPIRES_IN no backend). Quando o servidor
-  // recusa um token, o api.ts chama isto para trocá-lo pelo refresh token e
-  // repetir a requisição — o usuário continua conectado sem perceber.
   useEffect(() => {
     setTokenRefresher((rejectedToken) => {
-      // Token antigo que chegou atrasado: outra requisição já renovou (devolve o
-      // novo) ou a sessão já foi encerrada (devolve null).
       if (rejectedToken !== tokenRef.current) {
         return Promise.resolve(tokenRef.current);
       }
-      // Várias queries falhando juntas compartilham uma única renovação — o
-      // refresh token é rotacionado, então duas chamadas paralelas derrubariam
-      // a sessão.
       if (!refreshPromiseRef.current) {
         refreshPromiseRef.current = renewSession().finally(() => {
           refreshPromiseRef.current = null;
@@ -72,7 +62,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       return refreshPromiseRef.current;
     });
     return () => setTokenRefresher(null);
-    // renewSession só usa refs, setters e funções de módulo — estável entre renders.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -84,8 +73,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         SecureStore.getItemAsync(REFRESH_TOKEN_KEY),
       ]);
 
-      // Restaura mesmo com o access token expirado: a primeira requisição
-      // recebe 401 e renova sozinha via refresh token.
       if (storedToken && storedUser) {
         tokenRef.current = storedToken;
         refreshTokenRef.current = storedRefreshToken;
@@ -104,8 +91,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     refreshTokenRef.current = refreshToken;
     setToken(nextToken);
     setUser(nextUser);
-    // Refresh token primeiro: o anterior já foi invalidado no servidor, então
-    // é o dado que mais importa não perder se o app fechar no meio.
     await SecureStore.setItemAsync(REFRESH_TOKEN_KEY, refreshToken);
     await SecureStore.setItemAsync(TOKEN_KEY, nextToken);
     await SecureStore.setItemAsync(USER_KEY, JSON.stringify(nextUser));
@@ -124,7 +109,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   async function renewSession(): Promise<string | null> {
     const refreshToken = refreshTokenRef.current;
     if (!refreshToken) {
-      // Sessão salva antes do refresh token existir: não há como renovar.
       await endExpiredSession();
       return null;
     }
@@ -134,9 +118,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       await persistSession(response);
       return response.token;
     } catch (error) {
-      // Só desloga quando o servidor diz que a sessão acabou. Sem rede ou com
-      // erro no servidor, mantém a sessão e deixa a requisição falhar — o app
-      // segue no modo offline e tenta de novo depois.
       if (error instanceof ApiError && (error.status === 401 || error.status === 400)) {
         await endExpiredSession();
         return null;
@@ -233,8 +214,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const currentToken = tokenRef.current;
     if (currentToken) {
       try {
-        // Se o access token expirou, o api.ts renova e repete — assim a sessão
-        // é encerrada no servidor também, não só no aparelho.
         await logoutRequest(currentToken);
       } catch {
         // sessão pode já ter expirado no servidor; segue com o logout local

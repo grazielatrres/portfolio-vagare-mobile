@@ -40,8 +40,6 @@ export async function saveInfosToCache(tripId: string, infos: Info[]): Promise<v
     const db = await getDatabase();
 
     await db.withTransactionAsync(async () => {
-      // Preserva o que foi criado offline e ainda não sincronizou (id local-*):
-      // a lista do servidor ainda não tem esses itens.
       await db.runAsync(
         `DELETE FROM infos WHERE tripId = ? AND id NOT LIKE '${LOCAL_ID_PREFIX}%'`,
         [tripId],

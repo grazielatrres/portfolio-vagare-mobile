@@ -69,7 +69,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     gap: spacing.sm,
-    height: 52,
+    minHeight: 52,
+    paddingHorizontal: spacing.md,
     borderRadius: 12,
   },
   primary: {
@@ -96,6 +97,8 @@ const styles = StyleSheet.create({
   },
   text: {
     fontSize: 16,
+    textAlign: 'center',
+    flexShrink: 1,
   },
   primaryText: {
     fontFamily: fonts.serif.semiBold,

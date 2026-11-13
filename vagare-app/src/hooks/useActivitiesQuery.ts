@@ -21,8 +21,6 @@ export function useActivitiesQuery(tripId: string) {
         return { activities, isOffline: false as const };
       } catch (err) {
         if (err instanceof ApiError && err.status === 0) {
-          // Lista vazia offline é válida (roteiro ainda sem atividades): mostrar
-          // erro aqui escondia o botão de adicionar e travava o uso offline.
           const cached = await getCachedActivities(tripId);
           return { activities: cached, isOffline: true as const };
         }

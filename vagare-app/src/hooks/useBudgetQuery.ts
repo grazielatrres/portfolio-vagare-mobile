@@ -18,7 +18,6 @@ export function useBudgetQuery(tripId: string) {
     queryFn: async () => {
       try {
         const summary = await getBudgetSummary(token as string, tripId);
-        // O resumo offline é recalculado a partir do cache local de despesas.
         await saveExpensesToCache(tripId, summary.expenses.items);
         return { summary, isOffline: false as const };
       } catch (err) {

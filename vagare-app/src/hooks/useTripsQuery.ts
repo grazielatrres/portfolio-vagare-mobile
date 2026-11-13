@@ -18,7 +18,6 @@ export function useTripsQuery() {
       try {
         const trips = await listTrips(token as string);
         await saveTripsToCache(trips);
-        // Em segundo plano: a lista aparece já, os detalhes vão para o cache.
         prefetchTripsForOffline(token as string, trips).catch((error) =>
           logError('useTripsQuery.prefetch', error),
         );

@@ -13,15 +13,10 @@ export class ApiError extends Error {
   }
 }
 
-// Recebe o token recusado (401) e devolve um token válido para repetir a
-// requisição, ou null se a sessão acabou de vez. Lança ApiError(0) se não deu
-// para falar com o servidor — a sessão continua, só a requisição falha.
 type TokenRefresher = (rejectedToken: string) => Promise<string | null>;
 
 let tokenRefresher: TokenRefresher | null = null;
 
-// O AuthContext registra aqui a renovação via refresh token, para o access
-// token expirado ser trocado sem o usuário perceber.
 export function setTokenRefresher(refresher: TokenRefresher | null): void {
   tokenRefresher = refresher;
 }
@@ -35,8 +30,6 @@ export async function apiRequest<T>(path: string, options: ApiRequestOptions = {
   try {
     return await performRequest<T>(path, options);
   } catch (error) {
-    // Só requisições autenticadas: um 401 em /auth/login (senha errada) não
-    // tem nada a ver com sessão.
     const canRefresh =
       error instanceof ApiError && error.status === 401 && !!options.token && !!tokenRefresher;
     if (!canRefresh) {
@@ -48,8 +41,6 @@ export async function apiRequest<T>(path: string, options: ApiRequestOptions = {
       throw error;
     }
 
-    // Seguro repetir mesmo POST/DELETE: o 401 vem do authMiddleware, antes de
-    // qualquer efeito no servidor.
     return performRequest<T>(path, { ...options, token: nextToken });
   }
 }
@@ -57,9 +48,6 @@ export async function apiRequest<T>(path: string, options: ApiRequestOptions = {
 async function performRequest<T>(path: string, options: ApiRequestOptions): Promise<T> {
   const { token, headers, body, signal, ...rest } = options;
 
-  // O fetch do React Native não tem timeout (no Android espera para sempre):
-  // com sinal fraco ou Wi-Fi sem internet, a tela ficaria carregando sem nunca
-  // cair no cache offline. Estourar o tempo conta como "sem conexão".
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
   signal?.addEventListener('abort', () => controller.abort());

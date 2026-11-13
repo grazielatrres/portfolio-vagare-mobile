@@ -197,8 +197,7 @@ export async function drainPendingMutations(token: string | null): Promise<void>
         affectedTripIds.add(mutation.tripId);
       } catch (error) {
         if (error instanceof ApiError && (error.status === 0 || error.status === 401)) {
-          // Ainda offline, ou token recusado: não é rejeição da mutação em si.
-          // Para aqui e preserva a ordem do que resta na fila.
+          // Ainda offline ou token recusado: para aqui e preserva a ordem do que resta na fila.
           break;
         }
         // Rejeição real do servidor (ex.: validação) — descarta para não
@@ -206,8 +205,6 @@ export async function drainPendingMutations(token: string | null): Promise<void>
         logError('syncQueue.drainPendingMutations', error);
         await db.runAsync('DELETE FROM pending_mutations WHERE id = ?', [mutation.id]);
         if (mutation.operation === 'create' && isLocalId(resolvedId)) {
-          // Criação recusada: o item local nunca vai existir no servidor. O
-          // cache preserva ids local-* ao sincronizar, então remove aqui.
           await removeFromCache(mutation.entityType, resolvedId);
         }
         affectedTripIds.add(mutation.tripId);

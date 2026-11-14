@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Ionicons } from '@expo/vector-icons';
 import { ActivityIndicator, ScrollView, StyleSheet, Text, View } from 'react-native';
 
-import { Button, FormError, OfflineBanner } from '@/components';
+import { Button, FormError, OfflineBanner, PendingSyncBanner } from '@/components';
 import { useInfosQuery } from '@/hooks/useInfosQuery';
 import { usePendingMutationsQuery } from '@/hooks/usePendingMutationsQuery';
 import { ApiError } from '@/services/api';
@@ -69,12 +69,7 @@ export function InfoTab({ trip }: InfoTabProps) {
           {isOffline ? (
             <OfflineBanner message="Sem conexão — mostrando informações salvas neste dispositivo" />
           ) : null}
-          {pendingCount > 0 ? (
-            <OfflineBanner
-              tone="pending"
-              message={`${pendingCount} alteração(ões) aguardando sincronização`}
-            />
-          ) : null}
+          <PendingSyncBanner count={pendingCount} />
 
           <Text style={styles.pageTitle}>Informações complementares</Text>
 

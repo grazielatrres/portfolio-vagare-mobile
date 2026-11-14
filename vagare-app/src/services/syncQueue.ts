@@ -226,6 +226,28 @@ export async function clearPendingMutations(): Promise<void> {
 
 let isDraining = false;
 
+// Estado "sincronizando" observável pela UI: só fica true enquanto há
+// alterações de fato sendo enviadas (fila vazia não mostra loading).
+let isSyncing = false;
+const syncStatusListeners = new Set<() => void>();
+
+function setSyncing(next: boolean): void {
+  if (isSyncing === next) {
+    return;
+  }
+  isSyncing = next;
+  syncStatusListeners.forEach((listener) => listener());
+}
+
+export function getIsSyncing(): boolean {
+  return isSyncing;
+}
+
+export function subscribeSyncStatus(listener: () => void): () => void {
+  syncStatusListeners.add(listener);
+  return () => syncStatusListeners.delete(listener);
+}
+
 export async function drainPendingMutations(token: string | null): Promise<void> {
   if (!token || isDraining) {
     return;
@@ -237,6 +259,10 @@ export async function drainPendingMutations(token: string | null): Promise<void>
     const mutations = await db.getAllAsync<PendingMutation>(
       'SELECT * FROM pending_mutations ORDER BY createdAt ASC',
     );
+
+    if (mutations.length > 0) {
+      setSyncing(true);
+    }
 
     const idMap = new Map<string, string>();
     const affectedTripIds = new Set<string>();
@@ -286,15 +312,18 @@ export async function drainPendingMutations(token: string | null): Promise<void>
       }
     }
 
-    if (syncedTrip) {
-      queryClient.invalidateQueries({ queryKey: ['trips'], exact: true });
-    }
-    for (const tripId of affectedTripIds) {
-      queryClient.invalidateQueries({ queryKey: ['trips', tripId] });
-    }
+    // Aguarda o refetch antes de desligar o "sincronizando", para a UI não
+    // piscar o estado antigo (ex.: "aguardando sincronização") nesse meio-tempo.
+    await Promise.all([
+      syncedTrip ? queryClient.invalidateQueries({ queryKey: ['trips'], exact: true }) : null,
+      ...[...affectedTripIds].map((tripId) =>
+        queryClient.invalidateQueries({ queryKey: ['trips', tripId] }),
+      ),
+    ]);
   } catch (error) {
     logError('syncQueue.drainPendingMutations', error);
   } finally {
     isDraining = false;
+    setSyncing(false);
   }
 }

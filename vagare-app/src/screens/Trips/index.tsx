@@ -13,6 +13,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { Button, EmptyState, FormError, OfflineBanner } from "@/components";
 import { useAuth } from "@/contexts/AuthContext";
+import { useIsSyncing } from "@/hooks/useIsSyncing";
 import { useTripsQuery } from "@/hooks/useTripsQuery";
 import { ApiError } from "@/services/api";
 import { colors, fonts, spacing } from "@/theme";
@@ -23,6 +24,7 @@ export function Trips() {
   const { user } = useAuth();
   const insets = useSafeAreaInsets();
   const { data, isPending, isError, error, refetch } = useTripsQuery();
+  const isSyncing = useIsSyncing();
   const [refreshing, setRefreshing] = useState(false);
 
   const trips = data?.trips ?? [];
@@ -53,7 +55,9 @@ export function Trips() {
 
       <Text style={styles.sectionTitle}>Minhas viagens</Text>
 
-      {isOffline ? (
+      {isSyncing ? (
+        <OfflineBanner tone="syncing" message="Sincronizando alterações feitas offline…" />
+      ) : isOffline ? (
         <OfflineBanner message="Sem conexão — mostrando as viagens salvas neste dispositivo" />
       ) : null}
 

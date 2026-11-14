@@ -6,7 +6,9 @@ import { router } from 'expo-router';
 import { ConfirmDialog } from '@/components';
 import { useToast } from '@/contexts/ToastContext';
 import { useDeleteTripMutation } from '@/hooks/useDeleteTripMutation';
+import { useIsSyncing } from '@/hooks/useIsSyncing';
 import { ApiError } from '@/services/api';
+import { isLocalId } from '@/services/localId';
 import { Trip } from '@/services/trips';
 import { colors, fonts, spacing } from '@/theme';
 import { formatCurrencyValue } from '@/utils/currency';
@@ -20,6 +22,8 @@ export function TripCard({ trip }: TripCardProps) {
   const budget = trip.budget !== null ? formatCurrencyValue(trip.budget, trip.currency) : null;
   const { mutate: deleteTrip, isPending } = useDeleteTripMutation();
   const { showToast } = useToast();
+  const isSyncing = useIsSyncing();
+  const isLocalTrip = isLocalId(trip.id);
   const [confirmVisible, setConfirmVisible] = useState(false);
 
   function handleConfirmDelete() {
@@ -72,6 +76,19 @@ export function TripCard({ trip }: TripCardProps) {
         <Ionicons name="location-outline" size={16} color={colors.accent} />
         <Text style={styles.plannedText}>Nenhuma atividade planejada ainda</Text>
       </View>
+
+      {isLocalTrip ? (
+        <View style={[styles.rowItem, styles.syncStatus]}>
+          {isSyncing ? (
+            <ActivityIndicator size="small" color={colors.text.secondary} />
+          ) : (
+            <Ionicons name="cloud-upload-outline" size={16} color={colors.text.secondary} />
+          )}
+          <Text style={styles.rowText}>
+            {isSyncing ? 'Sincronizando…' : 'Aguardando sincronização'}
+          </Text>
+        </View>
+      ) : null}
 
       <ConfirmDialog
         visible={confirmVisible}
@@ -128,5 +145,8 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontFamily: fonts.serif.medium,
     color: colors.accent,
+  },
+  syncStatus: {
+    marginTop: spacing.sm,
   },
 });

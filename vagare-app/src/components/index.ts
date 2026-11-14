@@ -22,6 +22,8 @@ export { Input } from './Input';
 export type { InputProps } from './Input';
 export { OfflineBanner } from './OfflineBanner';
 export type { OfflineBannerProps, OfflineBannerTone } from './OfflineBanner';
+export { PendingSyncBanner } from './PendingSyncBanner';
+export type { PendingSyncBannerProps } from './PendingSyncBanner';
 export { PasswordInput } from './PasswordInput';
 export type { PasswordInputProps } from './PasswordInput';
 export { PasswordRequirements } from './PasswordRequirements';

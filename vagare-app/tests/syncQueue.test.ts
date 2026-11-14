@@ -9,8 +9,10 @@ import {
   discardLocalEntity,
   drainPendingMutations,
   enqueueMutation,
+  getIsSyncing,
   getPendingMutations,
   queueTripDeletion,
+  subscribeSyncStatus,
 } from '@/services/syncQueue';
 
 jest.mock('expo-crypto', () => ({
@@ -294,6 +296,35 @@ describe('syncQueue', () => {
     expect(deleteTrip).toHaveBeenCalledWith('token-1', 'trip-1');
     await expect(getPendingMutations('trip-1')).resolves.toEqual([]);
     expect(queryClient.invalidateQueries).toHaveBeenCalledWith({ queryKey: ['trips'], exact: true });
+  });
+
+  it('marca "sincronizando" só enquanto envia alterações e notifica a UI', async () => {
+    const statuses: boolean[] = [];
+    const unsubscribe = subscribeSyncStatus(() => statuses.push(getIsSyncing()));
+
+    // Fila vazia: não liga o loading.
+    await drainPendingMutations('token-1');
+    expect(statuses).toEqual([]);
+
+    await enqueueMutation({
+      tripId: 't1',
+      entityType: 'activity',
+      operation: 'create',
+      localId: 'local-1',
+      payload: { name: 'A', date: '2026-01-01' },
+    });
+    let syncingDuringRequest = false;
+    (createActivity as jest.Mock).mockImplementation(async () => {
+      syncingDuringRequest = getIsSyncing();
+      return { id: 'real-1', tripId: 't1', name: 'A' };
+    });
+
+    await drainPendingMutations('token-1');
+
+    expect(syncingDuringRequest).toBe(true);
+    expect(statuses).toEqual([true, false]);
+    expect(getIsSyncing()).toBe(false);
+    unsubscribe();
   });
 
   it('não drena duas vezes em paralelo (guard isDraining)', async () => {

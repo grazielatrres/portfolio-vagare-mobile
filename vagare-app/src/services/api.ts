@@ -40,6 +40,7 @@ export function setTokenRefresher(refresher: TokenRefresher | null): void {
 interface ApiRequestOptions extends Omit<RequestInit, 'body'> {
   token?: string;
   body?: unknown;
+  timeoutMs?: number;
 }
 
 export async function apiRequest<T>(path: string, options: ApiRequestOptions = {}): Promise<T> {
@@ -72,10 +73,10 @@ async function performRequest<T>(path: string, options: ApiRequestOptions): Prom
     throw new UnsyncedTripError();
   }
 
-  const { token, headers, body, signal, ...rest } = options;
+  const { token, headers, body, signal, timeoutMs = REQUEST_TIMEOUT_MS, ...rest } = options;
 
   const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
+  const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
   signal?.addEventListener('abort', () => controller.abort());
 
   let response: Response;
@@ -109,4 +110,17 @@ async function performRequest<T>(path: string, options: ApiRequestOptions): Prom
   }
 
   return data as T;
+}
+
+const PING_TIMEOUT_MS = 5_000;
+
+// Checagem leve de "a rede voltou?" usada pela fila offline. Um sucesso passa
+// por performRequest, que já emite notifyBackOnline e dispara a drenagem.
+export async function pingServer(): Promise<boolean> {
+  try {
+    await performRequest('/health', { timeoutMs: PING_TIMEOUT_MS });
+    return true;
+  } catch {
+    return false;
+  }
 }

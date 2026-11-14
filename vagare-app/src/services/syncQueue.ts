@@ -123,6 +123,17 @@ export async function getPendingTripDeletionIds(): Promise<Set<string>> {
   }
 }
 
+export async function hasPendingMutations(): Promise<boolean> {
+  try {
+    const db = await getDatabase();
+    const row = await db.getFirstAsync<{ id: string }>('SELECT id FROM pending_mutations LIMIT 1');
+    return row != null;
+  } catch (error) {
+    logError('syncQueue.hasPendingMutations', error);
+    return false;
+  }
+}
+
 // Remove da fila e do cache uma entidade que nunca saiu do dispositivo (ex.:
 // criada offline e excluída antes de sincronizar) — não há nada a enviar.
 export async function discardLocalEntity(entityType: EntityType, localId: string): Promise<void> {

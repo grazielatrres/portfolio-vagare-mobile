@@ -3,6 +3,7 @@ import {
   UnsyncedTripError,
   apiRequest,
   isNetworkFailure,
+  pingServer,
   setTokenRefresher,
 } from '@/services/api';
 
@@ -126,5 +127,25 @@ describe('apiRequest - viagens criadas offline', () => {
     expect(isNetworkFailure(new ApiError(0, 'Sem conexão'))).toBe(true);
     expect(isNetworkFailure(new UnsyncedTripError())).toBe(false);
     expect(isNetworkFailure(new ApiError(500, 'Erro'))).toBe(false);
+  });
+});
+
+describe('pingServer', () => {
+  const fetchMock = jest.fn();
+
+  beforeEach(() => {
+    fetchMock.mockReset();
+    global.fetch = fetchMock as unknown as typeof fetch;
+  });
+
+  it('resolve true quando o servidor responde /health', async () => {
+    fetchMock.mockResolvedValueOnce(jsonResponse(200, { status: 'ok' }));
+    await expect(pingServer()).resolves.toBe(true);
+    expect(fetchMock.mock.calls[0][0]).toMatch(/\/health$/);
+  });
+
+  it('resolve false sem lançar quando não há conexão', async () => {
+    fetchMock.mockRejectedValueOnce(new TypeError('Network request failed'));
+    await expect(pingServer()).resolves.toBe(false);
   });
 });

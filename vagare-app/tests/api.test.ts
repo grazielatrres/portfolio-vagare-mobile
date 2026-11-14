@@ -1,4 +1,10 @@
-import { ApiError, apiRequest, setTokenRefresher } from '@/services/api';
+import {
+  ApiError,
+  UnsyncedTripError,
+  apiRequest,
+  isNetworkFailure,
+  setTokenRefresher,
+} from '@/services/api';
 
 jest.mock('@/services/connectivity', () => ({
   notifyBackOnline: jest.fn(),
@@ -98,5 +104,27 @@ describe('apiRequest - renovação automática do token', () => {
     await expect(apiRequest('/trips/x', { token: 'tok' })).rejects.toMatchObject({ status: 404 });
     expect(refresher).not.toHaveBeenCalled();
     expect(fetchMock).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe('apiRequest - viagens criadas offline', () => {
+  const fetchMock = jest.fn();
+
+  beforeEach(() => {
+    fetchMock.mockReset();
+    global.fetch = fetchMock as unknown as typeof fetch;
+  });
+
+  it('não chama a rede para rotas de viagem com id local', async () => {
+    await expect(apiRequest('/trips/local-abc/activities', { token: 'tok' })).rejects.toBeInstanceOf(
+      UnsyncedTripError,
+    );
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it('isNetworkFailure diferencia falta de rede de viagem não sincronizada', () => {
+    expect(isNetworkFailure(new ApiError(0, 'Sem conexão'))).toBe(true);
+    expect(isNetworkFailure(new UnsyncedTripError())).toBe(false);
+    expect(isNetworkFailure(new ApiError(500, 'Erro'))).toBe(false);
   });
 });

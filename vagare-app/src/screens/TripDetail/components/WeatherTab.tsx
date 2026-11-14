@@ -3,7 +3,7 @@ import { ActivityIndicator, ScrollView, StyleSheet, Text, View } from 'react-nat
 
 import { Button, EmptyState, FormError } from '@/components';
 import { useWeatherQuery } from '@/hooks/useWeatherQuery';
-import { ApiError } from '@/services/api';
+import { ApiError, UnsyncedTripError } from '@/services/api';
 import { Trip } from '@/services/trips';
 import { colors, fonts, spacing } from '@/theme';
 import { formatDateFull, formatDateWithWeekday } from '@/utils/format';
@@ -37,6 +37,13 @@ export function WeatherTab({ trip }: WeatherTabProps) {
     <View style={styles.root}>
       {isPending ? (
         <ActivityIndicator color={colors.accent} style={styles.stateSpacing} />
+      ) : error instanceof UnsyncedTripError ? (
+        // A previsão é calculada no servidor; "tentar novamente" não adianta
+        // até a viagem criada offline ser sincronizada.
+        <EmptyState
+          message="A previsão do tempo fica disponível assim que esta viagem for sincronizada."
+          style={styles.stateSpacing}
+        />
       ) : isError ? (
         <View style={styles.stateSpacing}>
           <FormError

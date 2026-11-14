@@ -33,14 +33,13 @@ export function useTripsQuery() {
         const trips = [...serverTrips, ...localTrips].sort((a, b) =>
           a.startDate.localeCompare(b.startDate),
         );
-        return { trips, isOffline: false as const };
+        return { trips, isOffline: false };
       } catch (err) {
         if (err instanceof ApiError && err.status === 0) {
+          // Cache vazio offline não é erro: a lista fica vazia (com o aviso de
+          // offline) e o usuário ainda pode criar viagens, que vão para a fila.
           const cached = await getCachedTrips();
-          if (cached.length > 0) {
-            return { trips: cached, isOffline: true as const };
-          }
-          throw new ApiError(0, 'Sem conexão e nenhuma viagem salva neste dispositivo ainda.');
+          return { trips: cached, isOffline: true };
         }
         throw err;
       }

@@ -11,6 +11,7 @@ import {
   enqueueMutation,
   getIsSyncing,
   getPendingMutations,
+  getSyncedTripId,
   queueTripDeletion,
   subscribeSyncStatus,
 } from '@/services/syncQueue';
@@ -243,6 +244,9 @@ describe('syncQueue', () => {
 
     expect(createTrip).toHaveBeenCalledWith('token-1', tripPayload);
     expect(replaceLocalTrip).toHaveBeenCalledWith('local-trip', createdTrip);
+    expect(getSyncedTripId('local-trip')).toBe('real-trip');
+    // A tela aberta com o id local é recarregada para passar a usar o id real.
+    expect(queryClient.invalidateQueries).toHaveBeenCalledWith({ queryKey: ['trips', 'local-trip'] });
     expect(createActivity).toHaveBeenCalledWith('token-1', 'real-trip', { name: 'A', date: '2026-12-02' });
     expect(queryClient.invalidateQueries).toHaveBeenCalledWith({ queryKey: ['trips'], exact: true });
     expect(queryClient.invalidateQueries).toHaveBeenCalledWith({ queryKey: ['trips', 'real-trip'] });

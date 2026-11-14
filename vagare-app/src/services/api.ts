@@ -14,6 +14,21 @@ export class ApiError extends Error {
   }
 }
 
+// Status 0 como uma falha de rede (queries caem no cache e mutations vão para
+// a fila), mas não significa "sem conexão": a viagem só ainda não existe no
+// servidor. A UI usa a distinção para não mostrar o aviso de offline à toa.
+export class UnsyncedTripError extends ApiError {
+  constructor() {
+    super(0, 'Esta viagem ainda não foi sincronizada com o servidor.');
+    this.name = 'UnsyncedTripError';
+  }
+}
+
+// true só para falhas reais de rede (não para viagens locais ainda não sincronizadas).
+export function isNetworkFailure(error: unknown): boolean {
+  return error instanceof ApiError && error.status === 0 && !(error instanceof UnsyncedTripError);
+}
+
 type TokenRefresher = (rejectedToken: string) => Promise<string | null>;
 
 let tokenRefresher: TokenRefresher | null = null;
@@ -54,7 +69,7 @@ const LOCAL_TRIP_PATH = new RegExp(`^/trips/${LOCAL_ID_PREFIX}`);
 
 async function performRequest<T>(path: string, options: ApiRequestOptions): Promise<T> {
   if (LOCAL_TRIP_PATH.test(path)) {
-    throw new ApiError(0, 'Esta viagem ainda não foi sincronizada com o servidor.');
+    throw new UnsyncedTripError();
   }
 
   const { token, headers, body, signal, ...rest } = options;

@@ -79,6 +79,15 @@ export async function getPendingMutations(tripId: string): Promise<PendingMutati
   }
 }
 
+// Viagens locais já sincronizadas nesta sessão (id local → id do servidor).
+// Telas abertas com o id local usam isto para continuar funcionando depois
+// que a viagem sobe e o id local deixa de existir no cache.
+const syncedTripIds = new Map<string, string>();
+
+export function getSyncedTripId(localId: string): string | undefined {
+  return syncedTripIds.get(localId);
+}
+
 // Exclusão offline de uma viagem que já existe no servidor: some do cache na
 // hora e o DELETE vai para a fila. Alterações pendentes dentro dela perdem o
 // sentido (o servidor apagaria tudo junto), então são descartadas.
@@ -161,6 +170,7 @@ async function applyMutation(
     if (mutation.operation === 'create') {
       const created = await createTrip(token, payload);
       idMap.set(mutation.localId, created.id);
+      syncedTripIds.set(mutation.localId, created.id);
       await replaceLocalTrip(mutation.localId, created);
     } else if (mutation.operation === 'delete') {
       await deleteTrip(token, resolvedId);
@@ -284,6 +294,9 @@ export async function drainPendingMutations(token: string | null): Promise<void>
         if (mutation.entityType === 'trip') {
           syncedTrip = true;
           affectedTripIds.add(idMap.get(mutation.localId) ?? resolvedId);
+          // Telas abertas com o id local precisam refazer a busca para
+          // passar a usar o id real.
+          affectedTripIds.add(mutation.localId);
         } else {
           affectedTripIds.add(resolvedTripId);
         }

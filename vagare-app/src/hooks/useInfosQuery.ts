@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 
 import { useAuth } from '@/contexts/AuthContext';
-import { ApiError } from '@/services/api';
+import { ApiError, isNetworkFailure } from '@/services/api';
 import { listInfos } from '@/services/infos';
 import { getCachedInfos, saveInfosToCache } from '@/services/infosCache';
 
@@ -18,11 +18,11 @@ export function useInfosQuery(tripId: string) {
       try {
         const infos = await listInfos(token as string, tripId);
         await saveInfosToCache(tripId, infos);
-        return { infos, isOffline: false as const };
+        return { infos, isOffline: false };
       } catch (err) {
         if (err instanceof ApiError && err.status === 0) {
           const cached = await getCachedInfos(tripId);
-          return { infos: cached, isOffline: true as const };
+          return { infos: cached, isOffline: isNetworkFailure(err) };
         }
         throw err;
       }

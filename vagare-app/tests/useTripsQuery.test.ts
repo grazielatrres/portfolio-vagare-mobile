@@ -86,14 +86,14 @@ describe('useTripsQuery', () => {
     expect(result.current.data).toEqual({ trips: cachedTrips, isOffline: true });
   });
 
-  it('propaga erro quando está offline e não há nada em cache', async () => {
+  it('offline com cache vazio mostra lista vazia em vez de erro (permite criar offline)', async () => {
     listTripsMock.mockRejectedValue(new ApiError(0, 'Sem conexão'));
     getCachedTripsMock.mockResolvedValue([]);
 
     const { result } = await renderHook(() => useTripsQuery(), { wrapper: createQueryWrapper() });
 
-    await waitFor(() => expect(result.current.isError).toBe(true));
+    await waitFor(() => expect(result.current.isSuccess).toBe(true));
 
-    expect(result.current.error).toBeInstanceOf(ApiError);
+    expect(result.current.data).toEqual({ trips: [], isOffline: true });
   });
 });

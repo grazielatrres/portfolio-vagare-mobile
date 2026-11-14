@@ -2,6 +2,7 @@ import { Activity } from './activities';
 import { getDatabase } from './database';
 import { LOCAL_ID_PREFIX } from './localId';
 import { logError } from './logger';
+import { runInTransaction } from './transactionQueue';
 
 export async function getCachedActivities(tripId: string): Promise<Activity[]> {
   try {
@@ -20,7 +21,7 @@ export async function saveActivitiesToCache(tripId: string, activities: Activity
   try {
     const db = await getDatabase();
 
-    await db.withTransactionAsync(async () => {
+    await runInTransaction(db, async () => {
       await db.runAsync(
         `DELETE FROM activities WHERE tripId = ? AND id NOT LIKE '${LOCAL_ID_PREFIX}%'`,
         [tripId],

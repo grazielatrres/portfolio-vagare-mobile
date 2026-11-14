@@ -1,5 +1,6 @@
 import { getDatabase } from './database';
 import { logError } from './logger';
+import { runInTransaction } from './transactionQueue';
 import { Trip } from './trips';
 
 export async function getCachedTrips(): Promise<Trip[]> {
@@ -16,7 +17,7 @@ export async function saveTripsToCache(trips: Trip[]): Promise<void> {
   try {
     const db = await getDatabase();
 
-    await db.withTransactionAsync(async () => {
+    await runInTransaction(db, async () => {
       await db.runAsync('DELETE FROM trips');
 
       for (const trip of trips) {

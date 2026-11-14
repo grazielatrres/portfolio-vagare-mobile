@@ -2,6 +2,7 @@ import { Expense } from './expenses';
 import { getDatabase } from './database';
 import { LOCAL_ID_PREFIX } from './localId';
 import { logError } from './logger';
+import { runInTransaction } from './transactionQueue';
 
 export async function getCachedExpenses(tripId: string): Promise<Expense[]> {
   try {
@@ -17,7 +18,7 @@ export async function saveExpensesToCache(tripId: string, expenses: Expense[]): 
   try {
     const db = await getDatabase();
 
-    await db.withTransactionAsync(async () => {
+    await runInTransaction(db, async () => {
       await db.runAsync(
         `DELETE FROM expenses WHERE tripId = ? AND id NOT LIKE '${LOCAL_ID_PREFIX}%'`,
         [tripId],

@@ -24,5 +24,7 @@ export { OfflineBanner } from './OfflineBanner';
 export type { OfflineBannerProps, OfflineBannerTone } from './OfflineBanner';
 export { PasswordInput } from './PasswordInput';
 export type { PasswordInputProps } from './PasswordInput';
+export { PasswordRequirements } from './PasswordRequirements';
+export type { PasswordRequirementsProps } from './PasswordRequirements';
 export { SelectField } from './SelectField';
 export type { SelectFieldProps } from './SelectField';

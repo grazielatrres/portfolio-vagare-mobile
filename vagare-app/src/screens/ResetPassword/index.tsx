@@ -2,10 +2,11 @@ import { useState } from 'react';
 import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
-import { Button, PasswordInput } from '@/components';
+import { Button, PasswordInput, PasswordRequirements } from '@/components';
 import { ApiError } from '@/services/api';
 import { resetPassword } from '@/services/auth';
 import { colors, fonts, spacing } from '@/theme';
+import { isStrongPassword } from '@/utils/passwordPolicy';
 import { AuthHeader } from '../Home/components/AuthHeader';
 
 export interface ResetPasswordProps {
@@ -33,8 +34,8 @@ export function ResetPassword({ token, onDone }: ResetPasswordProps) {
       return;
     }
 
-    if (password.length < 6) {
-      setError('A senha deve ter no mínimo 6 caracteres.');
+    if (!isStrongPassword(password)) {
+      setError('A senha não atende a todos os requisitos de segurança.');
       return;
     }
 
@@ -82,11 +83,12 @@ export function ResetPassword({ token, onDone }: ResetPasswordProps) {
       <View style={styles.form}>
         <PasswordInput
           label="Nova senha"
-          placeholder="Mínimo 6 caracteres"
+          placeholder="Crie uma senha forte"
           value={password}
           onChangeText={setPassword}
           containerStyle={styles.field}
         />
+        <PasswordRequirements password={password} />
         <PasswordInput
           label="Confirmar nova senha"
           placeholder="Repita a senha"

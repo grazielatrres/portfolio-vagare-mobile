@@ -3,7 +3,8 @@ import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-nati
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 
-import { ConfirmDialog, FormError } from '@/components';
+import { ConfirmDialog } from '@/components';
+import { useToast } from '@/contexts/ToastContext';
 import { useDeleteTripMutation } from '@/hooks/useDeleteTripMutation';
 import { ApiError } from '@/services/api';
 import { Trip } from '@/services/trips';
@@ -18,15 +19,18 @@ export interface TripCardProps {
 export function TripCard({ trip }: TripCardProps) {
   const budget = trip.budget !== null ? formatCurrencyValue(trip.budget, trip.currency) : null;
   const { mutate: deleteTrip, isPending } = useDeleteTripMutation();
+  const { showToast } = useToast();
   const [confirmVisible, setConfirmVisible] = useState(false);
-  const [error, setError] = useState<string | null>(null);
 
   function handleConfirmDelete() {
     setConfirmVisible(false);
-    setError(null);
     deleteTrip(trip.id, {
       onError: (err) => {
-        setError(err instanceof ApiError ? err.message : 'Não foi possível excluir a viagem.');
+        // Toast em vez de texto no card: some sozinho e não fica preso na lista.
+        showToast({
+          title: 'Não foi possível excluir a viagem',
+          message: err instanceof ApiError ? err.message : 'Tente novamente.',
+        });
       },
     });
   }
@@ -68,8 +72,6 @@ export function TripCard({ trip }: TripCardProps) {
         <Ionicons name="location-outline" size={16} color={colors.accent} />
         <Text style={styles.plannedText}>Nenhuma atividade planejada ainda</Text>
       </View>
-
-      <FormError message={error} style={styles.errorText} />
 
       <ConfirmDialog
         visible={confirmVisible}
@@ -126,10 +128,5 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontFamily: fonts.serif.medium,
     color: colors.accent,
-  },
-  errorText: {
-    marginTop: spacing.sm,
-    marginBottom: 0,
-    textAlign: 'left',
   },
 });

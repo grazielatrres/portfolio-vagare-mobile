@@ -7,7 +7,7 @@ import {
 import { createActivity, deleteActivity, updateActivity } from './activities';
 import { ApiError } from './api';
 import { getDatabase } from './database';
-import { LOCAL_ID_PREFIX } from './localId';
+import { LOCAL_ID_PREFIX, isLocalId } from './localId';
 import {
   removeExpenseFromCache,
   upsertExpenseToCache,
@@ -17,8 +17,10 @@ import { createInfo, deleteInfo, updateInfo } from './infos';
 import { removeInfoFromCache, upsertInfoToCache } from './infosCache';
 import { logError } from './logger';
 import { queryClient } from './queryClient';
+import { createTrip, deleteTrip } from './trips';
+import { removeTripFromCache, replaceLocalTrip } from './tripsCache';
 
-export type EntityType = 'activity' | 'expense' | 'info';
+export type EntityType = 'trip' | 'activity' | 'expense' | 'info';
 export type Operation = 'create' | 'update' | 'delete';
 
 export interface PendingMutation {
@@ -31,14 +33,10 @@ export interface PendingMutation {
   createdAt: string;
 }
 
-export { LOCAL_ID_PREFIX };
+export { LOCAL_ID_PREFIX, isLocalId };
 
 export function generateLocalId(): string {
   return `${LOCAL_ID_PREFIX}${Crypto.randomUUID()}`;
-}
-
-export function isLocalId(id: string): boolean {
-  return id.startsWith(LOCAL_ID_PREFIX);
 }
 
 export async function enqueueMutation(input: {
@@ -81,12 +79,51 @@ export async function getPendingMutations(tripId: string): Promise<PendingMutati
   }
 }
 
+// Exclusão offline de uma viagem que já existe no servidor: some do cache na
+// hora e o DELETE vai para a fila. Alterações pendentes dentro dela perdem o
+// sentido (o servidor apagaria tudo junto), então são descartadas.
+export async function queueTripDeletion(tripId: string): Promise<void> {
+  try {
+    const db = await getDatabase();
+    await db.runAsync('DELETE FROM pending_mutations WHERE tripId = ?', [tripId]);
+  } catch (error) {
+    logError('syncQueue.queueTripDeletion', error);
+  }
+
+  await removeTripFromCache(tripId);
+  await enqueueMutation({
+    tripId,
+    entityType: 'trip',
+    operation: 'delete',
+    localId: tripId,
+    payload: null,
+  });
+}
+
+// Ids de viagens excluídas offline cujo DELETE ainda não chegou ao servidor.
+export async function getPendingTripDeletionIds(): Promise<Set<string>> {
+  try {
+    const db = await getDatabase();
+    const rows = await db.getAllAsync<{ tripId: string }>(
+      "SELECT tripId FROM pending_mutations WHERE entityType = 'trip' AND operation = 'delete'",
+    );
+    return new Set(rows.map((row) => row.tripId));
+  } catch (error) {
+    logError('syncQueue.getPendingTripDeletionIds', error);
+    return new Set();
+  }
+}
+
 // Remove da fila e do cache uma entidade que nunca saiu do dispositivo (ex.:
 // criada offline e excluída antes de sincronizar) — não há nada a enviar.
 export async function discardLocalEntity(entityType: EntityType, localId: string): Promise<void> {
   try {
     const db = await getDatabase();
     await db.runAsync('DELETE FROM pending_mutations WHERE localId = ?', [localId]);
+    if (entityType === 'trip') {
+      // Tudo o que foi feito dentro da viagem local também morre com ela.
+      await db.runAsync('DELETE FROM pending_mutations WHERE tripId = ?', [localId]);
+    }
   } catch (error) {
     logError('syncQueue.discardLocalEntity', error);
   }
@@ -96,6 +133,9 @@ export async function discardLocalEntity(entityType: EntityType, localId: string
 
 async function removeFromCache(entityType: EntityType, id: string): Promise<void> {
   switch (entityType) {
+    case 'trip':
+      await removeTripFromCache(id);
+      break;
     case 'activity':
       await removeActivityFromCache(id);
       break;
@@ -112,21 +152,34 @@ async function applyMutation(
   token: string,
   mutation: PendingMutation,
   resolvedId: string,
+  tripId: string,
   idMap: Map<string, string>,
 ): Promise<void> {
   const payload = JSON.parse(mutation.payload);
 
+  if (mutation.entityType === 'trip') {
+    if (mutation.operation === 'create') {
+      const created = await createTrip(token, payload);
+      idMap.set(mutation.localId, created.id);
+      await replaceLocalTrip(mutation.localId, created);
+    } else if (mutation.operation === 'delete') {
+      await deleteTrip(token, resolvedId);
+      await removeTripFromCache(resolvedId);
+    }
+    return;
+  }
+
   if (mutation.entityType === 'activity') {
     if (mutation.operation === 'create') {
-      const created = await createActivity(token, mutation.tripId, payload);
+      const created = await createActivity(token, tripId, payload);
       idMap.set(mutation.localId, created.id);
       await removeActivityFromCache(mutation.localId);
       await upsertActivityToCache(created);
     } else if (mutation.operation === 'update') {
-      const updated = await updateActivity(token, mutation.tripId, resolvedId, payload);
+      const updated = await updateActivity(token, tripId, resolvedId, payload);
       await upsertActivityToCache(updated);
     } else {
-      await deleteActivity(token, mutation.tripId, resolvedId);
+      await deleteActivity(token, tripId, resolvedId);
       await removeActivityFromCache(resolvedId);
     }
     return;
@@ -134,30 +187,30 @@ async function applyMutation(
 
   if (mutation.entityType === 'expense') {
     if (mutation.operation === 'create') {
-      const created = await createExpense(token, mutation.tripId, payload);
+      const created = await createExpense(token, tripId, payload);
       idMap.set(mutation.localId, created.id);
       await removeExpenseFromCache(mutation.localId);
       await upsertExpenseToCache(created);
     } else if (mutation.operation === 'update') {
-      const updated = await updateExpense(token, mutation.tripId, resolvedId, payload);
+      const updated = await updateExpense(token, tripId, resolvedId, payload);
       await upsertExpenseToCache(updated);
     } else {
-      await deleteExpense(token, mutation.tripId, resolvedId);
+      await deleteExpense(token, tripId, resolvedId);
       await removeExpenseFromCache(resolvedId);
     }
     return;
   }
 
   if (mutation.operation === 'create') {
-    const created = await createInfo(token, mutation.tripId, payload);
+    const created = await createInfo(token, tripId, payload);
     idMap.set(mutation.localId, created.id);
     await removeInfoFromCache(mutation.localId);
     await upsertInfoToCache(created);
   } else if (mutation.operation === 'update') {
-    const updated = await updateInfo(token, mutation.tripId, resolvedId, payload);
+    const updated = await updateInfo(token, tripId, resolvedId, payload);
     await upsertInfoToCache(updated);
   } else {
-    await deleteInfo(token, mutation.tripId, resolvedId);
+    await deleteInfo(token, tripId, resolvedId);
     await removeInfoFromCache(resolvedId);
   }
 }
@@ -187,14 +240,27 @@ export async function drainPendingMutations(token: string | null): Promise<void>
 
     const idMap = new Map<string, string>();
     const affectedTripIds = new Set<string>();
+    const discardedTripIds = new Set<string>();
+    let syncedTrip = false;
 
     for (const mutation of mutations) {
+      if (discardedTripIds.has(mutation.tripId)) {
+        // A viagem local foi rejeitada pelo servidor; seus itens já foram descartados.
+        continue;
+      }
+
       const resolvedId = idMap.get(mutation.localId) ?? mutation.localId;
+      const resolvedTripId = idMap.get(mutation.tripId) ?? mutation.tripId;
 
       try {
-        await applyMutation(token, mutation, resolvedId, idMap);
+        await applyMutation(token, mutation, resolvedId, resolvedTripId, idMap);
         await db.runAsync('DELETE FROM pending_mutations WHERE id = ?', [mutation.id]);
-        affectedTripIds.add(mutation.tripId);
+        if (mutation.entityType === 'trip') {
+          syncedTrip = true;
+          affectedTripIds.add(idMap.get(mutation.localId) ?? resolvedId);
+        } else {
+          affectedTripIds.add(resolvedTripId);
+        }
       } catch (error) {
         if (error instanceof ApiError && (error.status === 0 || error.status === 401)) {
           // Ainda offline ou token recusado: para aqui e preserva a ordem do que resta na fila.
@@ -204,13 +270,25 @@ export async function drainPendingMutations(token: string | null): Promise<void>
         // bloquear a fila para sempre.
         logError('syncQueue.drainPendingMutations', error);
         await db.runAsync('DELETE FROM pending_mutations WHERE id = ?', [mutation.id]);
+        if (mutation.entityType === 'trip') {
+          // Recarrega a lista: uma exclusão recusada faz a viagem reaparecer.
+          syncedTrip = true;
+        }
+        if (mutation.entityType === 'trip' && isLocalId(resolvedId)) {
+          await discardLocalEntity('trip', resolvedId);
+          discardedTripIds.add(resolvedId);
+          continue;
+        }
         if (mutation.operation === 'create' && isLocalId(resolvedId)) {
           await removeFromCache(mutation.entityType, resolvedId);
         }
-        affectedTripIds.add(mutation.tripId);
+        affectedTripIds.add(resolvedTripId);
       }
     }
 
+    if (syncedTrip) {
+      queryClient.invalidateQueries({ queryKey: ['trips'], exact: true });
+    }
     for (const tripId of affectedTripIds) {
       queryClient.invalidateQueries({ queryKey: ['trips', tripId] });
     }

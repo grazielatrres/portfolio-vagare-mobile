@@ -44,3 +44,24 @@ export function createTrip(token: string, payload: CreateTripPayload) {
 export function deleteTrip(token: string, id: string) {
   return apiRequest<void>(`/trips/${id}`, { method: 'DELETE', token });
 }
+
+// Monta a viagem local a partir do payload do formulário, usada quando a
+// criação acontece offline e ainda não existe resposta real do servidor.
+export function buildTripFromPayload(id: string, userId: string, payload: CreateTripPayload): Trip {
+  const now = new Date().toISOString();
+  return {
+    id,
+    userId,
+    name: payload.name,
+    destination: payload.destination,
+    latitude: payload.latitude != null ? String(payload.latitude) : null,
+    longitude: payload.longitude != null ? String(payload.longitude) : null,
+    startDate: payload.startDate,
+    endDate: payload.endDate,
+    budget: payload.budget != null ? String(payload.budget) : null,
+    currency: payload.currency ?? 'BRL',
+    numberOfPeople: payload.numberOfPeople ?? null,
+    createdAt: now,
+    updatedAt: now,
+  };
+}

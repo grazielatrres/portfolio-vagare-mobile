@@ -1,4 +1,5 @@
 import { notifyBackOnline } from './connectivity';
+import { LOCAL_ID_PREFIX } from './localId';
 
 const API_URL = process.env.EXPO_PUBLIC_API_URL ?? 'http://localhost:3000';
 const REQUEST_TIMEOUT_MS = 15_000;
@@ -45,7 +46,17 @@ export async function apiRequest<T>(path: string, options: ApiRequestOptions = {
   }
 }
 
+// Viagens criadas offline têm id local até a fila sincronizar. Qualquer rota
+// sob /trips/local-… não existe no servidor, então é tratada como "sem
+// conexão": queries caem no cache e mutations vão para a fila, que remapeia
+// o tripId quando a viagem for criada de fato.
+const LOCAL_TRIP_PATH = new RegExp(`^/trips/${LOCAL_ID_PREFIX}`);
+
 async function performRequest<T>(path: string, options: ApiRequestOptions): Promise<T> {
+  if (LOCAL_TRIP_PATH.test(path)) {
+    throw new ApiError(0, 'Esta viagem ainda não foi sincronizada com o servidor.');
+  }
+
   const { token, headers, body, signal, ...rest } = options;
 
   const controller = new AbortController();

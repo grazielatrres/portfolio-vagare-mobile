@@ -1,15 +1,39 @@
 import { useMutation } from '@tanstack/react-query';
 
 import { useAuth } from '@/contexts/AuthContext';
+import { useToast } from '@/contexts/ToastContext';
+import { ApiError } from '@/services/api';
 import { queryClient } from '@/services/queryClient';
+import { discardLocalEntity, isLocalId, queueTripDeletion } from '@/services/syncQueue';
 import { deleteTrip } from '@/services/trips';
 import { tripsQueryKey } from './useTripsQuery';
 
 export function useDeleteTripMutation() {
   const { token } = useAuth();
+  const { showToast } = useToast();
 
   return useMutation({
-    mutationFn: (id: string) => deleteTrip(token as string, id),
+    mutationFn: async (id: string) => {
+      if (isLocalId(id)) {
+        // Criada offline e nunca enviada — basta descartar localmente.
+        await discardLocalEntity('trip', id);
+        return;
+      }
+
+      try {
+        await deleteTrip(token as string, id);
+      } catch (err) {
+        if (err instanceof ApiError && err.status === 0) {
+          await queueTripDeletion(id);
+          showToast({
+            title: 'Viagem excluída localmente',
+            message: 'Será sincronizado quando a conexão voltar.',
+          });
+          return;
+        }
+        throw err;
+      }
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: tripsQueryKey });
     },

@@ -105,7 +105,6 @@ export function EditProfileForm({
   return (
     <View style={styles.card}>
       <Text style={styles.cardTitle}>Editar dados</Text>
-
       <Input
         label="Nome"
         placeholder="Seu nome"

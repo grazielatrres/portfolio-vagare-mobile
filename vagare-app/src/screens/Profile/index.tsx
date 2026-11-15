@@ -101,9 +101,6 @@ export function Profile() {
               size={20}
               color={colors.text.secondary}
             />
-            {!isCompact ? (
-              <Text style={styles.editButtonText}>Editar</Text>
-            ) : null}
           </Pressable>
         </View>
       )}

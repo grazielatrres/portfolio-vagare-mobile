@@ -6,6 +6,7 @@ import { ApiError } from '@/services/api';
 import { queryClient } from '@/services/queryClient';
 import { discardLocalEntity, isLocalId, queueTripDeletion } from '@/services/syncQueue';
 import { deleteTrip } from '@/services/trips';
+import { OFFLINE_DELETED_TOAST } from '@/utils/offlineToasts';
 import { tripsQueryKey } from './useTripsQuery';
 
 export function useDeleteTripMutation() {
@@ -25,10 +26,7 @@ export function useDeleteTripMutation() {
       } catch (err) {
         if (err instanceof ApiError && err.status === 0) {
           await queueTripDeletion(id);
-          showToast({
-            title: 'Viagem excluída localmente',
-            message: 'Será sincronizado quando a conexão voltar.',
-          });
+          showToast(OFFLINE_DELETED_TOAST);
           return;
         }
         throw err;

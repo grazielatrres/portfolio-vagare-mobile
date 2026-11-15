@@ -7,6 +7,7 @@ import { deleteInfo } from '@/services/infos';
 import { removeInfoFromCache } from '@/services/infosCache';
 import { queryClient } from '@/services/queryClient';
 import { discardLocalEntity, enqueueMutation, isLocalId, resolveSyncedId } from '@/services/syncQueue';
+import { OFFLINE_DELETED_TOAST } from '@/utils/offlineToasts';
 import { infosQueryKey } from './useInfosQuery';
 import { pendingMutationsQueryKey } from './usePendingMutationsQuery';
 
@@ -35,10 +36,7 @@ export function useDeleteInfoMutation(rawTripId: string) {
               payload: null,
             });
           }
-          showToast({
-            title: 'Excluído localmente',
-            message: 'Será sincronizado quando a conexão voltar.',
-          });
+          showToast(OFFLINE_DELETED_TOAST);
           return;
         }
         throw err;

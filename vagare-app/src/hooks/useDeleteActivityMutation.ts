@@ -7,6 +7,7 @@ import { removeActivityFromCache } from '@/services/activitiesCache';
 import { ApiError } from '@/services/api';
 import { queryClient } from '@/services/queryClient';
 import { discardLocalEntity, enqueueMutation, isLocalId, resolveSyncedId } from '@/services/syncQueue';
+import { OFFLINE_DELETED_TOAST } from '@/utils/offlineToasts';
 import { activitiesQueryKey } from './useActivitiesQuery';
 import { budgetQueryKey } from './useBudgetQuery';
 import { pendingMutationsQueryKey } from './usePendingMutationsQuery';
@@ -37,10 +38,7 @@ export function useDeleteActivityMutation(rawTripId: string) {
               payload: null,
             });
           }
-          showToast({
-            title: 'Excluído localmente',
-            message: 'Será sincronizado quando a conexão voltar.',
-          });
+          showToast(OFFLINE_DELETED_TOAST);
           return;
         }
         throw err;

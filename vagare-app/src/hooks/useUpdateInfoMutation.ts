@@ -7,6 +7,7 @@ import { CreateInfoPayload, buildInfoFromPayload, updateInfo } from '@/services/
 import { upsertInfoToCache } from '@/services/infosCache';
 import { queryClient } from '@/services/queryClient';
 import { enqueueMutation, resolveSyncedId } from '@/services/syncQueue';
+import { OFFLINE_SAVED_TOAST } from '@/utils/offlineToasts';
 import { infosQueryKey } from './useInfosQuery';
 import { pendingMutationsQueryKey } from './usePendingMutationsQuery';
 
@@ -37,10 +38,7 @@ export function useUpdateInfoMutation(rawTripId: string) {
             localId: id,
             payload,
           });
-          showToast({
-            title: 'Salvo localmente',
-            message: 'Será sincronizado quando a conexão voltar.',
-          });
+          showToast(OFFLINE_SAVED_TOAST);
           return local;
         }
         throw err;

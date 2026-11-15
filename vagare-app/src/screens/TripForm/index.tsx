@@ -19,8 +19,9 @@ import { PlaceSuggestion } from '@/services/geocoding';
 import { CreateTripPayload, Trip } from '@/services/trips';
 import { colors, fonts, spacing } from '@/theme';
 import {
-  CurrencyCode,
   amountToDigits,
+  CurrencyCode,
+  digitsFromCurrencyInput,
   digitsToAmount,
   formatAmountFromDigits,
 } from '@/utils/currency';
@@ -203,7 +204,7 @@ function TripForm({ trip, isPending, onSubmit, onBack, onSaved }: TripFormProps)
               label="Orçamento estimado"
               placeholder={formatAmountFromDigits('', currency)}
               value={formattedBudget}
-              onChangeText={(text) => setBudgetDigits(text.replace(/\D/g, ''))}
+              onChangeText={(text) => setBudgetDigits(digitsFromCurrencyInput(text, budgetDigits, currency))}
               keyboardType="number-pad"
               selection={{ start: formattedBudget.length, end: formattedBudget.length }}
               containerStyle={styles.field}

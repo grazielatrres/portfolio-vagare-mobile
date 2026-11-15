@@ -14,6 +14,7 @@ import { ACTIVITY_CATEGORIES } from "@/utils/activityCategory";
 import { PERIOD_LABELS, derivePeriodFromTime } from "@/utils/activityPeriod";
 import {
   amountToDigits,
+  digitsFromCurrencyInput,
   digitsToAmount,
   formatAmountFromDigits,
 } from "@/utils/currency";
@@ -194,7 +195,7 @@ export function AddActivityForm({
         label="Valor estimado"
         placeholder={formatAmountFromDigits("", currency)}
         value={formattedCost}
-        onChangeText={(text) => setCostDigits(text.replace(/\D/g, ""))}
+        onChangeText={(text) => setCostDigits(digitsFromCurrencyInput(text, costDigits, currency))}
         keyboardType="number-pad"
         selection={{ start: formattedCost.length, end: formattedCost.length }}
         containerStyle={styles.field}

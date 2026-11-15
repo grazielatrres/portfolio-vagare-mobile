@@ -27,6 +27,21 @@ export function formatAmountFromDigits(digits: string, currency: CurrencyCode): 
   return formatCurrencyValue(digitsToAmount(digits), currency);
 }
 
+// Dígitos de um input monetário mascarado. O backspace sobre o símbolo, espaço
+// ou separador não remove nenhum dígito, então é tratado como apagar o último.
+export function digitsFromCurrencyInput(
+  text: string,
+  prevDigits: string,
+  currency: CurrencyCode,
+): string {
+  const digits = text.replace(/\D/g, '').replace(/^0+/, '');
+  const prevFormatted = prevDigits ? formatAmountFromDigits(prevDigits, currency) : '';
+  if (digits === prevDigits && text.length < prevFormatted.length) {
+    return prevDigits.slice(0, -1);
+  }
+  return digits;
+}
+
 export function formatCurrencyValue(value: string | number, currency: CurrencyCode): string {
   return new Intl.NumberFormat(CURRENCY_LOCALES[currency], {
     style: 'currency',

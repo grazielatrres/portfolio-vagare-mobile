@@ -2,7 +2,8 @@ import { useState } from 'react';
 import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
-import { ConfirmDialog, FormError } from '@/components';
+import { ConfirmDialog } from '@/components';
+import { useToast } from '@/contexts/ToastContext';
 import { useDeleteInfoMutation } from '@/hooks/useDeleteInfoMutation';
 import { ApiError } from '@/services/api';
 import { Info, LodgingDetails } from '@/services/infos';
@@ -18,16 +19,19 @@ export interface LodgingCardProps {
 
 export function LodgingCard({ info, trip }: LodgingCardProps) {
   const { mutate: deleteInfo, isPending } = useDeleteInfoMutation(trip.id);
+  const { showToast } = useToast();
   const [confirmVisible, setConfirmVisible] = useState(false);
   const [editing, setEditing] = useState(false);
-  const [error, setError] = useState<string | null>(null);
 
   function handleConfirmDelete() {
     setConfirmVisible(false);
-    setError(null);
     deleteInfo(info.id, {
       onError: (err) => {
-        setError(err instanceof ApiError ? err.message : 'Não foi possível excluir a hospedagem.');
+        // Toast em vez de texto no card: some sozinho e não fica preso na lista.
+        showToast({
+          title: 'Não foi possível excluir a hospedagem',
+          message: err instanceof ApiError ? err.message : 'Tente novamente.',
+        });
       },
     });
   }
@@ -73,8 +77,6 @@ export function LodgingCard({ info, trip }: LodgingCardProps) {
 
       {details.address ? <Text style={styles.detailLine}>{details.address}</Text> : null}
       {stayLine ? <Text style={styles.detailLine}>{stayLine}</Text> : null}
-
-      <FormError message={error} style={styles.errorText} />
 
       <ConfirmDialog
         visible={confirmVisible}
@@ -128,10 +130,5 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontFamily: fonts.serif.regular,
     color: colors.text.secondary,
-  },
-  errorText: {
-    marginTop: spacing.sm,
-    marginBottom: 0,
-    textAlign: 'left',
   },
 });

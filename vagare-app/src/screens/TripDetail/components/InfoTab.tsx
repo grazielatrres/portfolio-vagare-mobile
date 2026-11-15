@@ -54,7 +54,7 @@ export function InfoTab({ trip }: InfoTabProps) {
             }
             style={styles.noMargin}
           />
-          <Button title="Tentar novamente" variant="outline" onPress={() => refetch()} />
+          <Button title="Tentar novamente" variant="soft" onPress={() => refetch()} />
         </View>
       ) : (
         <ScrollView
@@ -85,9 +85,7 @@ export function InfoTab({ trip }: InfoTabProps) {
             ) : (
               <Button
                 title="Adicionar voo"
-                variant="outline"
-                tone="accent"
-                icon={<Ionicons name="add" size={20} color={colors.accent} />}
+                icon={<Ionicons name="add" size={20} color={colors.surface} />}
                 onPress={() => setShowFlightForm(true)}
                 style={styles.addButton}
               />
@@ -115,9 +113,7 @@ export function InfoTab({ trip }: InfoTabProps) {
             ) : (
               <Button
                 title="Adicionar hospedagem"
-                variant="outline"
-                tone="accent"
-                icon={<Ionicons name="add" size={20} color={colors.accent} />}
+                icon={<Ionicons name="add" size={20} color={colors.surface} />}
                 onPress={() => setShowLodgingForm(true)}
                 style={styles.addButton}
               />
@@ -145,9 +141,7 @@ export function InfoTab({ trip }: InfoTabProps) {
             ) : (
               <Button
                 title="Adicionar documento"
-                variant="outline"
-                tone="accent"
-                icon={<Ionicons name="add" size={20} color={colors.accent} />}
+                icon={<Ionicons name="add" size={20} color={colors.surface} />}
                 onPress={() => setShowDocumentForm(true)}
                 style={styles.addButton}
               />

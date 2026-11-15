@@ -34,7 +34,7 @@ export function ConfirmDialog({
           <View style={styles.actions}>
             <Button
               title={cancelLabel}
-              variant="outline"
+              variant="soft"
               onPress={onCancel}
               style={styles.cancelButton}
             />

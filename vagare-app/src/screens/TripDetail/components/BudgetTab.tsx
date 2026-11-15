@@ -83,7 +83,7 @@ export function BudgetTab({ trip }: BudgetTabProps) {
             }
             style={styles.noMargin}
           />
-          <Button title="Tentar novamente" variant="outline" onPress={() => refetch()} />
+          <Button title="Tentar novamente" variant="soft" onPress={() => refetch()} />
         </View>
       ) : (
         <ScrollView
@@ -171,9 +171,7 @@ export function BudgetTab({ trip }: BudgetTabProps) {
           ) : (
             <Button
               title="Novo gasto"
-              variant="outline"
-              tone="accent"
-              icon={<Ionicons name="add" size={20} color={colors.accent} />}
+              icon={<Ionicons name="add" size={20} color={colors.surface} />}
               onPress={() => setShowForm(true)}
               style={styles.addButton}
             />

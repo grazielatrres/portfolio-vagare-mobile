@@ -111,7 +111,7 @@ export function EditProfileForm({ name, email, onCancel, onSaved }: EditProfileF
       <View style={styles.actions}>
         <Button
           title="Cancelar"
-          variant="outline"
+          variant="soft"
           onPress={onCancel}
           disabled={updateProfileMutation.isPending}
           style={styles.actionButton}

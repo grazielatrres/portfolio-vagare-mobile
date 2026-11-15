@@ -120,9 +120,7 @@ export function Profile() {
         title={
           isChecking ? 'Sincronizando alterações...' : isLoggingOut ? 'Saindo...' : 'Sair da conta'
         }
-        variant="outline"
-        tone="accent"
-        icon={<Ionicons name="log-out-outline" size={18} color={colors.accent} />}
+        icon={<Ionicons name="log-out-outline" size={18} color={colors.surface} />}
         onPress={requestLogout}
         disabled={isChecking || isLoggingOut}
       />

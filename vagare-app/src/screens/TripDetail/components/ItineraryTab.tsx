@@ -37,7 +37,7 @@ export function ItineraryTab({ trip }: ItineraryTabProps) {
             }
             style={styles.noMargin}
           />
-          <Button title="Tentar novamente" variant="outline" onPress={() => refetch()} />
+          <Button title="Tentar novamente" variant="soft" onPress={() => refetch()} />
         </View>
       ) : (
         <ScrollView
@@ -72,9 +72,7 @@ export function ItineraryTab({ trip }: ItineraryTabProps) {
           ) : (
             <Button
               title="Adicionar ao roteiro"
-              variant="outline"
-              tone="accent"
-              icon={<Ionicons name="add" size={20} color={colors.accent} />}
+              icon={<Ionicons name="add" size={20} color={colors.surface} />}
               onPress={() => setShowForm(true)}
               style={styles.addButton}
             />

@@ -65,7 +65,7 @@ export function RemoveAccountModal({
             />
             <Button
               title="Cancelar"
-              variant="outline"
+              variant="soft"
               onPress={onCancel}
               disabled={isDeleting}
             />

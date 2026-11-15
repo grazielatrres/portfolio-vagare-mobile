@@ -84,7 +84,7 @@ export function Trips() {
           />
           <Button
             title="Tentar novamente"
-            variant="outline"
+            variant="soft"
             onPress={() => refetch()}
           />
         </View>

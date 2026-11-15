@@ -100,12 +100,12 @@ export function Login({ onCreateAccount, onForgotPassword }: LoginProps) {
 
         <Button
           title={isGoogleLoading ? 'Entrando...' : 'Entrar com Google'}
-          variant="outline"
+          variant="soft"
           icon={
             isGoogleLoading ? (
-              <ActivityIndicator color={colors.text.primary} />
+              <ActivityIndicator color={colors.accent} />
             ) : (
-              <Ionicons name="logo-google" size={18} color={colors.text.primary} />
+              <Ionicons name="logo-google" size={18} color={colors.accent} />
             )
           }
           onPress={handleGoogleSignIn}

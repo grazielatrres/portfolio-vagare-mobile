@@ -4,6 +4,7 @@ import { StyleSheet, Text, View } from 'react-native';
 
 import { Button, DayField, FormError, Input } from '@/components';
 import { useCreateInfoMutation } from '@/hooks/useCreateInfoMutation';
+import { useFieldErrors } from '@/hooks/useFieldErrors';
 import { useUpdateInfoMutation } from '@/hooks/useUpdateInfoMutation';
 import { ApiError } from '@/services/api';
 import { DocumentDetails, Info } from '@/services/infos';
@@ -45,12 +46,15 @@ export function DocumentForm({ trip, info, onCancel, onSuccess }: DocumentFormPr
   const [number, setNumber] = useState(details.number ?? '');
   const [description, setDescription] = useState(info?.description ?? '');
   const [error, setError] = useState<string | null>(null);
+  const { errors, validate, clearError } = useFieldErrors<'documentType'>();
 
   async function handleSubmit() {
     setError(null);
 
-    if (!documentType.trim()) {
-      setError('Tipo de documento é obrigatório');
+    const isValid = validate({
+      ...(!documentType.trim() && { documentType: 'Tipo de documento é obrigatório' }),
+    });
+    if (!isValid) {
       return;
     }
 
@@ -94,7 +98,11 @@ export function DocumentForm({ trip, info, onCancel, onSuccess }: DocumentFormPr
         required
         placeholder="Ex: Passaporte, Visto, Seguro viagem"
         value={documentType}
-        onChangeText={setDocumentType}
+        onChangeText={(text) => {
+          setDocumentType(text);
+          clearError('documentType');
+        }}
+        error={errors.documentType}
         containerStyle={styles.field}
       />
 

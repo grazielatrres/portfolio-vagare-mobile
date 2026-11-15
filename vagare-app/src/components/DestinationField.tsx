@@ -9,6 +9,7 @@ import { Input } from './Input';
 export interface DestinationFieldProps {
   label?: string;
   required?: boolean;
+  error?: string | null;
   value: string;
   onChangeText: (text: string) => void;
   onSelectPlace: (place: PlaceSuggestion) => void;
@@ -20,6 +21,7 @@ const MIN_QUERY_LENGTH = 3;
 export function DestinationField({
   label = 'Destino',
   required,
+  error,
   value,
   onChangeText,
   onSelectPlace,
@@ -69,6 +71,7 @@ export function DestinationField({
       <Input
         label={label}
         required={required}
+        error={error}
         placeholder="Ex: Santorini, Grécia"
         value={value}
         onChangeText={handleChangeText}

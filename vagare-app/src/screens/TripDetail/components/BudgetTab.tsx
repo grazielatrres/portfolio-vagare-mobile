@@ -5,6 +5,7 @@ import { ActivityIndicator, ScrollView, StyleSheet, Text, View } from 'react-nat
 import { Button, FormError, Input, SelectField } from '@/components';
 import { useBudgetQuery } from '@/hooks/useBudgetQuery';
 import { useCreateExpenseMutation } from '@/hooks/useCreateExpenseMutation';
+import { useFieldErrors } from '@/hooks/useFieldErrors';
 import { ApiError } from '@/services/api';
 import { BudgetSummary } from '@/services/budget';
 import { Trip } from '@/services/trips';
@@ -32,6 +33,7 @@ export function BudgetTab({ trip }: BudgetTabProps) {
   const [costDigits, setCostDigits] = useState('');
   const [category, setCategory] = useState<string | null>(null);
   const [formError, setFormError] = useState<string | null>(null);
+  const { errors, validate, clearError } = useFieldErrors<'description' | 'amount'>();
 
   const currency = trip.currency;
   const formattedCost = costDigits ? formatAmountFromDigits(costDigits, currency) : '';
@@ -41,20 +43,19 @@ export function BudgetTab({ trip }: BudgetTabProps) {
     setCostDigits('');
     setCategory(null);
     setFormError(null);
+    validate({});
     setShowForm(false);
   }
 
   async function handleAddExpense() {
     setFormError(null);
 
-    if (!description.trim()) {
-      setFormError('Descrição é obrigatória');
-      return;
-    }
-
     const amount = costDigits ? digitsToAmount(costDigits) : 0;
-    if (amount <= 0) {
-      setFormError('Valor deve ser maior que zero');
+    const isValid = validate({
+      ...(!description.trim() && { description: 'Descrição é obrigatória' }),
+      ...(amount <= 0 && { amount: 'Valor deve ser maior que zero' }),
+    });
+    if (!isValid) {
       return;
     }
 
@@ -119,7 +120,11 @@ export function BudgetTab({ trip }: BudgetTabProps) {
                 required
                 placeholder="Ex: Jantar no centro"
                 value={description}
-                onChangeText={setDescription}
+                onChangeText={(text) => {
+                  setDescription(text);
+                  clearError('description');
+                }}
+                error={errors.description}
                 containerStyle={styles.field}
               />
 
@@ -129,7 +134,11 @@ export function BudgetTab({ trip }: BudgetTabProps) {
                   required
                   placeholder={formatAmountFromDigits('', currency)}
                   value={formattedCost}
-                  onChangeText={(text) => setCostDigits(text.replace(/\D/g, ''))}
+                  onChangeText={(text) => {
+                    setCostDigits(text.replace(/\D/g, ''));
+                    clearError('amount');
+                  }}
+                  error={errors.amount}
                   keyboardType="number-pad"
                   selection={{ start: formattedCost.length, end: formattedCost.length }}
                   containerStyle={styles.formRowItem}

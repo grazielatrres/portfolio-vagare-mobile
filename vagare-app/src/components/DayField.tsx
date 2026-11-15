@@ -10,6 +10,7 @@ import { Input } from './Input';
 export interface DayFieldProps {
   label: string;
   required?: boolean;
+  error?: string | null;
   value: Date | null;
   onChange: (date: Date) => void;
   minimumDate: Date;
@@ -31,6 +32,7 @@ function formatDay(date: Date | null): string {
 export function DayField({
   label,
   required,
+  error,
   value,
   onChange,
   minimumDate,
@@ -60,6 +62,7 @@ export function DayField({
         <Input
           label={label}
           required={required}
+          error={error}
           placeholder="Selecione o dia"
           value={formatDay(value)}
           editable={false}

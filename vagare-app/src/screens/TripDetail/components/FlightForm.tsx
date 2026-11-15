@@ -4,6 +4,7 @@ import { StyleSheet, Text, View } from 'react-native';
 
 import { Button, DayField, FormError, Input } from '@/components';
 import { useCreateInfoMutation } from '@/hooks/useCreateInfoMutation';
+import { useFieldErrors } from '@/hooks/useFieldErrors';
 import { useUpdateInfoMutation } from '@/hooks/useUpdateInfoMutation';
 import { ApiError } from '@/services/api';
 import { FlightDetails, Info } from '@/services/infos';
@@ -39,17 +40,17 @@ export function FlightForm({ trip, info, onCancel, onSuccess }: FlightFormProps)
   const [time, setTime] = useState(details.time ?? '');
   const [flightNumber, setFlightNumber] = useState(details.flightNumber ?? '');
   const [error, setError] = useState<string | null>(null);
+  const { errors, validate, clearError } = useFieldErrors<'airline' | 'time'>();
 
   async function handleSubmit() {
     setError(null);
 
-    if (!airline.trim()) {
-      setError('Companhia aérea é obrigatória');
-      return;
-    }
-
-    if (time.trim() && !TIME_PATTERN.test(time.trim())) {
-      setError('Horário inválido. Use o formato HH:mm');
+    const isValid = validate({
+      ...(!airline.trim() && { airline: 'Companhia aérea é obrigatória' }),
+      ...(time.trim() &&
+        !TIME_PATTERN.test(time.trim()) && { time: 'Horário inválido. Use o formato HH:mm' }),
+    });
+    if (!isValid) {
       return;
     }
 
@@ -95,7 +96,11 @@ export function FlightForm({ trip, info, onCancel, onSuccess }: FlightFormProps)
         required
         placeholder="Ex: Aegean Airlines"
         value={airline}
-        onChangeText={setAirline}
+        onChangeText={(text) => {
+          setAirline(text);
+          clearError('airline');
+        }}
+        error={errors.airline}
         containerStyle={styles.field}
       />
 
@@ -130,7 +135,11 @@ export function FlightForm({ trip, info, onCancel, onSuccess }: FlightFormProps)
           label="Horário"
           placeholder="00:00"
           value={time}
-          onChangeText={(text) => setTime(maskTimeInput(text))}
+          onChangeText={(text) => {
+            setTime(maskTimeInput(text));
+            clearError('time');
+          }}
+          error={errors.time}
           keyboardType="number-pad"
           maxLength={5}
           containerStyle={styles.rowItem}

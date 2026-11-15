@@ -4,6 +4,7 @@ import { StyleSheet, Text, View } from 'react-native';
 
 import { Button, DayField, FormError, Input } from '@/components';
 import { useCreateInfoMutation } from '@/hooks/useCreateInfoMutation';
+import { useFieldErrors } from '@/hooks/useFieldErrors';
 import { useUpdateInfoMutation } from '@/hooks/useUpdateInfoMutation';
 import { ApiError } from '@/services/api';
 import { Info, LodgingDetails } from '@/services/infos';
@@ -37,17 +38,20 @@ export function LodgingForm({ trip, info, onCancel, onSuccess }: LodgingFormProp
     details.checkOut ? fromISODate(details.checkOut) : null,
   );
   const [error, setError] = useState<string | null>(null);
+  const { errors, validate, clearError } = useFieldErrors<'hotelName' | 'checkOut'>();
 
   async function handleSubmit() {
     setError(null);
 
-    if (!hotelName.trim()) {
-      setError('Nome do hotel é obrigatório');
-      return;
-    }
-
-    if (checkIn && checkOut && checkOut.getTime() < checkIn.getTime()) {
-      setError('Check-out deve ser igual ou posterior ao check-in');
+    const isValid = validate({
+      ...(!hotelName.trim() && { hotelName: 'Nome do hotel é obrigatório' }),
+      ...(checkIn &&
+        checkOut &&
+        checkOut.getTime() < checkIn.getTime() && {
+          checkOut: 'Check-out deve ser igual ou posterior ao check-in',
+        }),
+    });
+    if (!isValid) {
       return;
     }
 
@@ -91,7 +95,11 @@ export function LodgingForm({ trip, info, onCancel, onSuccess }: LodgingFormProp
         required
         placeholder="Ex: Grand Hotel"
         value={hotelName}
-        onChangeText={setHotelName}
+        onChangeText={(text) => {
+          setHotelName(text);
+          clearError('hotelName');
+        }}
+        error={errors.hotelName}
         containerStyle={styles.field}
       />
 
@@ -107,7 +115,10 @@ export function LodgingForm({ trip, info, onCancel, onSuccess }: LodgingFormProp
         <DayField
           label="Check-in"
           value={checkIn}
-          onChange={setCheckIn}
+          onChange={(date) => {
+            setCheckIn(date);
+            clearError('checkOut');
+          }}
           minimumDate={tripStart}
           maximumDate={tripEnd}
           containerStyle={styles.rowItem}
@@ -115,7 +126,11 @@ export function LodgingForm({ trip, info, onCancel, onSuccess }: LodgingFormProp
         <DayField
           label="Check-out"
           value={checkOut}
-          onChange={setCheckOut}
+          onChange={(date) => {
+            setCheckOut(date);
+            clearError('checkOut');
+          }}
+          error={errors.checkOut}
           minimumDate={checkIn ?? tripStart}
           maximumDate={tripEnd}
           containerStyle={styles.rowItem}

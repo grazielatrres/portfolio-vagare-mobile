@@ -4,6 +4,7 @@ import { StyleSheet, Text, View } from "react-native";
 
 import { Button, DayField, FormError, Input, SelectField } from "@/components";
 import { useCreateActivityMutation } from "@/hooks/useCreateActivityMutation";
+import { useFieldErrors } from "@/hooks/useFieldErrors";
 import { useUpdateActivityMutation } from "@/hooks/useUpdateActivityMutation";
 import { Activity } from "@/services/activities";
 import { ApiError } from "@/services/api";
@@ -67,6 +68,7 @@ export function AddActivityForm({
   const [location, setLocation] = useState(activity?.location ?? "");
   const [description, setDescription] = useState(activity?.description ?? "");
   const [error, setError] = useState<string | null>(null);
+  const { errors, validate, clearError } = useFieldErrors<"name" | "time">();
 
   const currency = trip.currency;
   const formattedCost = costDigits
@@ -81,13 +83,14 @@ export function AddActivityForm({
   async function handleSubmit() {
     setError(null);
 
-    if (!name.trim()) {
-      setError("Nome é obrigatório");
-      return;
-    }
-
-    if (time.trim() && !TIME_PATTERN.test(time.trim())) {
-      setError("Horário inválido. Use o formato HH:mm");
+    const isValid = validate({
+      ...(!name.trim() && { name: "Nome é obrigatório" }),
+      ...(time.trim() &&
+        !TIME_PATTERN.test(time.trim()) && {
+          time: "Horário inválido. Use o formato HH:mm",
+        }),
+    });
+    if (!isValid) {
       return;
     }
 
@@ -128,6 +131,9 @@ export function AddActivityForm({
           size={20}
           color={colors.text.primary}
         />
+        <Text style={styles.title}>
+          {isEditMode ? "Editar atividade" : "Nova atividade"}
+        </Text>
       </View>
 
       <Input
@@ -135,7 +141,11 @@ export function AddActivityForm({
         required
         placeholder="Ex: Red Beach"
         value={name}
-        onChangeText={setName}
+        onChangeText={(text) => {
+          setName(text);
+          clearError("name");
+        }}
+        error={errors.name}
         containerStyle={styles.field}
       />
 
@@ -156,7 +166,11 @@ export function AddActivityForm({
         label="Horário"
         placeholder="00:00"
         value={time}
-        onChangeText={(text) => setTime(maskTimeInput(text))}
+        onChangeText={(text) => {
+          setTime(maskTimeInput(text));
+          clearError("time");
+        }}
+        error={errors.time}
         keyboardType="number-pad"
         maxLength={5}
         containerStyle={styles.field}

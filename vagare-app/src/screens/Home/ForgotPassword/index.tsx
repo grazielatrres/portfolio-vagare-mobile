@@ -3,6 +3,7 @@ import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
 import { BackButton, Button, Input, Screen } from '@/components';
+import { useFieldErrors } from '@/hooks/useFieldErrors';
 import { forgotPassword } from '@/services/auth';
 import { ApiError } from '@/services/api';
 import { colors, fonts, spacing } from '@/theme';
@@ -16,14 +17,14 @@ export function ForgotPassword({ onBack }: ForgotPasswordProps) {
   const [email, setEmail] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const { errors, validate, clearError } = useFieldErrors<'email'>();
   const [success, setSuccess] = useState<string | null>(null);
 
   async function handleSubmit() {
     setError(null);
     setSuccess(null);
 
-    if (!email) {
-      setError('Informe seu email para continuar.');
+    if (!validate({ ...(!email.trim() && { email: 'Informe seu e-mail' }) })) {
       return;
     }
 
@@ -54,7 +55,11 @@ export function ForgotPassword({ onBack }: ForgotPasswordProps) {
           label="Email"
           placeholder="seu@email.com"
           value={email}
-          onChangeText={setEmail}
+          onChangeText={(text) => {
+            setEmail(text);
+            clearError('email');
+          }}
+          error={errors.email}
           keyboardType="email-address"
           autoCapitalize="none"
           autoCorrect={false}

@@ -27,3 +27,27 @@ export const PASSWORD_REQUIREMENTS: PasswordRequirement[] = [
 export function isStrongPassword(password: string): boolean {
   return PASSWORD_REQUIREMENTS.every((req) => req.test(password));
 }
+
+export interface PasswordFieldErrors {
+  password?: string;
+  confirmPassword?: string;
+}
+
+// Erros por campo para formulários de "nova senha" + "confirmar senha".
+export function passwordErrors(password: string, confirmPassword: string): PasswordFieldErrors {
+  const errors: PasswordFieldErrors = {};
+
+  if (!password) {
+    errors.password = 'Crie uma senha';
+  } else if (!isStrongPassword(password)) {
+    errors.password = 'A senha não atende a todos os requisitos de segurança.';
+  }
+
+  if (!confirmPassword) {
+    errors.confirmPassword = 'Confirme a senha';
+  } else if (password !== confirmPassword) {
+    errors.confirmPassword = 'As senhas não coincidem.';
+  }
+
+  return errors;
+}

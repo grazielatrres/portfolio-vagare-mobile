@@ -3,10 +3,11 @@ import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
 import { Button, PasswordInput, PasswordRequirements, Screen } from '@/components';
+import { useFieldErrors } from '@/hooks/useFieldErrors';
 import { ApiError } from '@/services/api';
 import { resetPassword } from '@/services/auth';
 import { colors, fonts, spacing } from '@/theme';
-import { isStrongPassword } from '@/utils/passwordPolicy';
+import { PasswordFieldErrors, passwordErrors } from '@/utils/passwordPolicy';
 import { AuthHeader } from '../Home/components/AuthHeader';
 
 export interface ResetPasswordProps {
@@ -19,6 +20,7 @@ export function ResetPassword({ token, onDone }: ResetPasswordProps) {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const { errors, validate, clearError } = useFieldErrors<keyof PasswordFieldErrors>();
   const [success, setSuccess] = useState(false);
 
   async function handleSubmit() {
@@ -29,18 +31,7 @@ export function ResetPassword({ token, onDone }: ResetPasswordProps) {
       return;
     }
 
-    if (!password || !confirmPassword) {
-      setError('Preencha os dois campos para continuar.');
-      return;
-    }
-
-    if (!isStrongPassword(password)) {
-      setError('A senha não atende a todos os requisitos de segurança.');
-      return;
-    }
-
-    if (password !== confirmPassword) {
-      setError('As senhas não coincidem.');
+    if (!validate(passwordErrors(password, confirmPassword))) {
       return;
     }
 
@@ -85,7 +76,11 @@ export function ResetPassword({ token, onDone }: ResetPasswordProps) {
           label="Nova senha"
           placeholder="Crie uma senha forte"
           value={password}
-          onChangeText={setPassword}
+          onChangeText={(text) => {
+            setPassword(text);
+            clearError('password');
+          }}
+          error={errors.password}
           containerStyle={styles.field}
         />
         <PasswordRequirements password={password} />
@@ -93,7 +88,11 @@ export function ResetPassword({ token, onDone }: ResetPasswordProps) {
           label="Confirmar nova senha"
           placeholder="Repita a senha"
           value={confirmPassword}
-          onChangeText={setConfirmPassword}
+          onChangeText={(text) => {
+            setConfirmPassword(text);
+            clearError('confirmPassword');
+          }}
+          error={errors.confirmPassword}
           containerStyle={styles.field}
         />
 

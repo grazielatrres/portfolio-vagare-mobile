@@ -1,16 +1,22 @@
-import { useState } from 'react';
-import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { Ionicons } from "@expo/vector-icons";
+import { useState } from "react";
+import {
+  ActivityIndicator,
+  Pressable,
+  StyleSheet,
+  Text,
+  View,
+} from "react-native";
 
-import { ConfirmDialog } from '@/components';
-import { useToast } from '@/contexts/ToastContext';
-import { useDeleteInfoMutation } from '@/hooks/useDeleteInfoMutation';
-import { ApiError } from '@/services/api';
-import { FlightDetails, Info } from '@/services/infos';
-import { Trip } from '@/services/trips';
-import { colors, fonts, spacing } from '@/theme';
-import { formatDateShort } from '@/utils/format';
-import { FlightForm } from './FlightForm';
+import { ConfirmModal } from "@/components";
+import { useToast } from "@/contexts/ToastContext";
+import { useDeleteInfoMutation } from "@/hooks/useDeleteInfoMutation";
+import { ApiError } from "@/services/api";
+import { FlightDetails, Info } from "@/services/infos";
+import { Trip } from "@/services/trips";
+import { colors, fonts, spacing } from "@/theme";
+import { formatDateShort } from "@/utils/format";
+import { FlightForm } from "./FlightForm";
 
 export interface FlightCardProps {
   info: Info;
@@ -28,8 +34,8 @@ export function FlightCard({ info, trip }: FlightCardProps) {
     deleteInfo(info.id, {
       onError: (err) => {
         showToast({
-          title: 'Não foi possível excluir o voo',
-          message: err instanceof ApiError ? err.message : 'Tente novamente.',
+          title: "Não foi possível excluir o voo",
+          message: err instanceof ApiError ? err.message : "Tente novamente.",
         });
       },
     });
@@ -49,12 +55,12 @@ export function FlightCard({ info, trip }: FlightCardProps) {
   const details = (info.details ?? {}) as Partial<FlightDetails>;
   const routeParts = [details.origin, details.destination].filter(Boolean);
   const detailLine = [
-    routeParts.length > 0 ? routeParts.join(' → ') : null,
+    routeParts.length > 0 ? routeParts.join(" → ") : null,
     info.date ? formatDateShort(info.date) : null,
     details.time || null,
   ]
     .filter(Boolean)
-    .join(' · ');
+    .join(" · ");
 
   return (
     <View style={styles.card}>
@@ -65,8 +71,16 @@ export function FlightCard({ info, trip }: FlightCardProps) {
         </View>
 
         <View style={styles.actions}>
-          <Pressable testID="edit-button" onPress={() => setEditing(true)} hitSlop={12}>
-            <Ionicons name="create-outline" size={20} color={colors.text.secondary} />
+          <Pressable
+            testID="edit-button"
+            onPress={() => setEditing(true)}
+            hitSlop={12}
+          >
+            <Ionicons
+              name="create-outline"
+              size={20}
+              color={colors.text.secondary}
+            />
           </Pressable>
           <Pressable
             testID="delete-button"
@@ -88,7 +102,7 @@ export function FlightCard({ info, trip }: FlightCardProps) {
         <Text style={styles.detailLine}>Voo {details.flightNumber}</Text>
       ) : null}
 
-      <ConfirmDialog
+      <ConfirmModal
         visible={confirmVisible}
         title="Excluir voo?"
         message={`${info.title} será removido das informações da viagem. Essa ação não pode ser desfeita.`}
@@ -111,16 +125,16 @@ const styles = StyleSheet.create({
     marginBottom: spacing.md,
   },
   header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
     gap: spacing.sm,
   },
   titleRow: {
     flex: 1,
     minWidth: 0,
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: spacing.sm,
   },
   name: {
@@ -131,8 +145,8 @@ const styles = StyleSheet.create({
   },
   actions: {
     flexShrink: 0,
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: spacing.sm,
   },
   detailLine: {

@@ -1,33 +1,45 @@
-import { useState } from 'react';
-import { ActivityIndicator, Pressable, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { Ionicons } from "@expo/vector-icons";
+import { useState } from "react";
+import {
+  ActivityIndicator,
+  Pressable,
+  StyleSheet,
+  Text,
+  View,
+  useWindowDimensions,
+} from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import { Button, ConfirmDialog } from '@/components';
-import { useAuth } from '@/contexts/AuthContext';
-import { useProfileQuery } from '@/hooks/useProfileQuery';
-import { useSafeLogout } from '@/hooks/useSafeLogout';
-import { useTripsQuery } from '@/hooks/useTripsQuery';
-import { ApiError } from '@/services/api';
-import { colors, fonts, spacing } from '@/theme';
-import { countDistinctCountries } from '@/utils/format';
-import { EditProfileForm } from './components/EditProfileForm';
+import { Button, ConfirmModal } from "@/components";
+import { useAuth } from "@/contexts/AuthContext";
+import { useProfileQuery } from "@/hooks/useProfileQuery";
+import { useSafeLogout } from "@/hooks/useSafeLogout";
+import { useTripsQuery } from "@/hooks/useTripsQuery";
+import { ApiError } from "@/services/api";
+import { colors, fonts, spacing } from "@/theme";
+import { countDistinctCountries } from "@/utils/format";
+import { EditProfileForm } from "./components/EditProfileForm";
 
 const COMPACT_WIDTH_BREAKPOINT = 380;
 
 function buildUnsyncedLogoutMessage(count: number): string {
   const changes =
     count === 1
-      ? '1 alteração feita offline que ainda não foi enviada'
+      ? "1 alteração feita offline que ainda não foi enviada"
       : `${count} alterações feitas offline que ainda não foram enviadas`;
-  const lost = count === 1 ? 'ela será perdida' : 'elas serão perdidas';
+  const lost = count === 1 ? "ela será perdida" : "elas serão perdidas";
   return `Você tem ${changes} ao servidor. Se sair agora, ${lost}. Conecte-se à internet para sincronizar antes de sair.`;
 }
 
 export function Profile() {
   const { user, isLoading: isLoggingOut } = useAuth();
-  const { requestLogout, confirmLogout, cancelLogout, isChecking, unsyncedCount } =
-    useSafeLogout();
+  const {
+    requestLogout,
+    confirmLogout,
+    cancelLogout,
+    isChecking,
+    unsyncedCount,
+  } = useSafeLogout();
   const insets = useSafeAreaInsets();
   const { width } = useWindowDimensions();
   const profileQuery = useProfileQuery();
@@ -40,11 +52,13 @@ export function Profile() {
   const error = profileQuery.error ?? tripsQuery.error;
 
   const countryCount = tripsQuery.data
-    ? countDistinctCountries(tripsQuery.data.trips.map((trip) => trip.destination))
+    ? countDistinctCountries(
+        tripsQuery.data.trips.map((trip) => trip.destination),
+      )
     : null;
 
-  const name = profileQuery.data?.name ?? user?.name ?? '';
-  const email = profileQuery.data?.email ?? user?.email ?? '';
+  const name = profileQuery.data?.name ?? user?.name ?? "";
+  const email = profileQuery.data?.email ?? user?.email ?? "";
 
   const isCompact = width < COMPACT_WIDTH_BREAKPOINT;
 
@@ -67,7 +81,11 @@ export function Profile() {
           <View style={styles.profileInfo}>
             <Text style={styles.name}>{name}</Text>
             <View style={styles.emailRow}>
-              <Ionicons name="mail-outline" size={14} color={colors.text.secondary} />
+              <Ionicons
+                name="mail-outline"
+                size={14}
+                color={colors.text.secondary}
+              />
               <Text style={styles.email}>{email}</Text>
             </View>
           </View>
@@ -78,8 +96,14 @@ export function Profile() {
             accessibilityLabel="Editar dados do perfil"
             style={styles.editButton}
           >
-            <Ionicons name="create-outline" size={20} color={colors.text.secondary} />
-            {!isCompact ? <Text style={styles.editButtonText}>Editar</Text> : null}
+            <Ionicons
+              name="create-outline"
+              size={20}
+              color={colors.text.secondary}
+            />
+            {!isCompact ? (
+              <Text style={styles.editButtonText}>Editar</Text>
+            ) : null}
           </Pressable>
         </View>
       )}
@@ -91,24 +115,32 @@ export function Profile() {
           <ActivityIndicator color={colors.accent} />
         ) : isError ? (
           <Text style={styles.errorText}>
-            {error instanceof ApiError ? error.message : 'Não foi possível carregar seu perfil.'}
+            {error instanceof ApiError
+              ? error.message
+              : "Não foi possível carregar seu perfil."}
           </Text>
         ) : (
           <View style={styles.statsRow}>
             <View style={styles.statBox}>
-              <Text style={styles.statValue}>{profileQuery.data?.stats.totalTrips ?? 0}</Text>
+              <Text style={styles.statValue}>
+                {profileQuery.data?.stats.totalTrips ?? 0}
+              </Text>
               <Text style={styles.statLabel}>
                 {profileQuery.data?.stats.totalTrips === 1
-                  ? 'Viagem planejada'
-                  : 'Viagens planejadas'}
+                  ? "Viagem planejada"
+                  : "Viagens planejadas"}
               </Text>
             </View>
             <View style={styles.statBox}>
               <Text style={styles.statValue}>{countryCount ?? 0}</Text>
               <View style={styles.statLabelRow}>
-                <Ionicons name="location-outline" size={12} color={colors.text.secondary} />
+                <Ionicons
+                  name="location-outline"
+                  size={12}
+                  color={colors.text.secondary}
+                />
                 <Text style={styles.statLabel}>
-                  {countryCount === 1 ? 'País' : 'Países'}
+                  {countryCount === 1 ? "País" : "Países"}
                 </Text>
               </View>
             </View>
@@ -118,14 +150,20 @@ export function Profile() {
 
       <Button
         title={
-          isChecking ? 'Sincronizando alterações...' : isLoggingOut ? 'Saindo...' : 'Sair da conta'
+          isChecking
+            ? "Sincronizando alterações..."
+            : isLoggingOut
+              ? "Saindo..."
+              : "Sair da conta"
         }
-        icon={<Ionicons name="log-out-outline" size={18} color={colors.surface} />}
+        icon={
+          <Ionicons name="log-out-outline" size={18} color={colors.surface} />
+        }
         onPress={requestLogout}
         disabled={isChecking || isLoggingOut}
       />
 
-      <ConfirmDialog
+      <ConfirmModal
         visible={unsyncedCount > 0}
         title="Sair sem sincronizar?"
         message={buildUnsyncedLogoutMessage(unsyncedCount)}
@@ -151,8 +189,8 @@ const styles = StyleSheet.create({
     marginBottom: spacing.xl,
   },
   profileRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: spacing.md,
     marginBottom: spacing.xl,
   },
@@ -161,8 +199,8 @@ const styles = StyleSheet.create({
     height: 64,
     borderRadius: 32,
     backgroundColor: colors.accentSoft,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
   },
   profileInfo: {
     flex: 1,
@@ -174,8 +212,8 @@ const styles = StyleSheet.create({
     marginBottom: spacing.xs,
   },
   emailRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: spacing.xs,
   },
   email: {
@@ -184,13 +222,13 @@ const styles = StyleSheet.create({
     color: colors.text.secondary,
   },
   editButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: spacing.xs,
     minWidth: 44,
     minHeight: 44,
     paddingHorizontal: spacing.sm,
-    justifyContent: 'center',
+    justifyContent: "center",
     borderRadius: 10,
   },
   editButtonText: {
@@ -213,7 +251,7 @@ const styles = StyleSheet.create({
     marginBottom: spacing.md,
   },
   statsRow: {
-    flexDirection: 'row',
+    flexDirection: "row",
     gap: spacing.md,
   },
   statBox: {
@@ -221,7 +259,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.background,
     borderRadius: 10,
     paddingVertical: spacing.md,
-    alignItems: 'center',
+    alignItems: "center",
   },
   statValue: {
     fontSize: 26,
@@ -230,8 +268,8 @@ const styles = StyleSheet.create({
     marginBottom: spacing.xs,
   },
   statLabelRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: spacing.xs,
   },
   statLabel: {
@@ -243,6 +281,6 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontFamily: fonts.serif.regular,
     color: colors.danger,
-    textAlign: 'center',
+    textAlign: "center",
   },
 });

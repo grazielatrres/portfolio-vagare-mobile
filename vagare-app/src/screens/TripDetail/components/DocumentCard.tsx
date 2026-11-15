@@ -1,16 +1,22 @@
-import { useState } from 'react';
-import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { Ionicons } from "@expo/vector-icons";
+import { useState } from "react";
+import {
+  ActivityIndicator,
+  Pressable,
+  StyleSheet,
+  Text,
+  View,
+} from "react-native";
 
-import { ConfirmDialog } from '@/components';
-import { useToast } from '@/contexts/ToastContext';
-import { useDeleteInfoMutation } from '@/hooks/useDeleteInfoMutation';
-import { ApiError } from '@/services/api';
-import { DocumentDetails, Info } from '@/services/infos';
-import { Trip } from '@/services/trips';
-import { colors, fonts, spacing } from '@/theme';
-import { formatDateShort } from '@/utils/format';
-import { DocumentForm } from './DocumentForm';
+import { ConfirmModal } from "@/components";
+import { useToast } from "@/contexts/ToastContext";
+import { useDeleteInfoMutation } from "@/hooks/useDeleteInfoMutation";
+import { ApiError } from "@/services/api";
+import { DocumentDetails, Info } from "@/services/infos";
+import { Trip } from "@/services/trips";
+import { colors, fonts, spacing } from "@/theme";
+import { formatDateShort } from "@/utils/format";
+import { DocumentForm } from "./DocumentForm";
 
 export interface DocumentCardProps {
   info: Info;
@@ -28,8 +34,8 @@ export function DocumentCard({ info, trip }: DocumentCardProps) {
     deleteInfo(info.id, {
       onError: (err) => {
         showToast({
-          title: 'Não foi possível excluir o documento',
-          message: err instanceof ApiError ? err.message : 'Tente novamente.',
+          title: "Não foi possível excluir o documento",
+          message: err instanceof ApiError ? err.message : "Tente novamente.",
         });
       },
     });
@@ -52,21 +58,33 @@ export function DocumentCard({ info, trip }: DocumentCardProps) {
     info.date ? `Validade: ${formatDateShort(info.date)}` : null,
   ]
     .filter(Boolean)
-    .join(' · ');
+    .join(" · ");
 
   return (
     <View style={styles.card}>
       <View style={styles.header}>
         <View style={styles.titleRow}>
-          <Ionicons name="document-text-outline" size={20} color={colors.accent} />
+          <Ionicons
+            name="document-text-outline"
+            size={20}
+            color={colors.accent}
+          />
           <Text style={styles.name}>{info.title}</Text>
         </View>
 
         <View style={styles.actions}>
           <Pressable onPress={() => setEditing(true)} hitSlop={12}>
-            <Ionicons name="create-outline" size={20} color={colors.text.secondary} />
+            <Ionicons
+              name="create-outline"
+              size={20}
+              color={colors.text.secondary}
+            />
           </Pressable>
-          <Pressable onPress={() => setConfirmVisible(true)} disabled={isPending} hitSlop={12}>
+          <Pressable
+            onPress={() => setConfirmVisible(true)}
+            disabled={isPending}
+            hitSlop={12}
+          >
             {isPending ? (
               <ActivityIndicator size="small" color={colors.danger} />
             ) : (
@@ -77,9 +95,11 @@ export function DocumentCard({ info, trip }: DocumentCardProps) {
       </View>
 
       {detailLine ? <Text style={styles.detailLine}>{detailLine}</Text> : null}
-      {info.description ? <Text style={styles.detailLine}>{info.description}</Text> : null}
+      {info.description ? (
+        <Text style={styles.detailLine}>{info.description}</Text>
+      ) : null}
 
-      <ConfirmDialog
+      <ConfirmModal
         visible={confirmVisible}
         title="Excluir documento?"
         message={`${info.title} será removido das informações da viagem. Essa ação não pode ser desfeita.`}
@@ -102,16 +122,16 @@ const styles = StyleSheet.create({
     marginBottom: spacing.md,
   },
   header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
     gap: spacing.sm,
   },
   titleRow: {
     flex: 1,
     minWidth: 0,
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: spacing.sm,
   },
   name: {
@@ -122,8 +142,8 @@ const styles = StyleSheet.create({
   },
   actions: {
     flexShrink: 0,
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: spacing.sm,
   },
   detailLine: {

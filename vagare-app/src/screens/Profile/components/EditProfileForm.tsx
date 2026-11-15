@@ -39,7 +39,7 @@ export function EditProfileForm({
   const [nameError, setNameError] = useState<string | null>(null);
   const [formError, setFormError] = useState<string | null>(null);
 
-  const [isDeleteDialogVisible, setIsDeleteDialogVisible] = useState(false);
+  const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
   const [deleteError, setDeleteError] = useState<string | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const [isHoveringDelete, setIsHoveringDelete] = useState(false);
@@ -153,7 +153,7 @@ export function EditProfileForm({
       <Divider />
 
       <Pressable
-        onPress={() => setIsDeleteDialogVisible(true)}
+        onPress={() => setIsDeleteModalVisible(true)}
         onHoverIn={() => setIsHoveringDelete(true)}
         onHoverOut={() => setIsHoveringDelete(false)}
         hitSlop={8}
@@ -169,11 +169,11 @@ export function EditProfileForm({
       </Pressable>
 
       <RemoveAccountModal
-        visible={isDeleteDialogVisible}
+        visible={isDeleteModalVisible}
         isDeleting={isDeleting}
         error={deleteError}
         onConfirm={handleConfirmDelete}
-        onCancel={() => setIsDeleteDialogVisible(false)}
+        onCancel={() => setIsDeleteModalVisible(false)}
       />
     </View>
   );

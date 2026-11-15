@@ -1,8 +1,17 @@
 import { useState } from 'react';
 import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { Image } from 'expo-image';
 
-import { Button, Divider, FormError, Input, PasswordInput, Screen } from '@/components';
+import {
+  Button,
+  Divider,
+  FormError,
+  FormScrollView,
+  Input,
+  PasswordInput,
+  Screen,
+} from '@/components';
 import { useAuth } from '@/contexts/AuthContext';
 import { useFieldErrors } from '@/hooks/useFieldErrors';
 import { useGoogleAuth } from '@/hooks/useGoogleAuth';
@@ -59,90 +68,104 @@ export function Login({ onCreateAccount, onForgotPassword }: LoginProps) {
   }
 
   return (
-    <Screen style={styles.root}>
-      <AuthHeader
-        align="center"
-        icon={<Ionicons name="compass-outline" size={30} color={colors.surface} />}
-        title="Bem-vindo de volta"
-        subtitle="Acesse o Vagare"
-      />
-
-      <View style={styles.form}>
-        <Input
-          label="Email"
-          placeholder="seu@email.com"
-          value={email}
-          onChangeText={(text) => {
-            setEmail(text);
-            clearError('email');
-          }}
-          error={errors.email}
-          keyboardType="email-address"
-          autoCapitalize="none"
-          autoCorrect={false}
-          containerStyle={styles.field}
-        />
-        <PasswordInput
-          label="Senha"
-          placeholder="Sua senha"
-          value={password}
-          onChangeText={(text) => {
-            setPassword(text);
-            clearError('password');
-          }}
-          error={errors.password}
-          containerStyle={styles.passwordField}
+    <Screen>
+      <FormScrollView contentContainerStyle={styles.content}>
+        <Image
+          source={require('../../../../assets/images/vagare-logo.svg')}
+          style={styles.logo}
+          contentFit="contain"
+          accessibilityLabel="Vagare"
         />
 
-        <Pressable style={styles.forgotPassword} onPress={onForgotPassword} hitSlop={8}>
-          <Text style={styles.forgotPasswordText}>Esqueci minha senha</Text>
-        </Pressable>
-
-        <FormError message={error} />
-
-        <Button
-          title={isLoading ? 'Entrando...' : 'Entrar'}
-          onPress={handleSubmit}
-          disabled={isLoading}
-          style={styles.section}
+        <AuthHeader
+          align="center"
+          title="Bem-vindo de volta"
+          subtitle="Acesse o Vagare"
         />
 
-        <View style={styles.section}>
-          <Divider label="ou" />
-        </View>
+        <View style={styles.form}>
+          <Input
+            label="Email"
+            placeholder="seu@email.com"
+            value={email}
+            onChangeText={(text) => {
+              setEmail(text);
+              clearError('email');
+            }}
+            error={errors.email}
+            keyboardType="email-address"
+            autoCapitalize="none"
+            autoCorrect={false}
+            containerStyle={styles.field}
+          />
+          <PasswordInput
+            label="Senha"
+            placeholder="Sua senha"
+            value={password}
+            onChangeText={(text) => {
+              setPassword(text);
+              clearError('password');
+            }}
+            error={errors.password}
+            containerStyle={styles.passwordField}
+          />
 
-        <Button
-          title={isGoogleLoading ? 'Entrando...' : 'Entrar com Google'}
-          variant="soft"
-          icon={
-            isGoogleLoading ? (
-              <ActivityIndicator color={colors.accent} />
-            ) : (
-              <Ionicons name="logo-google" size={18} color={colors.accent} />
-            )
-          }
-          onPress={handleGoogleSignIn}
-          disabled={isGoogleLoading || !isGoogleReady}
-          style={styles.section}
-        />
-
-        <View style={styles.footer}>
-          <Text style={styles.footerText}>Ainda não tem conta? </Text>
-          <Pressable onPress={onCreateAccount} hitSlop={8}>
-            <Text style={styles.footerLink}>Criar conta</Text>
+          <Pressable style={styles.forgotPassword} onPress={onForgotPassword} hitSlop={8}>
+            <Text style={styles.forgotPasswordText}>Esqueci minha senha</Text>
           </Pressable>
+
+          <FormError message={error} />
+
+          <Button
+            title={isLoading ? 'Entrando...' : 'Entrar'}
+            onPress={handleSubmit}
+            disabled={isLoading}
+            style={styles.section}
+          />
+
+          <View style={styles.section}>
+            <Divider label="ou" />
+          </View>
+
+          <Button
+            title={isGoogleLoading ? 'Entrando...' : 'Entrar com Google'}
+            variant="soft"
+            icon={
+              isGoogleLoading ? (
+                <ActivityIndicator color={colors.accent} />
+              ) : (
+                <Ionicons name="logo-google" size={18} color={colors.accent} />
+              )
+            }
+            onPress={handleGoogleSignIn}
+            disabled={isGoogleLoading || !isGoogleReady}
+            style={styles.section}
+          />
+
+          <View style={styles.footer}>
+            <Text style={styles.footerText}>Ainda não tem conta? </Text>
+            <Pressable onPress={onCreateAccount} hitSlop={8}>
+              <Text style={styles.footerLink}>Criar conta</Text>
+            </Pressable>
+          </View>
         </View>
-      </View>
+      </FormScrollView>
     </Screen>
   );
 }
 
 const styles = StyleSheet.create({
-  root: {
-    flex: 1,
+  content: {
+    flexGrow: 1,
     justifyContent: 'center',
-    backgroundColor: colors.background,
     paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.lg,
+  },
+  logo: {
+    width: 200,
+    aspectRatio: 656 / 128,
+    alignSelf: 'center',
+    marginBottom: spacing.lg,
   },
   form: {
     alignSelf: 'stretch',

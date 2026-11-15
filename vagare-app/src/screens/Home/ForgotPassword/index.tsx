@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
-import { BackButton, Button, Input, Screen } from '@/components';
+import { BackButton, Button, FormScrollView, Input, Screen } from '@/components';
 import { useFieldErrors } from '@/hooks/useFieldErrors';
 import { forgotPassword } from '@/services/auth';
 import { ApiError } from '@/services/api';
@@ -42,53 +42,55 @@ export function ForgotPassword({ onBack }: ForgotPasswordProps) {
   }
 
   return (
-    <Screen style={styles.root}>
-      <AuthHeader
-        align="center"
-        icon={<Ionicons name="compass-outline" size={30} color={colors.surface} />}
-        title="Recuperar senha"
-        subtitle="Informe seu email para enviarmos um link de redefinição."
-      />
-
-      <View style={styles.form}>
-        <Input
-          label="Email"
-          placeholder="seu@email.com"
-          value={email}
-          onChangeText={(text) => {
-            setEmail(text);
-            clearError('email');
-          }}
-          error={errors.email}
-          keyboardType="email-address"
-          autoCapitalize="none"
-          autoCorrect={false}
-          containerStyle={styles.field}
+    <Screen>
+      <FormScrollView contentContainerStyle={styles.content}>
+        <AuthHeader
+          align="center"
+          icon={<Ionicons name="compass-outline" size={30} color={colors.surface} />}
+          title="Recuperar senha"
+          subtitle="Informe seu email para enviarmos um link de redefinição."
         />
 
-        {error ? <Text style={styles.errorText}>{error}</Text> : null}
-        {success ? <Text style={styles.successText}>{success}</Text> : null}
+        <View style={styles.form}>
+          <Input
+            label="Email"
+            placeholder="seu@email.com"
+            value={email}
+            onChangeText={(text) => {
+              setEmail(text);
+              clearError('email');
+            }}
+            error={errors.email}
+            keyboardType="email-address"
+            autoCapitalize="none"
+            autoCorrect={false}
+            containerStyle={styles.field}
+          />
 
-        <Button
-          title={isLoading ? 'Enviando...' : 'Enviar link de redefinição'}
-          onPress={handleSubmit}
-          disabled={isLoading}
-          icon={isLoading ? <ActivityIndicator color={colors.surface} /> : undefined}
-          style={styles.field}
-        />
+          {error ? <Text style={styles.errorText}>{error}</Text> : null}
+          {success ? <Text style={styles.successText}>{success}</Text> : null}
 
-        <BackButton label="Voltar para o login" onPress={onBack} tone="muted" align="center" />
-      </View>
+          <Button
+            title={isLoading ? 'Enviando...' : 'Enviar link de redefinição'}
+            onPress={handleSubmit}
+            disabled={isLoading}
+            icon={isLoading ? <ActivityIndicator color={colors.surface} /> : undefined}
+            style={styles.field}
+          />
+
+          <BackButton label="Voltar para o login" onPress={onBack} tone="muted" align="center" />
+        </View>
+      </FormScrollView>
     </Screen>
   );
 }
 
 const styles = StyleSheet.create({
-  root: {
-    flex: 1,
+  content: {
+    flexGrow: 1,
     justifyContent: 'center',
-    backgroundColor: colors.background,
     paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.lg,
   },
   form: {
     alignSelf: 'stretch',

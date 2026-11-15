@@ -1,8 +1,8 @@
 import { useState } from 'react';
 import { Ionicons } from '@expo/vector-icons';
-import { ActivityIndicator, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
 
-import { Button, EmptyState, FormError } from '@/components';
+import { Button, EmptyState, FormError, FormScrollView } from '@/components';
 import { useActivitiesQuery } from '@/hooks/useActivitiesQuery';
 import { ApiError } from '@/services/api';
 import { Trip } from '@/services/trips';
@@ -40,10 +40,9 @@ export function ItineraryTab({ trip }: ItineraryTabProps) {
           <Button title="Tentar novamente" variant="soft" onPress={() => refetch()} />
         </View>
       ) : (
-        <ScrollView
+        <FormScrollView
           style={styles.scroll}
           contentContainerStyle={styles.scrollContent}
-          showsVerticalScrollIndicator={false}
         >
           {dayGroups.length === 0 ? (
             showForm ? null : (
@@ -77,7 +76,7 @@ export function ItineraryTab({ trip }: ItineraryTabProps) {
               style={styles.addButton}
             />
           )}
-        </ScrollView>
+        </FormScrollView>
       )}
     </View>
   );

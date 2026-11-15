@@ -2,7 +2,14 @@ import { useState } from 'react';
 import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
-import { Button, PasswordInput, PasswordRequirements, Screen } from '@/components';
+import {
+  Button,
+  FormScrollView,
+  PASSWORD_FORM_KEYBOARD_OFFSET,
+  PasswordInput,
+  PasswordRequirements,
+  Screen,
+} from '@/components';
 import { useFieldErrors } from '@/hooks/useFieldErrors';
 import { ApiError } from '@/services/api';
 import { resetPassword } from '@/services/auth';
@@ -63,48 +70,53 @@ export function ResetPassword({ token, onDone }: ResetPasswordProps) {
   }
 
   return (
-    <Screen style={styles.root}>
-      <AuthHeader
-        align="center"
-        icon={<Ionicons name="lock-closed-outline" size={30} color={colors.surface} />}
-        title="Criar nova senha"
-        subtitle="Escolha uma nova senha para sua conta."
-      />
-
-      <View style={styles.form}>
-        <PasswordInput
-          label="Nova senha"
-          placeholder="Crie uma senha forte"
-          value={password}
-          onChangeText={(text) => {
-            setPassword(text);
-            clearError('password');
-          }}
-          error={errors.password}
-          containerStyle={styles.field}
-        />
-        <PasswordRequirements password={password} />
-        <PasswordInput
-          label="Confirmar nova senha"
-          placeholder="Repita a senha"
-          value={confirmPassword}
-          onChangeText={(text) => {
-            setConfirmPassword(text);
-            clearError('confirmPassword');
-          }}
-          error={errors.confirmPassword}
-          containerStyle={styles.field}
+    <Screen>
+      <FormScrollView
+        contentContainerStyle={styles.content}
+        bottomOffset={PASSWORD_FORM_KEYBOARD_OFFSET}
+      >
+        <AuthHeader
+          align="center"
+          icon={<Ionicons name="lock-closed-outline" size={30} color={colors.surface} />}
+          title="Criar nova senha"
+          subtitle="Escolha uma nova senha para sua conta."
         />
 
-        {error ? <Text style={styles.errorText}>{error}</Text> : null}
+        <View style={styles.form}>
+          <PasswordInput
+            label="Nova senha"
+            placeholder="Crie uma senha forte"
+            value={password}
+            onChangeText={(text) => {
+              setPassword(text);
+              clearError('password');
+            }}
+            error={errors.password}
+            containerStyle={styles.field}
+          />
+          <PasswordRequirements password={password} />
+          <PasswordInput
+            label="Confirmar nova senha"
+            placeholder="Repita a senha"
+            value={confirmPassword}
+            onChangeText={(text) => {
+              setConfirmPassword(text);
+              clearError('confirmPassword');
+            }}
+            error={errors.confirmPassword}
+            containerStyle={styles.field}
+          />
 
-        <Button
-          title={isLoading ? 'Salvando...' : 'Salvar nova senha'}
-          onPress={handleSubmit}
-          disabled={isLoading}
-          icon={isLoading ? <ActivityIndicator color={colors.surface} /> : undefined}
-        />
-      </View>
+          {error ? <Text style={styles.errorText}>{error}</Text> : null}
+
+          <Button
+            title={isLoading ? 'Salvando...' : 'Salvar nova senha'}
+            onPress={handleSubmit}
+            disabled={isLoading}
+            icon={isLoading ? <ActivityIndicator color={colors.surface} /> : undefined}
+          />
+        </View>
+      </FormScrollView>
     </Screen>
   );
 }
@@ -115,6 +127,12 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     backgroundColor: colors.background,
     paddingHorizontal: spacing.lg,
+  },
+  content: {
+    flexGrow: 1,
+    justifyContent: 'center',
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.lg,
   },
   form: {
     alignSelf: 'stretch',

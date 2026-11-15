@@ -9,7 +9,7 @@ import {
   useWindowDimensions,
 } from "react-native";
 
-import { Button, ConfirmModal, Screen } from "@/components";
+import { Button, ConfirmModal, FormScrollView, Screen } from "@/components";
 import { useAuth } from "@/contexts/AuthContext";
 import { useProfileQuery } from "@/hooks/useProfileQuery";
 import { useSafeLogout } from "@/hooks/useSafeLogout";
@@ -61,122 +61,123 @@ export function Profile() {
   const isCompact = width < COMPACT_WIDTH_BREAKPOINT;
 
   return (
-    <Screen edges={['top']} style={styles.root}>
-      <Text style={styles.title}>Meu Perfil</Text>
+    <Screen edges={['top']}>
+      <FormScrollView contentContainerStyle={styles.content}>
+        <Text style={styles.title}>Meu Perfil</Text>
 
-      {isEditing ? (
-        <EditProfileForm
-          name={name}
-          email={email}
-          onCancel={() => setIsEditing(false)}
-          onSaved={() => setIsEditing(false)}
-        />
-      ) : (
-        <View style={styles.profileRow}>
-          <View style={styles.avatar}>
-            <Ionicons name="person-outline" size={28} color={colors.accent} />
-          </View>
-          <View style={styles.profileInfo}>
-            <Text style={styles.name}>{name}</Text>
-            <View style={styles.emailRow}>
-              <Ionicons
-                name="mail-outline"
-                size={14}
-                color={colors.text.secondary}
-              />
-              <Text style={styles.email}>{email}</Text>
-            </View>
-          </View>
-          <Pressable
-            onPress={() => setIsEditing(true)}
-            hitSlop={12}
-            accessibilityRole="button"
-            accessibilityLabel="Editar dados do perfil"
-            style={styles.editButton}
-          >
-            <Ionicons
-              name="create-outline"
-              size={20}
-              color={colors.text.secondary}
-            />
-          </Pressable>
-        </View>
-      )}
-
-      <View style={styles.card}>
-        <Text style={styles.cardTitle}>Estatísticas</Text>
-
-        {isPending ? (
-          <ActivityIndicator color={colors.accent} />
-        ) : isError ? (
-          <Text style={styles.errorText}>
-            {error instanceof ApiError
-              ? error.message
-              : "Não foi possível carregar seu perfil."}
-          </Text>
+        {isEditing ? (
+          <EditProfileForm
+            name={name}
+            email={email}
+            onCancel={() => setIsEditing(false)}
+            onSaved={() => setIsEditing(false)}
+          />
         ) : (
-          <View style={styles.statsRow}>
-            <View style={styles.statBox}>
-              <Text style={styles.statValue}>
-                {profileQuery.data?.stats.totalTrips ?? 0}
-              </Text>
-              <Text style={styles.statLabel}>
-                {profileQuery.data?.stats.totalTrips === 1
-                  ? "Viagem planejada"
-                  : "Viagens planejadas"}
-              </Text>
+          <View style={styles.profileRow}>
+            <View style={styles.avatar}>
+              <Ionicons name="person-outline" size={28} color={colors.accent} />
             </View>
-            <View style={styles.statBox}>
-              <Text style={styles.statValue}>{countryCount ?? 0}</Text>
-              <View style={styles.statLabelRow}>
+            <View style={styles.profileInfo}>
+              <Text style={styles.name}>{name}</Text>
+              <View style={styles.emailRow}>
                 <Ionicons
-                  name="location-outline"
-                  size={12}
+                  name="mail-outline"
+                  size={14}
                   color={colors.text.secondary}
                 />
-                <Text style={styles.statLabel}>
-                  {countryCount === 1 ? "País" : "Países"}
-                </Text>
+                <Text style={styles.email}>{email}</Text>
               </View>
             </View>
+            <Pressable
+              onPress={() => setIsEditing(true)}
+              hitSlop={12}
+              accessibilityRole="button"
+              accessibilityLabel="Editar dados do perfil"
+              style={styles.editButton}
+            >
+              <Ionicons
+                name="create-outline"
+                size={20}
+                color={colors.text.secondary}
+              />
+            </Pressable>
           </View>
         )}
-      </View>
 
-      <Button
-        title={
-          isChecking
-            ? "Sincronizando alterações..."
-            : isLoggingOut
-              ? "Saindo..."
-              : "Sair da conta"
-        }
-        icon={
-          <Ionicons name="log-out-outline" size={18} color={colors.surface} />
-        }
-        onPress={requestLogout}
-        disabled={isChecking || isLoggingOut}
-      />
+        <View style={styles.card}>
+          <Text style={styles.cardTitle}>Estatísticas</Text>
 
-      <ConfirmModal
-        visible={unsyncedCount > 0}
-        title="Sair sem sincronizar?"
-        message={buildUnsyncedLogoutMessage(unsyncedCount)}
-        confirmLabel="Sair mesmo assim"
-        destructive
-        onConfirm={confirmLogout}
-        onCancel={cancelLogout}
-      />
+          {isPending ? (
+            <ActivityIndicator color={colors.accent} />
+          ) : isError ? (
+            <Text style={styles.errorText}>
+              {error instanceof ApiError
+                ? error.message
+                : "Não foi possível carregar seu perfil."}
+            </Text>
+          ) : (
+            <View style={styles.statsRow}>
+              <View style={styles.statBox}>
+                <Text style={styles.statValue}>
+                  {profileQuery.data?.stats.totalTrips ?? 0}
+                </Text>
+                <Text style={styles.statLabel}>
+                  {profileQuery.data?.stats.totalTrips === 1
+                    ? "Viagem planejada"
+                    : "Viagens planejadas"}
+                </Text>
+              </View>
+              <View style={styles.statBox}>
+                <Text style={styles.statValue}>{countryCount ?? 0}</Text>
+                <View style={styles.statLabelRow}>
+                  <Ionicons
+                    name="location-outline"
+                    size={12}
+                    color={colors.text.secondary}
+                  />
+                  <Text style={styles.statLabel}>
+                    {countryCount === 1 ? "País" : "Países"}
+                  </Text>
+                </View>
+              </View>
+            </View>
+          )}
+        </View>
+
+        <Button
+          title={
+            isChecking
+              ? "Sincronizando alterações..."
+              : isLoggingOut
+                ? "Saindo..."
+                : "Sair da conta"
+          }
+          icon={
+            <Ionicons name="log-out-outline" size={18} color={colors.surface} />
+          }
+          onPress={requestLogout}
+          disabled={isChecking || isLoggingOut}
+        />
+
+        <ConfirmModal
+          visible={unsyncedCount > 0}
+          title="Sair sem sincronizar?"
+          message={buildUnsyncedLogoutMessage(unsyncedCount)}
+          confirmLabel="Sair mesmo assim"
+          destructive
+          onConfirm={confirmLogout}
+          onCancel={cancelLogout}
+        />
+      </FormScrollView>
     </Screen>
   );
 }
 
 const styles = StyleSheet.create({
-  root: {
-    flex: 1,
+  content: {
     paddingTop: spacing.md,
-    backgroundColor: colors.background,
     paddingHorizontal: spacing.lg,
+    paddingBottom: spacing.xl,
   },
   title: {
     fontSize: 28,

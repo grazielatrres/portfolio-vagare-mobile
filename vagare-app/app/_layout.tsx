@@ -3,6 +3,7 @@ import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect } from 'react';
+import { KeyboardProvider } from 'react-native-keyboard-controller';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import { AuthProvider, useAuth } from '@/contexts/AuthContext';
@@ -58,16 +59,18 @@ export default function RootLayout() {
 
   return (
     <SafeAreaProvider>
-      <QueryClientProvider client={queryClient}>
-        <AuthProvider>
-          <ToastProvider>
-            <SplashScreenController fontsLoaded={fontsLoaded} />
-            <SyncQueueController />
-            <StatusBar style="dark" />
-            {fontsLoaded && <RootNavigator />}
-          </ToastProvider>
-        </AuthProvider>
-      </QueryClientProvider>
+      <KeyboardProvider>
+        <QueryClientProvider client={queryClient}>
+          <AuthProvider>
+            <ToastProvider>
+              <SplashScreenController fontsLoaded={fontsLoaded} />
+              <SyncQueueController />
+              <StatusBar style="dark" />
+              {fontsLoaded && <RootNavigator />}
+            </ToastProvider>
+          </AuthProvider>
+        </QueryClientProvider>
+      </KeyboardProvider>
     </SafeAreaProvider>
   );
 }

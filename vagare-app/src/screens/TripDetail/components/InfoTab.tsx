@@ -1,8 +1,8 @@
 import { useState } from 'react';
 import { Ionicons } from '@expo/vector-icons';
-import { ActivityIndicator, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
 
-import { Button, FormError } from '@/components';
+import { Button, FormError, FormScrollView } from '@/components';
 import { useInfosQuery } from '@/hooks/useInfosQuery';
 import { ApiError } from '@/services/api';
 import { Info } from '@/services/infos';
@@ -57,10 +57,9 @@ export function InfoTab({ trip }: InfoTabProps) {
           <Button title="Tentar novamente" variant="soft" onPress={() => refetch()} />
         </View>
       ) : (
-        <ScrollView
+        <FormScrollView
           style={styles.scroll}
           contentContainerStyle={styles.scrollContent}
-          showsVerticalScrollIndicator={false}
         >
           <Text style={styles.pageTitle}>Informações complementares</Text>
 
@@ -147,7 +146,7 @@ export function InfoTab({ trip }: InfoTabProps) {
               />
             )}
           </View>
-        </ScrollView>
+        </FormScrollView>
       )}
     </View>
   );

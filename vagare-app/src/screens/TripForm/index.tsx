@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
 
 import {
   BackButton,
@@ -8,6 +8,7 @@ import {
   DateRangeField,
   DestinationField,
   FormError,
+  FormScrollView,
   Input,
   Screen,
 } from '@/components';
@@ -153,93 +154,88 @@ function TripForm({ trip, isPending, onSubmit, onBack, onSaved }: TripFormProps)
 
   return (
     <Screen>
-      <KeyboardAvoidingView
-        style={styles.root}
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-      >
-        <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
-          <BackButton onPress={onBack} style={styles.backButton} />
+      <FormScrollView contentContainerStyle={styles.content}>
+        <BackButton onPress={onBack} style={styles.backButton} />
 
-          <Text style={styles.title}>{isEditMode ? 'Editar viagem' : 'Nova viagem'}</Text>
-          <Text style={styles.subtitle}>
-            {isEditMode ? 'Atualize os dados da sua viagem' : 'Planeje sua próxima aventura'}
-          </Text>
+        <Text style={styles.title}>{isEditMode ? 'Editar viagem' : 'Nova viagem'}</Text>
+        <Text style={styles.subtitle}>
+          {isEditMode ? 'Atualize os dados da sua viagem' : 'Planeje sua próxima aventura'}
+        </Text>
 
-          <View style={styles.form}>
-            <Input
-              label="Nome da viagem"
-              required
-              placeholder="Ex: Férias de verão"
-              value={name}
-              onChangeText={(text) => {
-                setName(text);
-                clearError('name');
-              }}
-              error={errors.name}
-              containerStyle={styles.field}
-            />
-            <DestinationField
-              label="Destino"
-              required
-              value={destination}
-              onChangeText={handleDestinationChange}
-              onSelectPlace={handleSelectPlace}
-              error={errors.destination}
-              containerStyle={styles.field}
-            />
+        <View style={styles.form}>
+          <Input
+            label="Nome da viagem"
+            required
+            placeholder="Ex: Férias de verão"
+            value={name}
+            onChangeText={(text) => {
+              setName(text);
+              clearError('name');
+            }}
+            error={errors.name}
+            containerStyle={styles.field}
+          />
+          <DestinationField
+            label="Destino"
+            required
+            value={destination}
+            onChangeText={handleDestinationChange}
+            onSelectPlace={handleSelectPlace}
+            error={errors.destination}
+            containerStyle={styles.field}
+          />
 
-            <DateRangeField
-              label="Período da viagem"
-              required
-              startDate={startDate}
-              endDate={endDate}
-              onChange={handlePeriodChange}
-              minimumDate={minimumDate}
-              error={errors.period}
-              containerStyle={styles.field}
-            />
+          <DateRangeField
+            label="Período da viagem"
+            required
+            startDate={startDate}
+            endDate={endDate}
+            onChange={handlePeriodChange}
+            minimumDate={minimumDate}
+            error={errors.period}
+            containerStyle={styles.field}
+          />
 
-            <CurrencyPicker value={currency} onChange={setCurrency} containerStyle={styles.field} />
-            <Input
-              label="Orçamento estimado"
-              placeholder={formatAmountFromDigits('', currency)}
-              value={formattedBudget}
-              onChangeText={(text) => setBudgetDigits(digitsFromCurrencyInput(text, budgetDigits, currency))}
-              keyboardType="number-pad"
-              selection={{ start: formattedBudget.length, end: formattedBudget.length }}
-              containerStyle={styles.field}
-            />
-            <Input
-              label="Número de pessoas"
-              placeholder="Ex: 2"
-              value={numberOfPeople}
-              onChangeText={(text) => {
-                setNumberOfPeople(text.replace(/\D/g, ''));
-                clearError('numberOfPeople');
-              }}
-              error={errors.numberOfPeople}
-              keyboardType="number-pad"
-              containerStyle={styles.field}
-            />
+          <CurrencyPicker value={currency} onChange={setCurrency} containerStyle={styles.field} />
+          <Input
+            label="Orçamento estimado"
+            placeholder={formatAmountFromDigits('', currency)}
+            value={formattedBudget}
+            onChangeText={(text) => setBudgetDigits(digitsFromCurrencyInput(text, budgetDigits, currency))}
+            keyboardType="number-pad"
+            selection={{ start: formattedBudget.length, end: formattedBudget.length }}
+            containerStyle={styles.field}
+          />
+          <Input
+            label="Número de pessoas"
+            placeholder="Ex: 2"
+            value={numberOfPeople}
+            onChangeText={(text) => {
+              setNumberOfPeople(text.replace(/\D/g, ''));
+              clearError('numberOfPeople');
+            }}
+            error={errors.numberOfPeople}
+            keyboardType="number-pad"
+            containerStyle={styles.field}
+          />
 
-            <FormError message={error} />
+          <FormError message={error} />
 
-            <Button
-              title={
-                isEditMode
-                  ? isPending
-                    ? 'Salvando...'
-                    : 'Salvar alterações'
-                  : isPending
-                    ? 'Criando viagem...'
-                    : 'Criar viagem'
-              }
-              onPress={handleSubmit}
-              disabled={isPending}
-            />
-          </View>
-        </ScrollView>
-      </KeyboardAvoidingView>
+          <Button
+            title={
+              isEditMode
+                ? isPending
+                  ? 'Salvando...'
+                  : 'Salvar alterações'
+                : isPending
+                  ? 'Criando viagem...'
+                  : 'Criar viagem'
+            }
+            onPress={handleSubmit}
+            disabled={isPending}
+          />
+        </View>
+      </FormScrollView>
     </Screen>
   );
 }
@@ -278,10 +274,6 @@ export function EditTrip({ trip, onBack, onSaved }: EditTripProps) {
 }
 
 const styles = StyleSheet.create({
-  root: {
-    flex: 1,
-    backgroundColor: colors.background,
-  },
   content: {
     paddingTop: spacing.md,
     paddingHorizontal: spacing.lg,

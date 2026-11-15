@@ -10,6 +10,14 @@ export interface PasswordRequirementsProps {
 }
 
 const SUCCESS_COLOR = '#2E7D32';
+const ROW_HEIGHT = 18;
+
+/**
+ * `bottomOffset` para o FormScrollView de telas de criação de senha: ao focar o
+ * campo de senha, a lista de requisitos logo abaixo também fica acima do teclado.
+ */
+export const PASSWORD_FORM_KEYBOARD_OFFSET =
+  PASSWORD_REQUIREMENTS.length * (ROW_HEIGHT + spacing.xs) + spacing.lg;
 
 export function PasswordRequirements({ password, style }: PasswordRequirementsProps) {
   return (

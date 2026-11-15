@@ -1,8 +1,8 @@
 import { useState } from 'react';
 import { Ionicons } from '@expo/vector-icons';
-import { ActivityIndicator, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
 
-import { Button, FormError } from '@/components';
+import { Button, FormError, FormScrollView } from '@/components';
 import { useBudgetQuery } from '@/hooks/useBudgetQuery';
 import { ApiError } from '@/services/api';
 import { BudgetSummary } from '@/services/budget';
@@ -39,10 +39,9 @@ export function BudgetTab({ trip }: BudgetTabProps) {
           <Button title="Tentar novamente" variant="soft" onPress={() => refetch()} />
         </View>
       ) : (
-        <ScrollView
+        <FormScrollView
           style={styles.scroll}
           contentContainerStyle={styles.scrollContent}
-          showsVerticalScrollIndicator={false}
         >
           <BudgetSummaryCard summary={data} currency={currency} />
 
@@ -64,7 +63,7 @@ export function BudgetTab({ trip }: BudgetTabProps) {
               style={styles.addButton}
             />
           )}
-        </ScrollView>
+        </FormScrollView>
       )}
     </View>
   );

@@ -1,8 +1,16 @@
-import { Image, ImageSourcePropType, StyleProp, StyleSheet, Text, View, ViewStyle } from 'react-native';
+import {
+  Image,
+  ImageSourcePropType,
+  StyleProp,
+  StyleSheet,
+  Text,
+  View,
+  ViewStyle,
+} from "react-native";
 
-import { colors, fonts, spacing } from '@/theme';
+import { colors, fonts, spacing } from "@/theme";
 
-const DEFAULT_ICON = require('../../assets/images/empty-state.png');
+const DEFAULT_ICON = require("../../assets/images/empty-state.png");
 
 export interface EmptyStateProps {
   message?: string;
@@ -12,14 +20,22 @@ export interface EmptyStateProps {
 }
 
 export function EmptyState({
-  message = 'Não há dados',
+  message = "Não há dados",
   icon = DEFAULT_ICON,
   iconSize = 160,
   style,
 }: EmptyStateProps) {
+  const asset = Image.resolveAssetSource(icon);
+  const aspectRatio =
+    asset?.width && asset?.height ? asset.width / asset.height : 1;
+
   return (
     <View style={[styles.container, style]}>
-      <Image source={icon} style={{ width: iconSize, height: iconSize }} resizeMode="contain" />
+      <Image
+        source={icon}
+        style={{ width: iconSize, aspectRatio }}
+        resizeMode="contain"
+      />
       <Text style={styles.text}>{message}</Text>
     </View>
   );
@@ -27,8 +43,8 @@ export function EmptyState({
 
 const styles = StyleSheet.create({
   container: {
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
     paddingVertical: spacing.lg,
     gap: spacing.sm,
   },
@@ -36,6 +52,6 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontFamily: fonts.serif.regular,
     color: colors.text.secondary,
-    textAlign: 'center',
+    textAlign: "center",
   },
 });

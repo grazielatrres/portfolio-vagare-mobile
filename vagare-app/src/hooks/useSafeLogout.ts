@@ -5,8 +5,6 @@ import { pingServer } from '@/services/api';
 import { logError } from '@/services/logger';
 import { countPendingMutations, drainPendingMutations } from '@/services/syncQueue';
 
-// Logout que não descarta em silêncio alterações feitas offline: tenta
-// sincronizar antes de sair e, se ainda sobrar algo, pede confirmação.
 export function useSafeLogout() {
   const { token, logout } = useAuth();
   const [isChecking, setIsChecking] = useState(false);

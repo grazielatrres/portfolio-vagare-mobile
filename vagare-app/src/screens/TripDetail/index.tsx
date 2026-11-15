@@ -26,11 +26,7 @@ export function TripDetail({ tripId, onBack }: TripDetailProps) {
   const insets = useSafeAreaInsets();
   const { data, isPending, isError, error, refetch } = useTripQuery(tripId);
   const trip = data?.trip;
-  // Aviso único para a tela toda: reflete qualquer requisição da viagem (dados
-  // da viagem e de cada aba), em vez de um aviso por aba empilhado com este.
   const isOnline = useIsOnline();
-  // Pendências da viagem inteira (roteiro, gastos, infos e a própria viagem),
-  // num aviso só no topo em vez de repetido em algumas abas.
   const { data: pendingMutations } = usePendingMutationsQuery(trip?.id ?? '');
   const [activeTab, setActiveTab] = useState<TripTabKey>('roteiro');
 

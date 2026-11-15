@@ -29,8 +29,7 @@ export function Trips() {
   const { data: activityCounts, refetch: refetchActivityCounts } = useActivityCountsQuery();
   const [refreshing, setRefreshing] = useState(false);
 
-  // A lista continua montada enquanto a viagem está aberta por cima; ao voltar,
-  // recarrega a contagem para refletir atividades criadas ou excluídas lá.
+  // A lista continua montada sob a tela da viagem; recarrega a contagem ao voltar.
   useFocusEffect(
     useCallback(() => {
       refetchActivityCounts();

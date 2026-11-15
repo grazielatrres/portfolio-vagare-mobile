@@ -52,7 +52,6 @@ describe('useCreateTripMutation', () => {
 
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
 
-    // O id local gerado antes da tentativa vai como Idempotency-Key.
     expect(createTripMock).toHaveBeenCalledWith('test-token', payload, 'local-trip-1');
     expect(invalidateSpy).toHaveBeenCalledWith({ queryKey: tripsQueryKey });
 
@@ -83,12 +82,10 @@ describe('useCreateTripMutation', () => {
       budget: '3000',
       currency: 'BRL',
     });
-    // A mesma chave enviada na tentativa vira o id local (e a chave do reenvio).
     expect(createTripMock).toHaveBeenCalledWith('test-token', payload, 'local-trip-1');
     expect(upsertTripToCache).toHaveBeenCalledWith(
       expect.objectContaining({ id: 'local-trip-1' }),
     );
-    // Mesmo aviso usado pelas outras entidades (textos centralizados).
     expect(showToastMock).toHaveBeenCalledWith(OFFLINE_SAVED_TOAST);
     expect(enqueueMutation).toHaveBeenCalledWith({
       tripId: 'local-trip-1',

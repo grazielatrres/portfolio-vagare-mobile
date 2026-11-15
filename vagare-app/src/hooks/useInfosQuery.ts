@@ -2,6 +2,7 @@ import { useQuery } from '@tanstack/react-query';
 
 import { useAuth } from '@/contexts/AuthContext';
 import { ApiError, isNetworkFailure } from '@/services/api';
+import { hasPendingMutationsForTrip } from '@/services/syncQueue';
 import { listInfos } from '@/services/infos';
 import { getCachedInfos, saveInfosToCache } from '@/services/infosCache';
 
@@ -18,6 +19,10 @@ export function useInfosQuery(tripId: string) {
       try {
         const infos = await listInfos(token as string, tripId);
         await saveInfosToCache(tripId, infos);
+        // A resposta do servidor ainda não inclui as alterações da fila offline.
+        if (await hasPendingMutationsForTrip(tripId)) {
+          return { infos: await getCachedInfos(tripId), isOffline: false };
+        }
         return { infos, isOffline: false };
       } catch (err) {
         if (err instanceof ApiError && err.status === 0) {

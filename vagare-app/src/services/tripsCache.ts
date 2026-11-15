@@ -33,7 +33,6 @@ export async function getCachedTrips(): Promise<Trip[]> {
   }
 }
 
-// Viagens criadas offline que ainda aguardam sincronização.
 export async function getLocalOnlyTrips(): Promise<Trip[]> {
   try {
     const db = await getDatabase();
@@ -51,7 +50,6 @@ export async function saveTripsToCache(trips: Trip[]): Promise<void> {
     const db = await getDatabase();
 
     await runInTransaction(db, async () => {
-      // Preserva viagens criadas offline que ainda não foram sincronizadas.
       await db.runAsync(`DELETE FROM trips WHERE id NOT LIKE '${LOCAL_ID_PREFIX}%'`);
 
       for (const trip of trips) {
@@ -72,7 +70,6 @@ export async function upsertTripToCache(trip: Trip): Promise<void> {
   }
 }
 
-// Remove a viagem e tudo o que estava em cache dentro dela.
 export async function removeTripFromCache(tripId: string): Promise<void> {
   try {
     const db = await getDatabase();
@@ -87,8 +84,6 @@ export async function removeTripFromCache(tripId: string): Promise<void> {
   }
 }
 
-// Depois que uma viagem criada offline é sincronizada, troca o id local pelo
-// id real do servidor na viagem, nos itens em cache e na fila pendente.
 export async function replaceLocalTrip(localId: string, created: Trip): Promise<void> {
   try {
     const db = await getDatabase();

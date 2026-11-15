@@ -56,7 +56,6 @@ describe('useTripsQuery', () => {
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
 
     expect(result.current.data?.trips).toEqual([localTrip, serverTrip]);
-    // Prefetch só faz sentido para viagens que existem no servidor.
     expect(prefetchTripsForOffline).toHaveBeenCalledWith('test-token', [serverTrip]);
   });
 

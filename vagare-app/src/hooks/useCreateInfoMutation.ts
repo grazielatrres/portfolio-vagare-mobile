@@ -17,8 +17,7 @@ export function useCreateInfoMutation(tripId: string) {
 
   return useMutation({
     mutationFn: async (payload: CreateInfoPayload) => {
-      // Gerado antes da tentativa: serve de Idempotency-Key e, se a resposta não
-      // chegar, de id local. O reenvio pela fila usa a mesma chave e não duplica.
+      // Também é a Idempotency-Key: o reenvio pela fila não duplica o item.
       const localId = generateLocalId();
       try {
         return await createInfo(token as string, tripId, payload, localId);

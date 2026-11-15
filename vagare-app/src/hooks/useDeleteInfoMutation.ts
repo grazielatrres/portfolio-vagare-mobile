@@ -17,7 +17,6 @@ export function useDeleteInfoMutation(rawTripId: string) {
 
   return useMutation({
     mutationFn: async (rawId: string) => {
-      // Item ou viagem criado offline que já sincronizou: usa o id real.
       const id = resolveSyncedId(rawId);
       const tripId = resolveSyncedId(rawTripId);
       try {

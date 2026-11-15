@@ -34,7 +34,6 @@ describe('useCreateExpenseMutation', () => {
 
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
 
-    // O id local gerado antes da tentativa vai como Idempotency-Key.
     expect(createExpenseMock).toHaveBeenCalledWith(
       'test-token',
       'trip-1',

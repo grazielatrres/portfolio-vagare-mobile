@@ -19,8 +19,6 @@ export function useTripsQuery() {
     queryKey: tripsQueryKey,
     queryFn: async () => {
       try {
-        // Viagens excluídas offline somem da lista mesmo antes do DELETE
-        // chegar ao servidor (a fila drena em paralelo a esta busca).
         const [fetchedTrips, pendingDeletionIds] = await Promise.all([
           listTrips(token as string),
           getPendingTripDeletionIds(),
@@ -28,10 +26,8 @@ export function useTripsQuery() {
         const serverTrips = fetchedTrips.filter((trip) => !pendingDeletionIds.has(trip.id));
         await saveTripsToCache(serverTrips);
         prefetchTripsForOffline(token as string, serverTrips)
-          // O prefetch atualiza as atividades em cache, de onde vem a contagem dos cards.
           .then(() => queryClient.invalidateQueries({ queryKey: activityCountsQueryKey }))
           .catch((error) => logError('useTripsQuery.prefetch', error));
-        // Viagens criadas offline continuam visíveis até a fila sincronizá-las.
         const localTrips = await getLocalOnlyTrips();
         const trips = [...serverTrips, ...localTrips].sort((a, b) =>
           a.startDate.localeCompare(b.startDate),
@@ -39,8 +35,6 @@ export function useTripsQuery() {
         return { trips, isOffline: false };
       } catch (err) {
         if (err instanceof ApiError && err.status === 0) {
-          // Cache vazio offline não é erro: a lista fica vazia (com o aviso de
-          // offline) e o usuário ainda pode criar viagens, que vão para a fila.
           const cached = await getCachedTrips();
           return { trips: cached, isOffline: true };
         }

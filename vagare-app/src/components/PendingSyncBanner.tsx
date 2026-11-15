@@ -8,8 +8,6 @@ export interface PendingSyncBannerProps {
   style?: StyleProp<ViewStyle>;
 }
 
-// Mostra quantas alterações feitas offline ainda faltam enviar e, enquanto a
-// fila está drenando, troca para o estado "sincronizando" com loading.
 export function PendingSyncBanner({ count, style }: PendingSyncBannerProps) {
   const isSyncing = useIsSyncing();
 

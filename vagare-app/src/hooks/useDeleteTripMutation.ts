@@ -16,7 +16,6 @@ export function useDeleteTripMutation() {
   return useMutation({
     mutationFn: async (id: string) => {
       if (isLocalId(id)) {
-        // Criada offline e nunca enviada — basta descartar localmente.
         await discardLocalEntity('trip', id);
         return;
       }

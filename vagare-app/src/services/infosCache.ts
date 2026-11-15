@@ -2,6 +2,7 @@ import { getDatabase } from './database';
 import { Info } from './infos';
 import { LOCAL_ID_PREFIX } from './localId';
 import { logError } from './logger';
+import { NO_PENDING_MUTATION_SQL, PENDING_IDS_SQL } from './pendingGuard';
 import { runInTransaction } from './transactionQueue';
 
 type InfoRow = Omit<Info, 'details'> & { details: string | null };
@@ -42,15 +43,16 @@ export async function saveInfosToCache(tripId: string, infos: Info[]): Promise<v
 
     await runInTransaction(db, async () => {
       await db.runAsync(
-        `DELETE FROM infos WHERE tripId = ? AND id NOT LIKE '${LOCAL_ID_PREFIX}%'`,
+        `DELETE FROM infos WHERE tripId = ? AND id NOT LIKE '${LOCAL_ID_PREFIX}%'
+         AND id NOT IN (${PENDING_IDS_SQL})`,
         [tripId],
       );
 
       for (const info of infos) {
         await db.runAsync(
           `INSERT INTO infos (id, tripId, type, title, description, date, details)
-           VALUES (?, ?, ?, ?, ?, ?, ?)`,
-          infoToRowParams(info),
+           SELECT ?, ?, ?, ?, ?, ?, ? ${NO_PENDING_MUTATION_SQL}`,
+          [...infoToRowParams(info), info.id],
         );
       }
     });

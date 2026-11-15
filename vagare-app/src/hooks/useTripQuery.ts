@@ -16,8 +16,6 @@ export function useTripQuery(id: string) {
   return useQuery({
     queryKey: tripQueryKey(id),
     queryFn: async () => {
-      // Tela aberta com o id local de uma viagem que já sincronizou: segue o
-      // id real (as abas usam trip.id, então passam a usar o id do servidor).
       const resolvedId = resolveSyncedId(id);
 
       try {

@@ -38,7 +38,6 @@ export function TripCard({ trip, activityCount }: TripCardProps) {
     setConfirmVisible(false);
     deleteTrip(trip.id, {
       onError: (err) => {
-        // Toast em vez de texto no card: some sozinho e não fica preso na lista.
         showToast({
           title: 'Não foi possível excluir a viagem',
           message: err instanceof ApiError ? err.message : 'Tente novamente.',

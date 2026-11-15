@@ -35,7 +35,6 @@ describe('useCreateActivityMutation', () => {
 
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
 
-    // O id local gerado antes da tentativa vai como Idempotency-Key.
     expect(createActivityMock).toHaveBeenCalledWith(
       'test-token',
       'trip-1',

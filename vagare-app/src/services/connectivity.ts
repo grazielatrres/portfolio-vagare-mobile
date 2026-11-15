@@ -3,9 +3,7 @@ type Listener = () => void;
 const backOnlineListeners = new Set<Listener>();
 const statusListeners = new Set<Listener>();
 
-// Último estado de rede observado pelas requisições ao servidor. Começa como
-// online; a primeira falha de rede vira offline e o próximo round-trip
-// bem-sucedido volta para online. Alternativa ao NetInfo (não instalado).
+// Sem NetInfo: o estado vem do resultado das requisições ao servidor.
 let isOnline = true;
 
 function setOnline(next: boolean): void {
@@ -23,7 +21,6 @@ export function notifyBackOnline(): void {
   backOnlineListeners.forEach((listener) => listener());
 }
 
-// Emitido por api.ts quando uma requisição não chega ao servidor.
 export function notifyOffline(): void {
   setOnline(false);
 }

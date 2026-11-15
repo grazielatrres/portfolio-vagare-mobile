@@ -79,18 +79,14 @@ export async function getPendingMutations(tripId: string): Promise<PendingMutati
   }
 }
 
-// Viagens e itens locais já sincronizados nesta sessão (id local → id do
-// servidor). Telas ainda abertas com o id local, e alterações enfileiradas
-// enquanto a criação estava sendo enviada, usam isto para chegar ao item real.
+// id local → id do servidor, para telas e alterações que ainda usam o id local.
 const syncedIds = new Map<string, string>();
 
 export function resolveSyncedId(id: string): string {
   return isLocalId(id) ? (syncedIds.get(id) ?? id) : id;
 }
 
-// Exclusão offline de uma viagem que já existe no servidor: some do cache na
-// hora e o DELETE vai para a fila. Alterações pendentes dentro dela perdem o
-// sentido (o servidor apagaria tudo junto), então são descartadas.
+// Pendências dentro da viagem são descartadas: o servidor apaga tudo junto.
 export async function queueTripDeletion(tripId: string): Promise<void> {
   try {
     const db = await getDatabase();
@@ -109,7 +105,6 @@ export async function queueTripDeletion(tripId: string): Promise<void> {
   });
 }
 
-// Ids de viagens excluídas offline cujo DELETE ainda não chegou ao servidor.
 export async function getPendingTripDeletionIds(): Promise<Set<string>> {
   try {
     const db = await getDatabase();
@@ -136,6 +131,20 @@ export async function countPendingMutations(): Promise<number> {
   }
 }
 
+export async function hasPendingMutationsForTrip(tripId: string): Promise<boolean> {
+  try {
+    const db = await getDatabase();
+    const row = await db.getFirstAsync<{ id: string }>(
+      'SELECT id FROM pending_mutations WHERE tripId = ? LIMIT 1',
+      [tripId],
+    );
+    return row != null;
+  } catch (error) {
+    logError('syncQueue.hasPendingMutationsForTrip', error);
+    return false;
+  }
+}
+
 export async function hasPendingMutations(): Promise<boolean> {
   try {
     const db = await getDatabase();
@@ -154,7 +163,6 @@ export async function discardLocalEntity(entityType: EntityType, localId: string
     const db = await getDatabase();
     await db.runAsync('DELETE FROM pending_mutations WHERE localId = ?', [localId]);
     if (entityType === 'trip') {
-      // Tudo o que foi feito dentro da viagem local também morre com ela.
       await db.runAsync('DELETE FROM pending_mutations WHERE tripId = ?', [localId]);
     }
   } catch (error) {
@@ -257,13 +265,9 @@ export async function clearPendingMutations(): Promise<void> {
   syncedIds.clear();
 }
 
-// Drenagem em andamento. Quem chamar durante ela recebe a mesma promise, em vez
-// de voltar na hora: assim dá para aguardar o fim da sincronização (ex.: antes
-// do logout) mesmo quando ela foi disparada por outro gatilho.
+// Chamadas concorrentes aguardam a mesma drenagem (ex.: o logout espera a sincronização).
 let currentDrain: Promise<void> | null = null;
 
-// Estado "sincronizando" observável pela UI: só fica true enquanto há
-// alterações de fato sendo enviadas (fila vazia não mostra loading).
 let isSyncing = false;
 const syncStatusListeners = new Set<() => void>();
 
@@ -313,7 +317,6 @@ async function runDrain(token: string): Promise<void> {
 
     for (const mutation of mutations) {
       if (discardedTripIds.has(mutation.tripId)) {
-        // A viagem local foi rejeitada pelo servidor; seus itens já foram descartados.
         continue;
       }
 
@@ -326,8 +329,7 @@ async function runDrain(token: string): Promise<void> {
         if (mutation.entityType === 'trip') {
           syncedTrip = true;
           affectedTripIds.add(resolveSyncedId(mutation.localId));
-          // Telas abertas com o id local precisam refazer a busca para
-          // passar a usar o id real.
+          // Telas abertas com o id local precisam recarregar.
           affectedTripIds.add(mutation.localId);
         } else {
           affectedTripIds.add(resolvedTripId);
@@ -336,21 +338,17 @@ async function runDrain(token: string): Promise<void> {
         const isRetryable =
           isNetworkFailure(error) ||
           (error instanceof ApiError &&
-            // 409 numa criação = a tentativa original (mesma Idempotency-Key)
-            // ainda está em processamento no servidor; tenta de novo depois.
+            // 409 numa criação: a tentativa original ainda está em processamento.
             (error.status === 401 || (error.status === 409 && mutation.operation === 'create')));
         if (isRetryable) {
-          // Ainda offline, token recusado ou criação em andamento: para aqui e
-          // preserva a ordem do que resta na fila.
+          // Para aqui e preserva a ordem do que resta na fila.
           break;
         }
         // Rejeição real do servidor (ex.: validação) — descarta para não
-        // bloquear a fila para sempre. Inclui alterações de um item local cuja
-        // criação foi recusada: o id nunca vai existir no servidor.
+        // bloquear a fila para sempre.
         logError('syncQueue.drainPendingMutations', error);
         await db.runAsync('DELETE FROM pending_mutations WHERE id = ?', [mutation.id]);
         if (mutation.entityType === 'trip') {
-          // Recarrega a lista: uma exclusão recusada faz a viagem reaparecer.
           syncedTrip = true;
         }
         if (mutation.entityType === 'trip' && isLocalId(resolvedId)) {
@@ -365,8 +363,7 @@ async function runDrain(token: string): Promise<void> {
       }
     }
 
-    // Aguarda o refetch antes de desligar o "sincronizando", para a UI não
-    // piscar o estado antigo (ex.: "aguardando sincronização") nesse meio-tempo.
+    // Aguarda o refetch para a UI não piscar o estado antigo.
     await Promise.all([
       syncedTrip ? queryClient.invalidateQueries({ queryKey: ['trips'], exact: true }) : null,
       ...[...affectedTripIds].map((tripId) =>

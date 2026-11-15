@@ -27,7 +27,6 @@ export function DocumentCard({ info, trip }: DocumentCardProps) {
     setConfirmVisible(false);
     deleteInfo(info.id, {
       onError: (err) => {
-        // Toast em vez de texto no card: some sozinho e não fica preso na lista.
         showToast({
           title: 'Não foi possível excluir o documento',
           message: err instanceof ApiError ? err.message : 'Tente novamente.',

@@ -7,9 +7,7 @@ import { onBackOnline } from '@/services/connectivity';
 import { logError } from '@/services/logger';
 import { drainPendingMutations, hasPendingMutations } from '@/services/syncQueue';
 
-// Sem NetInfo, o app não é avisado quando a rede volta. Enquanto houver
-// pendências, testa o servidor periodicamente e ao voltar para o primeiro
-// plano; se responder, notifyBackOnline (emitido pelo próprio ping) drena a fila.
+// Sem NetInfo, a volta da rede é detectada testando o servidor enquanto houver pendências.
 export const RECONNECT_CHECK_INTERVAL_MS = 30_000;
 
 export function useSyncQueueDrain() {

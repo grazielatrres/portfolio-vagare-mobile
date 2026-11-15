@@ -14,9 +14,7 @@ export class ApiError extends Error {
   }
 }
 
-// Status 0 como uma falha de rede (queries caem no cache e mutations vão para
-// a fila), mas não significa "sem conexão": a viagem ou o item só ainda não
-// existe no servidor. A UI usa a distinção para não mostrar o aviso de offline à toa.
+// Status 0 como falha de rede, mas não significa "sem conexão": o item só ainda não existe no servidor.
 export class UnsyncedEntityError extends ApiError {
   constructor() {
     super(0, 'Este item ainda não foi sincronizado com o servidor.');
@@ -24,7 +22,6 @@ export class UnsyncedEntityError extends ApiError {
   }
 }
 
-// true só para falhas reais de rede (não para itens locais ainda não sincronizados).
 export function isNetworkFailure(error: unknown): boolean {
   return error instanceof ApiError && error.status === 0 && !(error instanceof UnsyncedEntityError);
 }
@@ -62,10 +59,7 @@ export async function apiRequest<T>(path: string, options: ApiRequestOptions = {
   }
 }
 
-// Viagens e itens criados offline têm id local até a fila sincronizar. Rotas
-// com um segmento local-… (/trips/local-…, /activities/local-…) não existem
-// no servidor, então são tratadas como "sem conexão": queries caem no cache
-// e mutations vão para a fila, que troca pelo id real quando o item sobe.
+// Ids locais não existem no servidor: a requisição nem é feita.
 const LOCAL_ID_SEGMENT = new RegExp(`/${LOCAL_ID_PREFIX}`);
 
 async function performRequest<T>(path: string, options: ApiRequestOptions): Promise<T> {
@@ -113,17 +107,13 @@ async function performRequest<T>(path: string, options: ApiRequestOptions): Prom
   return data as T;
 }
 
-// Criações levam o id local como Idempotency-Key: se a resposta não chegar (ex.:
-// tempo limite) e a fila reenviar com a mesma chave, o servidor devolve o item
-// já criado em vez de duplicá-lo.
 export function idempotencyHeaders(key?: string): Record<string, string> | undefined {
   return key ? { 'Idempotency-Key': key } : undefined;
 }
 
 const PING_TIMEOUT_MS = 5_000;
 
-// Checagem leve de "a rede voltou?" usada pela fila offline. Um sucesso passa
-// por performRequest, que já emite notifyBackOnline e dispara a drenagem.
+// Um sucesso emite notifyBackOnline, que dispara a drenagem da fila.
 export async function pingServer(): Promise<boolean> {
   try {
     await performRequest('/health', { timeoutMs: PING_TIMEOUT_MS });

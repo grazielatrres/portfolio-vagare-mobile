@@ -23,7 +23,6 @@ export function useUpdateActivityMutation(rawTripId: string) {
 
   return useMutation({
     mutationFn: async ({ id: rawId, payload }: UpdateActivityVariables) => {
-      // Item ou viagem criado offline que já sincronizou: usa o id real.
       const id = resolveSyncedId(rawId);
       const tripId = resolveSyncedId(rawTripId);
       try {

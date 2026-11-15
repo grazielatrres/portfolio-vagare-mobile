@@ -245,11 +245,9 @@ describe('syncQueue', () => {
 
     await drainPendingMutations('token-1');
 
-    // Reenvio usa o id local como Idempotency-Key, igual à tentativa original.
     expect(createTrip).toHaveBeenCalledWith('token-1', tripPayload, 'local-trip');
     expect(replaceLocalTrip).toHaveBeenCalledWith('local-trip', createdTrip);
     expect(resolveSyncedId('local-trip')).toBe('real-trip');
-    // A tela aberta com o id local é recarregada para passar a usar o id real.
     expect(queryClient.invalidateQueries).toHaveBeenCalledWith({ queryKey: ['trips', 'local-trip'] });
     expect(createActivity).toHaveBeenCalledWith(
       'token-1',
@@ -315,7 +313,6 @@ describe('syncQueue', () => {
     const statuses: boolean[] = [];
     const unsubscribe = subscribeSyncStatus(() => statuses.push(getIsSyncing()));
 
-    // Fila vazia: não liga o loading.
     await drainPendingMutations('token-1');
     expect(statuses).toEqual([]);
 
@@ -366,7 +363,6 @@ describe('syncQueue', () => {
     (createActivity as jest.Mock)
       .mockRejectedValueOnce(new ApiError(422, 'inválido'))
       .mockResolvedValueOnce({ id: 'real-2', tripId: 't1', name: 'B' });
-    // O id local-1 nunca vai existir no servidor: a api responde UnsyncedEntityError.
     (updateActivity as jest.Mock).mockRejectedValueOnce(new UnsyncedEntityError());
 
     await drainPendingMutations('token-1');
@@ -386,7 +382,6 @@ describe('syncQueue', () => {
     (createActivity as jest.Mock).mockResolvedValue({ id: 'real-1', tripId: 't1', name: 'A' });
     await drainPendingMutations('token-1');
 
-    // Edição feita com o id local que ainda estava na tela.
     await enqueueMutation({
       tripId: 't1',
       entityType: 'activity',
@@ -432,14 +427,11 @@ describe('syncQueue', () => {
 
     (createActivity as jest.Mock).mockResolvedValue({ id: 'real-1', tripId: 't1', name: 'A' });
 
-    // currentDrain é definido de forma síncrona no início de drainPendingMutations,
-    // então a segunda chamada reaproveita a mesma drenagem sem tocar no banco/rede.
     const first = drainPendingMutations('token-1');
     const second = drainPendingMutations('token-1');
     expect(second).toBe(first);
     await second;
 
-    // Ao terminar a segunda chamada, a fila já foi enviada.
     expect(createActivity).toHaveBeenCalledTimes(1);
     await expect(getPendingMutations('t1')).resolves.toEqual([]);
   });

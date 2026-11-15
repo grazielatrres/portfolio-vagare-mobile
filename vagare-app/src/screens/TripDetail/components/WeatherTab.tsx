@@ -38,8 +38,6 @@ export function WeatherTab({ trip }: WeatherTabProps) {
       {isPending ? (
         <ActivityIndicator color={colors.accent} style={styles.stateSpacing} />
       ) : error instanceof UnsyncedEntityError ? (
-        // A previsão é calculada no servidor; "tentar novamente" não adianta
-        // até a viagem criada offline ser sincronizada.
         <EmptyState
           message="A previsão do tempo fica disponível assim que esta viagem for sincronizada."
           style={styles.stateSpacing}

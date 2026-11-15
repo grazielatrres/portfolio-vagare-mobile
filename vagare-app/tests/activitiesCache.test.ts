@@ -70,3 +70,23 @@ describe('activitiesCache — contagem por viagem', () => {
     await expect(getCachedActivityCounts()).resolves.toEqual({});
   });
 });
+
+describe('activitiesCache — itens com alteração offline pendente', () => {
+  it('saveActivitiesToCache não apaga nem reinsere itens que ainda estão na fila', async () => {
+    const db = {
+      runAsync: jest.fn().mockResolvedValue(undefined),
+      withTransactionAsync: jest.fn(async (task: () => Promise<void>) => task()),
+    };
+    (getDatabase as jest.Mock).mockResolvedValue(db);
+
+    await saveActivitiesToCache('t1', [activity]);
+
+    const [deleteSql] = db.runAsync.mock.calls[0];
+    expect(deleteSql).toMatch(/NOT IN \(SELECT localId FROM pending_mutations\)/);
+
+    const [insertSql, insertParams] = db.runAsync.mock.calls[1];
+    expect(insertSql).toMatch(/WHERE NOT EXISTS \(SELECT 1 FROM pending_mutations WHERE localId = \?\)/);
+    expect(insertParams[insertParams.length - 1]).toBe(activity.id);
+  });
+});
+

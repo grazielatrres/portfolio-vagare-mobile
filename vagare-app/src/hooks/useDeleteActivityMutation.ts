@@ -6,17 +6,20 @@ import { deleteActivity } from '@/services/activities';
 import { removeActivityFromCache } from '@/services/activitiesCache';
 import { ApiError } from '@/services/api';
 import { queryClient } from '@/services/queryClient';
-import { discardLocalEntity, enqueueMutation, isLocalId } from '@/services/syncQueue';
+import { discardLocalEntity, enqueueMutation, isLocalId, resolveSyncedId } from '@/services/syncQueue';
 import { activitiesQueryKey } from './useActivitiesQuery';
 import { budgetQueryKey } from './useBudgetQuery';
 import { pendingMutationsQueryKey } from './usePendingMutationsQuery';
 
-export function useDeleteActivityMutation(tripId: string) {
+export function useDeleteActivityMutation(rawTripId: string) {
   const { token } = useAuth();
   const { showToast } = useToast();
 
   return useMutation({
-    mutationFn: async (id: string) => {
+    mutationFn: async (rawId: string) => {
+      // Item ou viagem criado offline que já sincronizou: usa o id real.
+      const id = resolveSyncedId(rawId);
+      const tripId = resolveSyncedId(rawTripId);
       try {
         await deleteActivity(token as string, tripId, id);
       } catch (err) {
@@ -44,9 +47,9 @@ export function useDeleteActivityMutation(tripId: string) {
       }
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: activitiesQueryKey(tripId) });
-      queryClient.invalidateQueries({ queryKey: budgetQueryKey(tripId) });
-      queryClient.invalidateQueries({ queryKey: pendingMutationsQueryKey(tripId) });
+      queryClient.invalidateQueries({ queryKey: activitiesQueryKey(rawTripId) });
+      queryClient.invalidateQueries({ queryKey: budgetQueryKey(rawTripId) });
+      queryClient.invalidateQueries({ queryKey: pendingMutationsQueryKey(rawTripId) });
     },
   });
 }

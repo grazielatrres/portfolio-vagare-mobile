@@ -1,6 +1,6 @@
 import { createActivity, updateActivity } from '@/services/activities';
 import { removeActivityFromCache } from '@/services/activitiesCache';
-import { ApiError } from '@/services/api';
+import { ApiError, UnsyncedEntityError } from '@/services/api';
 import { getDatabase } from '@/services/database';
 import { queryClient } from '@/services/queryClient';
 import { createTrip, deleteTrip } from '@/services/trips';
@@ -11,8 +11,9 @@ import {
   enqueueMutation,
   getIsSyncing,
   getPendingMutations,
-  getSyncedTripId,
+  clearPendingMutations,
   queueTripDeletion,
+  resolveSyncedId,
   subscribeSyncStatus,
 } from '@/services/syncQueue';
 
@@ -99,10 +100,12 @@ function createFakeDb() {
 describe('syncQueue', () => {
   let db: ReturnType<typeof createFakeDb>;
 
-  beforeEach(() => {
+  beforeEach(async () => {
     jest.clearAllMocks();
     db = createFakeDb();
     (getDatabase as jest.Mock).mockResolvedValue(db);
+    // Zera também o mapa de ids sincronizados entre os testes.
+    await clearPendingMutations();
   });
 
   it('enqueueMutation nunca lança, mesmo com SQLite indisponível', async () => {
@@ -244,7 +247,7 @@ describe('syncQueue', () => {
 
     expect(createTrip).toHaveBeenCalledWith('token-1', tripPayload);
     expect(replaceLocalTrip).toHaveBeenCalledWith('local-trip', createdTrip);
-    expect(getSyncedTripId('local-trip')).toBe('real-trip');
+    expect(resolveSyncedId('local-trip')).toBe('real-trip');
     // A tela aberta com o id local é recarregada para passar a usar o id real.
     expect(queryClient.invalidateQueries).toHaveBeenCalledWith({ queryKey: ['trips', 'local-trip'] });
     expect(createActivity).toHaveBeenCalledWith('token-1', 'real-trip', { name: 'A', date: '2026-12-02' });
@@ -329,6 +332,69 @@ describe('syncQueue', () => {
     expect(statuses).toEqual([true, false]);
     expect(getIsSyncing()).toBe(false);
     unsubscribe();
+  });
+
+  it('descarta a edição de um item cuja criação foi recusada, sem travar a fila', async () => {
+    await enqueueMutation({
+      tripId: 't1',
+      entityType: 'activity',
+      operation: 'create',
+      localId: 'local-1',
+      payload: { name: 'A', date: '2026-01-01' },
+    });
+    await enqueueMutation({
+      tripId: 't1',
+      entityType: 'activity',
+      operation: 'update',
+      localId: 'local-1',
+      payload: { name: 'A editada', date: '2026-01-01' },
+    });
+    await enqueueMutation({
+      tripId: 't1',
+      entityType: 'activity',
+      operation: 'create',
+      localId: 'local-2',
+      payload: { name: 'B', date: '2026-01-02' },
+    });
+
+    (createActivity as jest.Mock)
+      .mockRejectedValueOnce(new ApiError(422, 'inválido'))
+      .mockResolvedValueOnce({ id: 'real-2', tripId: 't1', name: 'B' });
+    // O id local-1 nunca vai existir no servidor: a api responde UnsyncedEntityError.
+    (updateActivity as jest.Mock).mockRejectedValueOnce(new UnsyncedEntityError());
+
+    await drainPendingMutations('token-1');
+
+    expect(createActivity).toHaveBeenCalledTimes(2);
+    await expect(getPendingMutations('t1')).resolves.toEqual([]);
+  });
+
+  it('resolve para o id real uma edição enfileirada depois que a criação já subiu', async () => {
+    await enqueueMutation({
+      tripId: 't1',
+      entityType: 'activity',
+      operation: 'create',
+      localId: 'local-1',
+      payload: { name: 'A', date: '2026-01-01' },
+    });
+    (createActivity as jest.Mock).mockResolvedValue({ id: 'real-1', tripId: 't1', name: 'A' });
+    await drainPendingMutations('token-1');
+
+    // Edição feita com o id local que ainda estava na tela.
+    await enqueueMutation({
+      tripId: 't1',
+      entityType: 'activity',
+      operation: 'update',
+      localId: 'local-1',
+      payload: { name: 'A editada', date: '2026-01-01' },
+    });
+    (updateActivity as jest.Mock).mockResolvedValue({ id: 'real-1', tripId: 't1', name: 'A editada' });
+    await drainPendingMutations('token-1');
+
+    expect(updateActivity).toHaveBeenCalledWith('token-1', 't1', 'real-1', {
+      name: 'A editada',
+      date: '2026-01-01',
+    });
   });
 
   it('não drena duas vezes em paralelo (guard isDraining)', async () => {

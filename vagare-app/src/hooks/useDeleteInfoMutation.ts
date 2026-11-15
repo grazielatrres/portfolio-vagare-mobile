@@ -6,16 +6,19 @@ import { ApiError } from '@/services/api';
 import { deleteInfo } from '@/services/infos';
 import { removeInfoFromCache } from '@/services/infosCache';
 import { queryClient } from '@/services/queryClient';
-import { discardLocalEntity, enqueueMutation, isLocalId } from '@/services/syncQueue';
+import { discardLocalEntity, enqueueMutation, isLocalId, resolveSyncedId } from '@/services/syncQueue';
 import { infosQueryKey } from './useInfosQuery';
 import { pendingMutationsQueryKey } from './usePendingMutationsQuery';
 
-export function useDeleteInfoMutation(tripId: string) {
+export function useDeleteInfoMutation(rawTripId: string) {
   const { token } = useAuth();
   const { showToast } = useToast();
 
   return useMutation({
-    mutationFn: async (id: string) => {
+    mutationFn: async (rawId: string) => {
+      // Item ou viagem criado offline que já sincronizou: usa o id real.
+      const id = resolveSyncedId(rawId);
+      const tripId = resolveSyncedId(rawTripId);
       try {
         await deleteInfo(token as string, tripId, id);
       } catch (err) {
@@ -42,8 +45,8 @@ export function useDeleteInfoMutation(tripId: string) {
       }
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: infosQueryKey(tripId) });
-      queryClient.invalidateQueries({ queryKey: pendingMutationsQueryKey(tripId) });
+      queryClient.invalidateQueries({ queryKey: infosQueryKey(rawTripId) });
+      queryClient.invalidateQueries({ queryKey: pendingMutationsQueryKey(rawTripId) });
     },
   });
 }

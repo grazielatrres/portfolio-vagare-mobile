@@ -5,7 +5,7 @@ import {
   upsertActivityToCache,
 } from './activitiesCache';
 import { createActivity, deleteActivity, updateActivity } from './activities';
-import { ApiError } from './api';
+import { ApiError, isNetworkFailure } from './api';
 import { getDatabase } from './database';
 import { LOCAL_ID_PREFIX, isLocalId } from './localId';
 import {
@@ -79,13 +79,13 @@ export async function getPendingMutations(tripId: string): Promise<PendingMutati
   }
 }
 
-// Viagens locais já sincronizadas nesta sessão (id local → id do servidor).
-// Telas abertas com o id local usam isto para continuar funcionando depois
-// que a viagem sobe e o id local deixa de existir no cache.
-const syncedTripIds = new Map<string, string>();
+// Viagens e itens locais já sincronizados nesta sessão (id local → id do
+// servidor). Telas ainda abertas com o id local, e alterações enfileiradas
+// enquanto a criação estava sendo enviada, usam isto para chegar ao item real.
+const syncedIds = new Map<string, string>();
 
-export function getSyncedTripId(localId: string): string | undefined {
-  return syncedTripIds.get(localId);
+export function resolveSyncedId(id: string): string {
+  return isLocalId(id) ? (syncedIds.get(id) ?? id) : id;
 }
 
 // Exclusão offline de uma viagem que já existe no servidor: some do cache na
@@ -173,15 +173,13 @@ async function applyMutation(
   mutation: PendingMutation,
   resolvedId: string,
   tripId: string,
-  idMap: Map<string, string>,
 ): Promise<void> {
   const payload = JSON.parse(mutation.payload);
 
   if (mutation.entityType === 'trip') {
     if (mutation.operation === 'create') {
       const created = await createTrip(token, payload);
-      idMap.set(mutation.localId, created.id);
-      syncedTripIds.set(mutation.localId, created.id);
+      syncedIds.set(mutation.localId, created.id);
       await replaceLocalTrip(mutation.localId, created);
     } else if (mutation.operation === 'delete') {
       await deleteTrip(token, resolvedId);
@@ -193,7 +191,7 @@ async function applyMutation(
   if (mutation.entityType === 'activity') {
     if (mutation.operation === 'create') {
       const created = await createActivity(token, tripId, payload);
-      idMap.set(mutation.localId, created.id);
+      syncedIds.set(mutation.localId, created.id);
       await removeActivityFromCache(mutation.localId);
       await upsertActivityToCache(created);
     } else if (mutation.operation === 'update') {
@@ -209,7 +207,7 @@ async function applyMutation(
   if (mutation.entityType === 'expense') {
     if (mutation.operation === 'create') {
       const created = await createExpense(token, tripId, payload);
-      idMap.set(mutation.localId, created.id);
+      syncedIds.set(mutation.localId, created.id);
       await removeExpenseFromCache(mutation.localId);
       await upsertExpenseToCache(created);
     } else if (mutation.operation === 'update') {
@@ -224,7 +222,7 @@ async function applyMutation(
 
   if (mutation.operation === 'create') {
     const created = await createInfo(token, tripId, payload);
-    idMap.set(mutation.localId, created.id);
+    syncedIds.set(mutation.localId, created.id);
     await removeInfoFromCache(mutation.localId);
     await upsertInfoToCache(created);
   } else if (mutation.operation === 'update') {
@@ -243,6 +241,7 @@ export async function clearPendingMutations(): Promise<void> {
   } catch (error) {
     logError('syncQueue.clearPendingMutations', error);
   }
+  syncedIds.clear();
 }
 
 let isDraining = false;
@@ -285,7 +284,6 @@ export async function drainPendingMutations(token: string | null): Promise<void>
       setSyncing(true);
     }
 
-    const idMap = new Map<string, string>();
     const affectedTripIds = new Set<string>();
     const discardedTripIds = new Set<string>();
     let syncedTrip = false;
@@ -296,15 +294,15 @@ export async function drainPendingMutations(token: string | null): Promise<void>
         continue;
       }
 
-      const resolvedId = idMap.get(mutation.localId) ?? mutation.localId;
-      const resolvedTripId = idMap.get(mutation.tripId) ?? mutation.tripId;
+      const resolvedId = resolveSyncedId(mutation.localId);
+      const resolvedTripId = resolveSyncedId(mutation.tripId);
 
       try {
-        await applyMutation(token, mutation, resolvedId, resolvedTripId, idMap);
+        await applyMutation(token, mutation, resolvedId, resolvedTripId);
         await db.runAsync('DELETE FROM pending_mutations WHERE id = ?', [mutation.id]);
         if (mutation.entityType === 'trip') {
           syncedTrip = true;
-          affectedTripIds.add(idMap.get(mutation.localId) ?? resolvedId);
+          affectedTripIds.add(resolveSyncedId(mutation.localId));
           // Telas abertas com o id local precisam refazer a busca para
           // passar a usar o id real.
           affectedTripIds.add(mutation.localId);
@@ -312,12 +310,13 @@ export async function drainPendingMutations(token: string | null): Promise<void>
           affectedTripIds.add(resolvedTripId);
         }
       } catch (error) {
-        if (error instanceof ApiError && (error.status === 0 || error.status === 401)) {
+        if (isNetworkFailure(error) || (error instanceof ApiError && error.status === 401)) {
           // Ainda offline ou token recusado: para aqui e preserva a ordem do que resta na fila.
           break;
         }
         // Rejeição real do servidor (ex.: validação) — descarta para não
-        // bloquear a fila para sempre.
+        // bloquear a fila para sempre. Inclui alterações de um item local cuja
+        // criação foi recusada: o id nunca vai existir no servidor.
         logError('syncQueue.drainPendingMutations', error);
         await db.runAsync('DELETE FROM pending_mutations WHERE id = ?', [mutation.id]);
         if (mutation.entityType === 'trip') {

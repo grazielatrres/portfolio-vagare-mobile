@@ -15,18 +15,18 @@ export class ApiError extends Error {
 }
 
 // Status 0 como uma falha de rede (queries caem no cache e mutations vão para
-// a fila), mas não significa "sem conexão": a viagem só ainda não existe no
-// servidor. A UI usa a distinção para não mostrar o aviso de offline à toa.
-export class UnsyncedTripError extends ApiError {
+// a fila), mas não significa "sem conexão": a viagem ou o item só ainda não
+// existe no servidor. A UI usa a distinção para não mostrar o aviso de offline à toa.
+export class UnsyncedEntityError extends ApiError {
   constructor() {
-    super(0, 'Esta viagem ainda não foi sincronizada com o servidor.');
-    this.name = 'UnsyncedTripError';
+    super(0, 'Este item ainda não foi sincronizado com o servidor.');
+    this.name = 'UnsyncedEntityError';
   }
 }
 
-// true só para falhas reais de rede (não para viagens locais ainda não sincronizadas).
+// true só para falhas reais de rede (não para itens locais ainda não sincronizados).
 export function isNetworkFailure(error: unknown): boolean {
-  return error instanceof ApiError && error.status === 0 && !(error instanceof UnsyncedTripError);
+  return error instanceof ApiError && error.status === 0 && !(error instanceof UnsyncedEntityError);
 }
 
 type TokenRefresher = (rejectedToken: string) => Promise<string | null>;
@@ -62,15 +62,15 @@ export async function apiRequest<T>(path: string, options: ApiRequestOptions = {
   }
 }
 
-// Viagens criadas offline têm id local até a fila sincronizar. Qualquer rota
-// sob /trips/local-… não existe no servidor, então é tratada como "sem
-// conexão": queries caem no cache e mutations vão para a fila, que remapeia
-// o tripId quando a viagem for criada de fato.
-const LOCAL_TRIP_PATH = new RegExp(`^/trips/${LOCAL_ID_PREFIX}`);
+// Viagens e itens criados offline têm id local até a fila sincronizar. Rotas
+// com um segmento local-… (/trips/local-…, /activities/local-…) não existem
+// no servidor, então são tratadas como "sem conexão": queries caem no cache
+// e mutations vão para a fila, que troca pelo id real quando o item sobe.
+const LOCAL_ID_SEGMENT = new RegExp(`/${LOCAL_ID_PREFIX}`);
 
 async function performRequest<T>(path: string, options: ApiRequestOptions): Promise<T> {
-  if (LOCAL_TRIP_PATH.test(path)) {
-    throw new UnsyncedTripError();
+  if (LOCAL_ID_SEGMENT.test(path)) {
+    throw new UnsyncedEntityError();
   }
 
   const { token, headers, body, signal, timeoutMs = REQUEST_TIMEOUT_MS, ...rest } = options;

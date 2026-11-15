@@ -1,8 +1,8 @@
 import { renderHook, waitFor } from '@testing-library/react-native';
 
 import { useTripQuery } from '@/hooks/useTripQuery';
-import { ApiError, UnsyncedTripError } from '@/services/api';
-import { getSyncedTripId } from '@/services/syncQueue';
+import { ApiError, UnsyncedEntityError } from '@/services/api';
+import { resolveSyncedId } from '@/services/syncQueue';
 import { getTrip } from '@/services/trips';
 import { getCachedTripById } from '@/services/tripsCache';
 import { buildTrip } from './helpers/fixtures';
@@ -13,8 +13,7 @@ jest.mock('@/contexts/AuthContext', () => require('./helpers/mockAuth').authCont
 jest.mock('@/services/trips');
 jest.mock('@/services/tripsCache');
 jest.mock('@/services/syncQueue', () => ({
-  getSyncedTripId: jest.fn(),
-  isLocalId: (id: string) => id.startsWith('local-'),
+  resolveSyncedId: jest.fn((id: string) => id),
 }));
 
 const getTripMock = getTrip as jest.Mock;
@@ -40,7 +39,7 @@ describe('useTripQuery', () => {
 
   it('viagem local ainda não sincronizada usa o cache sem marcar como offline', async () => {
     const local = buildTrip({ id: 'local-1' });
-    getTripMock.mockRejectedValue(new UnsyncedTripError());
+    getTripMock.mockRejectedValue(new UnsyncedEntityError());
     (getCachedTripById as jest.Mock).mockResolvedValue(local);
 
     const { result } = await renderHook(() => useTripQuery('local-1'), {
@@ -66,7 +65,7 @@ describe('useTripQuery', () => {
 
   it('segue o id real de uma viagem local que já foi sincronizada', async () => {
     const synced = buildTrip({ id: 'real-1' });
-    (getSyncedTripId as jest.Mock).mockReturnValue('real-1');
+    (resolveSyncedId as jest.Mock).mockReturnValueOnce('real-1');
     getTripMock.mockResolvedValue(synced);
 
     const { result } = await renderHook(() => useTripQuery('local-1'), {

@@ -2,7 +2,7 @@ import { useQuery } from '@tanstack/react-query';
 
 import { useAuth } from '@/contexts/AuthContext';
 import { ApiError, isNetworkFailure } from '@/services/api';
-import { getSyncedTripId, isLocalId } from '@/services/syncQueue';
+import { resolveSyncedId } from '@/services/syncQueue';
 import { getTrip } from '@/services/trips';
 import { getCachedTripById } from '@/services/tripsCache';
 
@@ -18,7 +18,7 @@ export function useTripQuery(id: string) {
     queryFn: async () => {
       // Tela aberta com o id local de uma viagem que já sincronizou: segue o
       // id real (as abas usam trip.id, então passam a usar o id do servidor).
-      const resolvedId = isLocalId(id) ? (getSyncedTripId(id) ?? id) : id;
+      const resolvedId = resolveSyncedId(id);
 
       try {
         const trip = await getTrip(token as string, resolvedId);

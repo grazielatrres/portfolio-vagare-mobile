@@ -1,6 +1,6 @@
 import {
   ApiError,
-  UnsyncedTripError,
+  UnsyncedEntityError,
   apiRequest,
   isNetworkFailure,
   pingServer,
@@ -118,14 +118,21 @@ describe('apiRequest - viagens criadas offline', () => {
 
   it('não chama a rede para rotas de viagem com id local', async () => {
     await expect(apiRequest('/trips/local-abc/activities', { token: 'tok' })).rejects.toBeInstanceOf(
-      UnsyncedTripError,
+      UnsyncedEntityError,
     );
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it('não chama a rede para itens com id local dentro de uma viagem sincronizada', async () => {
+    await expect(
+      apiRequest('/trips/trip-1/activities/local-abc', { method: 'PUT', token: 'tok' }),
+    ).rejects.toBeInstanceOf(UnsyncedEntityError);
     expect(fetchMock).not.toHaveBeenCalled();
   });
 
   it('isNetworkFailure diferencia falta de rede de viagem não sincronizada', () => {
     expect(isNetworkFailure(new ApiError(0, 'Sem conexão'))).toBe(true);
-    expect(isNetworkFailure(new UnsyncedTripError())).toBe(false);
+    expect(isNetworkFailure(new UnsyncedEntityError())).toBe(false);
     expect(isNetworkFailure(new ApiError(500, 'Erro'))).toBe(false);
   });
 });

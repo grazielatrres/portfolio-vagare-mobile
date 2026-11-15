@@ -1,17 +1,18 @@
 export const colors = {
-  background: '#F5F1EA',
-  surface: '#FBF8F2',
-  accent: '#C1653D',
-  accentSoft: '#F1DDD0',
+  background: '#FCF7F9',
+  surface: '#FFFFFF',
+  accent: '#B84D75',
+  accentSoft: '#FBE3EC',
+  accentLight: '#E08AA8',
   danger: '#B3261E',
-  dangerSoft: '#F3DEDC',
+  dangerSoft: '#F9DEDC',
   text: {
-    primary: '#32221B',
-    secondary: '#8A8478',
-    placeholder: '#A9A296',
+    primary: '#3A2630',
+    secondary: '#75606A',
+    placeholder: '#A6939C',
   },
   border: {
-    default: '#DDD6CA',
-    focus: '#C1653D',
+    default: '#EFDCE4',
+    focus: '#B84D75',
   },
 } as const;

@@ -1,38 +1,67 @@
-import { useState } from 'react';
-import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
-import { router } from 'expo-router';
+import { Ionicons } from "@expo/vector-icons";
+import { router } from "expo-router";
+import { useState } from "react";
+import {
+  ActivityIndicator,
+  Pressable,
+  StyleSheet,
+  Text,
+  View,
+} from "react-native";
 
-import { ConfirmDialog, FormError } from '@/components';
-import { useDeleteTripMutation } from '@/hooks/useDeleteTripMutation';
-import { ApiError } from '@/services/api';
-import { Trip } from '@/services/trips';
-import { colors, fonts, spacing } from '@/theme';
-import { formatCurrencyValue } from '@/utils/currency';
-import { formatDateRange } from '@/utils/format';
+import { ConfirmModal } from "@/components/ConfirmModal";
+import { useToast } from "@/contexts/ToastContext";
+import { useDeleteTripMutation } from "@/hooks/useDeleteTripMutation";
+import { useIsSyncing } from "@/hooks/useIsSyncing";
+import { ApiError } from "@/services/api";
+import { isLocalId } from "@/services/localId";
+import { Trip } from "@/services/trips";
+import { colors, fonts, spacing } from "@/theme";
+import { formatCurrencyValue } from "@/utils/currency";
+import { formatDateRange } from "@/utils/format";
 
 export interface TripCardProps {
   trip: Trip;
+  activityCount: number;
 }
 
-export function TripCard({ trip }: TripCardProps) {
-  const budget = trip.budget !== null ? formatCurrencyValue(trip.budget, trip.currency) : null;
+function formatActivityCount(count: number): string {
+  if (count === 0) {
+    return "Nenhuma atividade planejada ainda";
+  }
+  return count === 1
+    ? "1 atividade planejada"
+    : `${count} atividades planejadas`;
+}
+
+export function TripCard({ trip, activityCount }: TripCardProps) {
+  const budget =
+    trip.budget !== null
+      ? formatCurrencyValue(trip.budget, trip.currency)
+      : null;
   const { mutate: deleteTrip, isPending } = useDeleteTripMutation();
+  const { showToast } = useToast();
+  const isSyncing = useIsSyncing();
+  const isLocalTrip = isLocalId(trip.id);
   const [confirmVisible, setConfirmVisible] = useState(false);
-  const [error, setError] = useState<string | null>(null);
 
   function handleConfirmDelete() {
     setConfirmVisible(false);
-    setError(null);
     deleteTrip(trip.id, {
       onError: (err) => {
-        setError(err instanceof ApiError ? err.message : 'Não foi possível excluir a viagem.');
+        showToast({
+          title: "Não foi possível excluir a viagem",
+          message: err instanceof ApiError ? err.message : "Tente novamente.",
+        });
       },
     });
   }
 
   return (
-    <Pressable style={styles.card} onPress={() => router.push(`/trip/${trip.id}`)}>
+    <Pressable
+      style={styles.card}
+      onPress={() => router.push(`/trip/${trip.id}`)}
+    >
       <View style={styles.header}>
         <Text style={styles.destination}>{trip.destination}</Text>
         <Pressable
@@ -53,12 +82,22 @@ export function TripCard({ trip }: TripCardProps) {
 
       <View style={styles.row}>
         <View style={styles.rowItem}>
-          <Ionicons name="calendar-outline" size={16} color={colors.text.secondary} />
-          <Text style={styles.rowText}>{formatDateRange(trip.startDate, trip.endDate)}</Text>
+          <Ionicons
+            name="calendar-outline"
+            size={16}
+            color={colors.text.secondary}
+          />
+          <Text style={styles.rowText}>
+            {formatDateRange(trip.startDate, trip.endDate)}
+          </Text>
         </View>
         {budget ? (
           <View style={styles.rowItem}>
-            <Ionicons name="wallet-outline" size={16} color={colors.text.secondary} />
+            <Ionicons
+              name="wallet-outline"
+              size={16}
+              color={colors.text.secondary}
+            />
             <Text style={styles.rowText}>{budget}</Text>
           </View>
         ) : null}
@@ -66,12 +105,29 @@ export function TripCard({ trip }: TripCardProps) {
 
       <View style={styles.rowItem}>
         <Ionicons name="location-outline" size={16} color={colors.accent} />
-        <Text style={styles.plannedText}>Nenhuma atividade planejada ainda</Text>
+        <Text style={styles.plannedText}>
+          {formatActivityCount(activityCount)}
+        </Text>
       </View>
 
-      <FormError message={error} style={styles.errorText} />
+      {isLocalTrip ? (
+        <View style={[styles.rowItem, styles.syncStatus]}>
+          {isSyncing ? (
+            <ActivityIndicator size="small" color={colors.text.secondary} />
+          ) : (
+            <Ionicons
+              name="cloud-upload-outline"
+              size={16}
+              color={colors.text.secondary}
+            />
+          )}
+          <Text style={styles.rowText}>
+            {isSyncing ? "Sincronizando…" : "Aguardando sincronização"}
+          </Text>
+        </View>
+      ) : null}
 
-      <ConfirmDialog
+      <ConfirmModal
         visible={confirmVisible}
         title="Excluir viagem?"
         message={`${trip.destination} será excluída permanentemente, junto com roteiro, gastos e informações associadas. Essa ação não pode ser desfeita.`}
@@ -94,42 +150,40 @@ const styles = StyleSheet.create({
     marginBottom: spacing.md,
   },
   header: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    alignItems: "flex-start",
+    justifyContent: "space-between",
     marginBottom: spacing.sm,
   },
   destination: {
     flex: 1,
     fontSize: 18,
-    fontFamily: fonts.serif.bold,
+    fontFamily: fonts.bold,
     color: colors.text.primary,
     marginRight: spacing.sm,
   },
   row: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
+    flexDirection: "row",
+    flexWrap: "wrap",
     gap: spacing.md,
     marginBottom: spacing.sm,
   },
   rowItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: spacing.xs,
   },
   rowText: {
     fontSize: 14,
-    fontFamily: fonts.serif.regular,
+    fontFamily: fonts.regular,
     color: colors.text.secondary,
   },
   plannedText: {
     fontSize: 14,
-    fontFamily: fonts.serif.medium,
+    fontFamily: fonts.medium,
     color: colors.accent,
   },
-  errorText: {
+  syncStatus: {
     marginTop: spacing.sm,
-    marginBottom: 0,
-    textAlign: 'left',
   },
 });

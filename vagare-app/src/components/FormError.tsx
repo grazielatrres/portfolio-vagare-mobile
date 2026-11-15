@@ -18,7 +18,7 @@ export function FormError({ message, style }: FormErrorProps) {
 const styles = StyleSheet.create({
   text: {
     fontSize: 14,
-    fontFamily: fonts.serif.regular,
+    fontFamily: fonts.regular,
     color: colors.danger,
     marginBottom: spacing.md,
     textAlign: 'center',

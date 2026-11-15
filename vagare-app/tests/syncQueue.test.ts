@@ -1,13 +1,20 @@
 import { createActivity, updateActivity } from '@/services/activities';
 import { removeActivityFromCache } from '@/services/activitiesCache';
-import { ApiError } from '@/services/api';
+import { ApiError, UnsyncedEntityError } from '@/services/api';
 import { getDatabase } from '@/services/database';
 import { queryClient } from '@/services/queryClient';
+import { createTrip, deleteTrip } from '@/services/trips';
+import { removeTripFromCache, replaceLocalTrip } from '@/services/tripsCache';
 import {
   discardLocalEntity,
   drainPendingMutations,
   enqueueMutation,
+  getIsSyncing,
   getPendingMutations,
+  clearPendingMutations,
+  queueTripDeletion,
+  resolveSyncedId,
+  subscribeSyncStatus,
 } from '@/services/syncQueue';
 
 jest.mock('expo-crypto', () => ({
@@ -49,6 +56,16 @@ jest.mock('@/services/infosCache', () => ({
   removeInfoFromCache: jest.fn(),
 }));
 
+jest.mock('@/services/trips', () => ({
+  createTrip: jest.fn(),
+  deleteTrip: jest.fn(),
+}));
+
+jest.mock('@/services/tripsCache', () => ({
+  replaceLocalTrip: jest.fn(),
+  removeTripFromCache: jest.fn(),
+}));
+
 jest.mock('@/services/queryClient', () => ({
   queryClient: { invalidateQueries: jest.fn() },
 }));
@@ -65,6 +82,8 @@ function createFakeDb() {
         rows = rows.filter((r) => r.id !== params[0]);
       } else if (/DELETE FROM pending_mutations WHERE localId = \?/i.test(sql)) {
         rows = rows.filter((r) => r.localId !== params[0]);
+      } else if (/DELETE FROM pending_mutations WHERE tripId = \?/i.test(sql)) {
+        rows = rows.filter((r) => r.tripId !== params[0]);
       } else if (/DELETE FROM pending_mutations\s*$/i.test(sql.trim())) {
         rows = [];
       }
@@ -81,10 +100,12 @@ function createFakeDb() {
 describe('syncQueue', () => {
   let db: ReturnType<typeof createFakeDb>;
 
-  beforeEach(() => {
+  beforeEach(async () => {
     jest.clearAllMocks();
     db = createFakeDb();
     (getDatabase as jest.Mock).mockResolvedValue(db);
+    // Zera também o mapa de ids sincronizados entre os testes.
+    await clearPendingMutations();
   });
 
   it('enqueueMutation nunca lança, mesmo com SQLite indisponível', async () => {
@@ -154,6 +175,25 @@ describe('syncQueue', () => {
     await drainPendingMutations('token-1');
 
     await expect(getPendingMutations('t1')).resolves.toEqual([]);
+    // O item local de uma criação recusada sai do cache, senão fica órfão.
+    expect(removeActivityFromCache).toHaveBeenCalledWith('local-1');
+  });
+
+  it('preserva a fila quando o token é recusado (401)', async () => {
+    await enqueueMutation({
+      tripId: 't1',
+      entityType: 'activity',
+      operation: 'create',
+      localId: 'local-1',
+      payload: { name: 'A', date: '2026-01-01' },
+    });
+
+    (createActivity as jest.Mock).mockRejectedValueOnce(new ApiError(401, 'Token expirado'));
+
+    await drainPendingMutations('token-1');
+
+    await expect(getPendingMutations('t1')).resolves.toHaveLength(1);
+    expect(removeActivityFromCache).not.toHaveBeenCalled();
   });
 
   it('resolve create→update do mesmo localId para o id real do servidor ao drenar', async () => {
@@ -182,7 +222,201 @@ describe('syncQueue', () => {
     expect(queryClient.invalidateQueries).toHaveBeenCalledWith({ queryKey: ['trips', 't1'] });
   });
 
-  it('não drena duas vezes em paralelo (guard isDraining)', async () => {
+  it('cria a viagem offline primeiro e remapeia o tripId dos itens criados dentro dela', async () => {
+    const tripPayload = { name: 'Lisboa', destination: 'Lisboa', startDate: '2026-12-01', endDate: '2026-12-05' };
+    await enqueueMutation({
+      tripId: 'local-trip',
+      entityType: 'trip',
+      operation: 'create',
+      localId: 'local-trip',
+      payload: tripPayload,
+    });
+    await enqueueMutation({
+      tripId: 'local-trip',
+      entityType: 'activity',
+      operation: 'create',
+      localId: 'local-act',
+      payload: { name: 'A', date: '2026-12-02' },
+    });
+
+    const createdTrip = { id: 'real-trip', name: 'Lisboa' };
+    (createTrip as jest.Mock).mockResolvedValue(createdTrip);
+    (createActivity as jest.Mock).mockResolvedValue({ id: 'real-act', tripId: 'real-trip', name: 'A' });
+
+    await drainPendingMutations('token-1');
+
+    expect(createTrip).toHaveBeenCalledWith('token-1', tripPayload, 'local-trip');
+    expect(replaceLocalTrip).toHaveBeenCalledWith('local-trip', createdTrip);
+    expect(resolveSyncedId('local-trip')).toBe('real-trip');
+    expect(queryClient.invalidateQueries).toHaveBeenCalledWith({ queryKey: ['trips', 'local-trip'] });
+    expect(createActivity).toHaveBeenCalledWith(
+      'token-1',
+      'real-trip',
+      { name: 'A', date: '2026-12-02' },
+      'local-act',
+    );
+    expect(queryClient.invalidateQueries).toHaveBeenCalledWith({ queryKey: ['trips'], exact: true });
+    expect(queryClient.invalidateQueries).toHaveBeenCalledWith({ queryKey: ['trips', 'real-trip'] });
+  });
+
+  it('descarta a viagem local e seus itens quando o servidor rejeita a criação', async () => {
+    await enqueueMutation({
+      tripId: 'local-trip',
+      entityType: 'trip',
+      operation: 'create',
+      localId: 'local-trip',
+      payload: { name: '' },
+    });
+    await enqueueMutation({
+      tripId: 'local-trip',
+      entityType: 'activity',
+      operation: 'create',
+      localId: 'local-act',
+      payload: { name: 'A', date: '2026-12-02' },
+    });
+
+    (createTrip as jest.Mock).mockRejectedValueOnce(new ApiError(422, 'inválido'));
+
+    await drainPendingMutations('token-1');
+
+    expect(createActivity).not.toHaveBeenCalled();
+    expect(removeTripFromCache).toHaveBeenCalledWith('local-trip');
+    await expect(getPendingMutations('local-trip')).resolves.toEqual([]);
+  });
+
+  it('queueTripDeletion descarta pendências da viagem, limpa o cache e envia o DELETE ao drenar', async () => {
+    await enqueueMutation({
+      tripId: 'trip-1',
+      entityType: 'activity',
+      operation: 'create',
+      localId: 'local-act',
+      payload: { name: 'A', date: '2026-12-02' },
+    });
+
+    await queueTripDeletion('trip-1');
+
+    expect(removeTripFromCache).toHaveBeenCalledWith('trip-1');
+    const pending = await getPendingMutations('trip-1');
+    expect(pending).toHaveLength(1);
+    expect(pending[0]).toMatchObject({ entityType: 'trip', operation: 'delete' });
+
+    (deleteTrip as jest.Mock).mockResolvedValue(undefined);
+    await drainPendingMutations('token-1');
+
+    expect(createActivity).not.toHaveBeenCalled();
+    expect(deleteTrip).toHaveBeenCalledWith('token-1', 'trip-1');
+    await expect(getPendingMutations('trip-1')).resolves.toEqual([]);
+    expect(queryClient.invalidateQueries).toHaveBeenCalledWith({ queryKey: ['trips'], exact: true });
+  });
+
+  it('marca "sincronizando" só enquanto envia alterações e notifica a UI', async () => {
+    const statuses: boolean[] = [];
+    const unsubscribe = subscribeSyncStatus(() => statuses.push(getIsSyncing()));
+
+    await drainPendingMutations('token-1');
+    expect(statuses).toEqual([]);
+
+    await enqueueMutation({
+      tripId: 't1',
+      entityType: 'activity',
+      operation: 'create',
+      localId: 'local-1',
+      payload: { name: 'A', date: '2026-01-01' },
+    });
+    let syncingDuringRequest = false;
+    (createActivity as jest.Mock).mockImplementation(async () => {
+      syncingDuringRequest = getIsSyncing();
+      return { id: 'real-1', tripId: 't1', name: 'A' };
+    });
+
+    await drainPendingMutations('token-1');
+
+    expect(syncingDuringRequest).toBe(true);
+    expect(statuses).toEqual([true, false]);
+    expect(getIsSyncing()).toBe(false);
+    unsubscribe();
+  });
+
+  it('descarta a edição de um item cuja criação foi recusada, sem travar a fila', async () => {
+    await enqueueMutation({
+      tripId: 't1',
+      entityType: 'activity',
+      operation: 'create',
+      localId: 'local-1',
+      payload: { name: 'A', date: '2026-01-01' },
+    });
+    await enqueueMutation({
+      tripId: 't1',
+      entityType: 'activity',
+      operation: 'update',
+      localId: 'local-1',
+      payload: { name: 'A editada', date: '2026-01-01' },
+    });
+    await enqueueMutation({
+      tripId: 't1',
+      entityType: 'activity',
+      operation: 'create',
+      localId: 'local-2',
+      payload: { name: 'B', date: '2026-01-02' },
+    });
+
+    (createActivity as jest.Mock)
+      .mockRejectedValueOnce(new ApiError(422, 'inválido'))
+      .mockResolvedValueOnce({ id: 'real-2', tripId: 't1', name: 'B' });
+    (updateActivity as jest.Mock).mockRejectedValueOnce(new UnsyncedEntityError());
+
+    await drainPendingMutations('token-1');
+
+    expect(createActivity).toHaveBeenCalledTimes(2);
+    await expect(getPendingMutations('t1')).resolves.toEqual([]);
+  });
+
+  it('resolve para o id real uma edição enfileirada depois que a criação já subiu', async () => {
+    await enqueueMutation({
+      tripId: 't1',
+      entityType: 'activity',
+      operation: 'create',
+      localId: 'local-1',
+      payload: { name: 'A', date: '2026-01-01' },
+    });
+    (createActivity as jest.Mock).mockResolvedValue({ id: 'real-1', tripId: 't1', name: 'A' });
+    await drainPendingMutations('token-1');
+
+    await enqueueMutation({
+      tripId: 't1',
+      entityType: 'activity',
+      operation: 'update',
+      localId: 'local-1',
+      payload: { name: 'A editada', date: '2026-01-01' },
+    });
+    (updateActivity as jest.Mock).mockResolvedValue({ id: 'real-1', tripId: 't1', name: 'A editada' });
+    await drainPendingMutations('token-1');
+
+    expect(updateActivity).toHaveBeenCalledWith('token-1', 't1', 'real-1', {
+      name: 'A editada',
+      date: '2026-01-01',
+    });
+  });
+
+  it('mantém a criação na fila quando o servidor ainda processa a tentativa original (409)', async () => {
+    await enqueueMutation({
+      tripId: 't1',
+      entityType: 'activity',
+      operation: 'create',
+      localId: 'local-1',
+      payload: { name: 'A', date: '2026-01-01' },
+    });
+    (createActivity as jest.Mock).mockRejectedValueOnce(
+      new ApiError(409, 'Requisição original ainda em processamento'),
+    );
+
+    await drainPendingMutations('token-1');
+
+    await expect(getPendingMutations('t1')).resolves.toHaveLength(1);
+    expect(removeActivityFromCache).not.toHaveBeenCalled();
+  });
+
+  it('não drena duas vezes em paralelo: a segunda chamada aguarda a mesma drenagem', async () => {
     await enqueueMutation({
       tripId: 't1',
       entityType: 'activity',
@@ -193,12 +427,12 @@ describe('syncQueue', () => {
 
     (createActivity as jest.Mock).mockResolvedValue({ id: 'real-1', tripId: 't1', name: 'A' });
 
-    // isDraining é marcado de forma síncrona no início de drainPendingMutations,
-    // então a segunda chamada já retorna sem tocar no banco/rede.
     const first = drainPendingMutations('token-1');
     const second = drainPendingMutations('token-1');
-    await Promise.all([first, second]);
+    expect(second).toBe(first);
+    await second;
 
     expect(createActivity).toHaveBeenCalledTimes(1);
+    await expect(getPendingMutations('t1')).resolves.toEqual([]);
   });
 });

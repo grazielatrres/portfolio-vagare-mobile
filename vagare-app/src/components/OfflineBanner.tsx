@@ -1,9 +1,9 @@
 import { Ionicons } from '@expo/vector-icons';
-import { StyleProp, StyleSheet, Text, View, ViewStyle } from 'react-native';
+import { ActivityIndicator, StyleProp, StyleSheet, Text, View, ViewStyle } from 'react-native';
 
 import { colors, fonts, spacing } from '@/theme';
 
-export type OfflineBannerTone = 'offline' | 'pending';
+export type OfflineBannerTone = 'offline' | 'pending' | 'syncing';
 
 export interface OfflineBannerProps {
   message: string;
@@ -11,22 +11,29 @@ export interface OfflineBannerProps {
   style?: StyleProp<ViewStyle>;
 }
 
-const ICONS: Record<OfflineBannerTone, keyof typeof Ionicons.glyphMap> = {
+const ICONS: Record<Exclude<OfflineBannerTone, 'syncing'>, keyof typeof Ionicons.glyphMap> = {
   offline: 'cloud-offline-outline',
   pending: 'sync-outline',
 };
 
 export function OfflineBanner({ message, tone = 'offline', style }: OfflineBannerProps) {
-  const isPending = tone === 'pending';
+  const isAccent = tone !== 'offline';
 
   return (
-    <View style={[styles.banner, isPending && styles.bannerPending, style]}>
-      <Ionicons
-        name={ICONS[tone]}
-        size={16}
-        color={isPending ? colors.accent : colors.text.secondary}
-      />
-      <Text style={[styles.text, isPending && styles.textPending]}>{message}</Text>
+    <View
+      style={[styles.banner, isAccent && styles.bannerPending, style]}
+      accessibilityLiveRegion={tone === 'syncing' ? 'polite' : undefined}
+    >
+      {tone === 'syncing' ? (
+        <ActivityIndicator size="small" color={colors.accent} style={styles.spinner} />
+      ) : (
+        <Ionicons
+          name={ICONS[tone]}
+          size={16}
+          color={isAccent ? colors.accent : colors.text.secondary}
+        />
+      )}
+      <Text style={[styles.text, isAccent && styles.textPending]}>{message}</Text>
     </View>
   );
 }
@@ -50,10 +57,15 @@ const styles = StyleSheet.create({
   text: {
     flex: 1,
     fontSize: 13,
-    fontFamily: fonts.serif.regular,
+    fontFamily: fonts.regular,
     color: colors.text.secondary,
   },
   textPending: {
     color: colors.accent,
+  },
+  spinner: {
+    width: 16,
+    height: 16,
+    transform: [{ scale: 0.8 }],
   },
 });

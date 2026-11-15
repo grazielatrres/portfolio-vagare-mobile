@@ -29,7 +29,7 @@ const styles = StyleSheet.create({
   label: {
     marginHorizontal: spacing.sm,
     fontSize: 14,
-    fontFamily: fonts.serif.regular,
+    fontFamily: fonts.regular,
     color: colors.text.secondary,
   },
 });

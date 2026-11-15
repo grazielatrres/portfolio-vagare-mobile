@@ -1,6 +1,6 @@
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import { Ionicons } from "@expo/vector-icons";
-import { router } from "expo-router";
+import { router, useFocusEffect } from "expo-router";
 import {
   ActivityIndicator,
   FlatList,
@@ -9,10 +9,11 @@ import {
   Text,
   View,
 } from "react-native";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import { Button, EmptyState, FormError, OfflineBanner } from "@/components";
+import { Button, EmptyState, FormError, OfflineBanner, Screen } from "@/components";
 import { useAuth } from "@/contexts/AuthContext";
+import { useActivityCountsQuery } from "@/hooks/useActivityCountsQuery";
+import { useIsSyncing } from "@/hooks/useIsSyncing";
 import { useTripsQuery } from "@/hooks/useTripsQuery";
 import { ApiError } from "@/services/api";
 import { colors, fonts, spacing } from "@/theme";
@@ -21,9 +22,17 @@ import { TripCard } from "./components/TripCard";
 
 export function Trips() {
   const { user } = useAuth();
-  const insets = useSafeAreaInsets();
   const { data, isPending, isError, error, refetch } = useTripsQuery();
+  const isSyncing = useIsSyncing();
+  const { data: activityCounts, refetch: refetchActivityCounts } = useActivityCountsQuery();
   const [refreshing, setRefreshing] = useState(false);
+
+  // A lista continua montada sob a tela da viagem; recarrega a contagem ao voltar.
+  useFocusEffect(
+    useCallback(() => {
+      refetchActivityCounts();
+    }, [refetchActivityCounts]),
+  );
 
   const trips = data?.trips ?? [];
   const isOffline = data?.isOffline ?? false;
@@ -31,14 +40,14 @@ export function Trips() {
   async function handleRefresh() {
     setRefreshing(true);
     try {
-      await refetch();
+      await Promise.all([refetch(), refetchActivityCounts()]);
     } finally {
       setRefreshing(false);
     }
   }
 
   return (
-    <View style={[styles.root, { paddingTop: insets.top + spacing.md }]}>
+    <Screen edges={['top']} style={styles.root}>
       <View style={styles.header}>
         <Text style={styles.greeting}>{getGreeting()},</Text>
         <Text style={styles.name}>{user?.name}</Text>
@@ -53,7 +62,9 @@ export function Trips() {
 
       <Text style={styles.sectionTitle}>Minhas viagens</Text>
 
-      {isOffline ? (
+      {isSyncing ? (
+        <OfflineBanner tone="syncing" message="Sincronizando alterações feitas offline…" />
+      ) : isOffline ? (
         <OfflineBanner message="Sem conexão — mostrando as viagens salvas neste dispositivo" />
       ) : null}
 
@@ -71,7 +82,7 @@ export function Trips() {
           />
           <Button
             title="Tentar novamente"
-            variant="outline"
+            variant="soft"
             onPress={() => refetch()}
           />
         </View>
@@ -83,7 +94,9 @@ export function Trips() {
         <FlatList
           data={trips}
           keyExtractor={(trip) => trip.id}
-          renderItem={({ item }) => <TripCard trip={item} />}
+          renderItem={({ item }) => (
+            <TripCard trip={item} activityCount={activityCounts?.[item.id] ?? 0} />
+          )}
           showsVerticalScrollIndicator={false}
           style={styles.list}
           refreshControl={
@@ -96,13 +109,14 @@ export function Trips() {
           }
         />
       )}
-    </View>
+    </Screen>
   );
 }
 
 const styles = StyleSheet.create({
   root: {
     flex: 1,
+    paddingTop: spacing.md,
     backgroundColor: colors.background,
     paddingHorizontal: spacing.lg,
   },
@@ -111,12 +125,12 @@ const styles = StyleSheet.create({
   },
   greeting: {
     fontSize: 16,
-    fontFamily: fonts.serif.regular,
+    fontFamily: fonts.regular,
     color: colors.text.secondary,
   },
   name: {
     fontSize: 26,
-    fontFamily: fonts.serif.bold,
+    fontFamily: fonts.bold,
     color: colors.text.primary,
   },
   createButton: {
@@ -124,7 +138,7 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     fontSize: 18,
-    fontFamily: fonts.serif.bold,
+    fontFamily: fonts.bold,
     color: colors.text.primary,
     marginBottom: spacing.md,
   },

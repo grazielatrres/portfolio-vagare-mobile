@@ -6,17 +6,20 @@ import { deleteActivity } from '@/services/activities';
 import { removeActivityFromCache } from '@/services/activitiesCache';
 import { ApiError } from '@/services/api';
 import { queryClient } from '@/services/queryClient';
-import { discardLocalEntity, enqueueMutation, isLocalId } from '@/services/syncQueue';
+import { discardLocalEntity, enqueueMutation, isLocalId, resolveSyncedId } from '@/services/syncQueue';
+import { OFFLINE_DELETED_TOAST } from '@/utils/offlineToasts';
 import { activitiesQueryKey } from './useActivitiesQuery';
 import { budgetQueryKey } from './useBudgetQuery';
 import { pendingMutationsQueryKey } from './usePendingMutationsQuery';
 
-export function useDeleteActivityMutation(tripId: string) {
+export function useDeleteActivityMutation(rawTripId: string) {
   const { token } = useAuth();
   const { showToast } = useToast();
 
   return useMutation({
-    mutationFn: async (id: string) => {
+    mutationFn: async (rawId: string) => {
+      const id = resolveSyncedId(rawId);
+      const tripId = resolveSyncedId(rawTripId);
       try {
         await deleteActivity(token as string, tripId, id);
       } catch (err) {
@@ -34,19 +37,16 @@ export function useDeleteActivityMutation(tripId: string) {
               payload: null,
             });
           }
-          showToast({
-            title: 'Excluído localmente',
-            message: 'Será sincronizado quando a conexão voltar.',
-          });
+          showToast(OFFLINE_DELETED_TOAST);
           return;
         }
         throw err;
       }
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: activitiesQueryKey(tripId) });
-      queryClient.invalidateQueries({ queryKey: budgetQueryKey(tripId) });
-      queryClient.invalidateQueries({ queryKey: pendingMutationsQueryKey(tripId) });
+      queryClient.invalidateQueries({ queryKey: activitiesQueryKey(rawTripId) });
+      queryClient.invalidateQueries({ queryKey: budgetQueryKey(rawTripId) });
+      queryClient.invalidateQueries({ queryKey: pendingMutationsQueryKey(rawTripId) });
     },
   });
 }

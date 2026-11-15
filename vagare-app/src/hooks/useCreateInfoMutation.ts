@@ -7,6 +7,7 @@ import { CreateInfoPayload, buildInfoFromPayload, createInfo } from '@/services/
 import { upsertInfoToCache } from '@/services/infosCache';
 import { queryClient } from '@/services/queryClient';
 import { enqueueMutation, generateLocalId } from '@/services/syncQueue';
+import { OFFLINE_SAVED_TOAST } from '@/utils/offlineToasts';
 import { infosQueryKey } from './useInfosQuery';
 import { pendingMutationsQueryKey } from './usePendingMutationsQuery';
 
@@ -16,11 +17,13 @@ export function useCreateInfoMutation(tripId: string) {
 
   return useMutation({
     mutationFn: async (payload: CreateInfoPayload) => {
+      // Também é a Idempotency-Key: o reenvio pela fila não duplica o item.
+      const localId = generateLocalId();
       try {
-        return await createInfo(token as string, tripId, payload);
+        return await createInfo(token as string, tripId, payload, localId);
       } catch (err) {
         if (err instanceof ApiError && err.status === 0) {
-          const local = buildInfoFromPayload(generateLocalId(), tripId, payload);
+          const local = buildInfoFromPayload(localId, tripId, payload);
           await upsertInfoToCache(local);
           await enqueueMutation({
             tripId,
@@ -29,10 +32,7 @@ export function useCreateInfoMutation(tripId: string) {
             localId: local.id,
             payload,
           });
-          showToast({
-            title: 'Salvo localmente',
-            message: 'Será sincronizado quando a conexão voltar.',
-          });
+          showToast(OFFLINE_SAVED_TOAST);
           return local;
         }
         throw err;

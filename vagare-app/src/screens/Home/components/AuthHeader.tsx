@@ -41,13 +41,13 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 26,
     color: colors.text.primary,
-    fontFamily: fonts.serif.bold,
+    fontFamily: fonts.bold,
     marginBottom: spacing.xs,
   },
   subtitle: {
     fontSize: 15,
     color: colors.text.secondary,
-    fontFamily: fonts.serif.regular,
+    fontFamily: fonts.regular,
   },
   textCenter: {
     textAlign: 'center',

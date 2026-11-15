@@ -1,7 +1,8 @@
 import { useQuery } from '@tanstack/react-query';
 
 import { useAuth } from '@/contexts/AuthContext';
-import { ApiError } from '@/services/api';
+import { ApiError, isNetworkFailure } from '@/services/api';
+import { resolveSyncedId } from '@/services/syncQueue';
 import { getTrip } from '@/services/trips';
 import { getCachedTripById } from '@/services/tripsCache';
 
@@ -15,14 +16,16 @@ export function useTripQuery(id: string) {
   return useQuery({
     queryKey: tripQueryKey(id),
     queryFn: async () => {
+      const resolvedId = resolveSyncedId(id);
+
       try {
-        const trip = await getTrip(token as string, id);
-        return { trip, isOffline: false as const };
+        const trip = await getTrip(token as string, resolvedId);
+        return { trip, isOffline: false };
       } catch (err) {
         if (err instanceof ApiError && err.status === 0) {
-          const cached = await getCachedTripById(id);
+          const cached = await getCachedTripById(resolvedId);
           if (cached) {
-            return { trip: cached, isOffline: true as const };
+            return { trip: cached, isOffline: isNetworkFailure(err) };
           }
           throw new ApiError(0, 'Sem conexão e esta viagem ainda não foi salva neste dispositivo.');
         }

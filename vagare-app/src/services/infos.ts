@@ -1,6 +1,6 @@
-import { apiRequest } from './api';
+import { apiRequest, idempotencyHeaders } from './api';
 
-export type InfoType = 'flight' | 'lodging' | 'document';
+export type InfoType = 'flight' | 'lodging';
 
 export interface FlightDetails {
   origin: string;
@@ -13,10 +13,6 @@ export interface LodgingDetails {
   address: string;
   checkIn: string;
   checkOut: string;
-}
-
-export interface DocumentDetails {
-  number: string;
 }
 
 export interface Info {
@@ -41,11 +37,17 @@ export function listInfos(token: string, tripId: string) {
   return apiRequest<Info[]>(`/trips/${tripId}/infos`, { token });
 }
 
-export function createInfo(token: string, tripId: string, payload: CreateInfoPayload) {
+export function createInfo(
+  token: string,
+  tripId: string,
+  payload: CreateInfoPayload,
+  idempotencyKey?: string,
+) {
   return apiRequest<Info>(`/trips/${tripId}/infos`, {
     method: 'POST',
     token,
     body: payload,
+    headers: idempotencyHeaders(idempotencyKey),
   });
 }
 

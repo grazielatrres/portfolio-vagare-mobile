@@ -3,11 +3,12 @@ import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect } from 'react';
+import { KeyboardProvider } from 'react-native-keyboard-controller';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import { AuthProvider, useAuth } from '@/contexts/AuthContext';
 import { ToastProvider } from '@/contexts/ToastContext';
-import { useSerifFonts } from '@/hooks/useSerifFonts';
+import { useAppFonts } from '@/hooks/useAppFonts';
 import { useSyncQueueDrain } from '@/hooks/useSyncQueueDrain';
 import { queryClient } from '@/services/queryClient';
 
@@ -43,6 +44,7 @@ function RootNavigator() {
         <Stack.Screen name="(tabs)" />
         <Stack.Screen name="trip/create" />
         <Stack.Screen name="trip/[id]/index" />
+        <Stack.Screen name="trip/[id]/edit" />
       </Stack.Protected>
       <Stack.Protected guard={!user}>
         <Stack.Screen name="(auth)" />
@@ -53,20 +55,22 @@ function RootNavigator() {
 }
 
 export default function RootLayout() {
-  const [fontsLoaded] = useSerifFonts();
+  const [fontsLoaded] = useAppFonts();
 
   return (
     <SafeAreaProvider>
-      <QueryClientProvider client={queryClient}>
-        <AuthProvider>
-          <ToastProvider>
-            <SplashScreenController fontsLoaded={fontsLoaded} />
-            <SyncQueueController />
-            <StatusBar style="dark" />
-            {fontsLoaded && <RootNavigator />}
-          </ToastProvider>
-        </AuthProvider>
-      </QueryClientProvider>
+      <KeyboardProvider>
+        <QueryClientProvider client={queryClient}>
+          <AuthProvider>
+            <ToastProvider>
+              <SplashScreenController fontsLoaded={fontsLoaded} />
+              <SyncQueueController />
+              <StatusBar style="dark" />
+              {fontsLoaded && <RootNavigator />}
+            </ToastProvider>
+          </AuthProvider>
+        </QueryClientProvider>
+      </KeyboardProvider>
     </SafeAreaProvider>
   );
 }

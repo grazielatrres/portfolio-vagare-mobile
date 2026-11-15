@@ -1,4 +1,5 @@
 import {
+  digitsFromCurrencyInput,
   amountToDigits,
   digitsToAmount,
   formatAmountFromDigits,
@@ -56,5 +57,20 @@ describe('formatAmountFromDigits', () => {
 
   it('formata string vazia como zero', () => {
     expect(formatAmountFromDigits('', 'USD')).toBe('$0.00');
+  });
+});
+
+describe('digitsFromCurrencyInput', () => {
+  it('acrescenta o dígito digitado', () => {
+    expect(digitsFromCurrencyInput('R$ 15,001', '1500', 'BRL')).toBe('15001');
+  });
+
+  it('apaga o último dígito quando o backspace cai no símbolo da moeda', () => {
+    const formatted = formatAmountFromDigits('150000', 'EUR');
+    expect(digitsFromCurrencyInput(formatted.slice(0, -1), '150000', 'EUR')).toBe('15000');
+  });
+
+  it('esvazia o campo ao apagar o último dígito', () => {
+    expect(digitsFromCurrencyInput('R$ 0,0', '1', 'BRL')).toBe('');
   });
 });

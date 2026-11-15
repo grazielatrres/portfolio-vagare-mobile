@@ -1,16 +1,13 @@
 import { useState } from 'react';
 import { Ionicons } from '@expo/vector-icons';
-import { ActivityIndicator, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
 
-import { Button, FormError, OfflineBanner } from '@/components';
+import { Button, FormError, FormScrollView } from '@/components';
 import { useInfosQuery } from '@/hooks/useInfosQuery';
-import { usePendingMutationsQuery } from '@/hooks/usePendingMutationsQuery';
 import { ApiError } from '@/services/api';
 import { Info } from '@/services/infos';
 import { Trip } from '@/services/trips';
 import { colors, fonts, spacing } from '@/theme';
-import { DocumentCard } from './DocumentCard';
-import { DocumentForm } from './DocumentForm';
 import { FlightCard } from './FlightCard';
 import { FlightForm } from './FlightForm';
 import { LodgingCard } from './LodgingCard';
@@ -31,18 +28,13 @@ function sortByDate(infos: Info[]): Info[] {
 
 export function InfoTab({ trip }: InfoTabProps) {
   const { data, isPending, isError, error, refetch } = useInfosQuery(trip.id);
-  const { data: pendingMutations } = usePendingMutationsQuery(trip.id);
   const [showFlightForm, setShowFlightForm] = useState(false);
   const [showLodgingForm, setShowLodgingForm] = useState(false);
-  const [showDocumentForm, setShowDocumentForm] = useState(false);
 
   const infos = data?.infos;
-  const isOffline = data?.isOffline ?? false;
-  const pendingCount = pendingMutations?.length ?? 0;
 
   const flights = sortByDate((infos ?? []).filter((info) => info.type === 'flight'));
   const lodgings = sortByDate((infos ?? []).filter((info) => info.type === 'lodging'));
-  const documents = sortByDate((infos ?? []).filter((info) => info.type === 'document'));
 
   return (
     <View style={styles.root}>
@@ -58,24 +50,13 @@ export function InfoTab({ trip }: InfoTabProps) {
             }
             style={styles.noMargin}
           />
-          <Button title="Tentar novamente" variant="outline" onPress={() => refetch()} />
+          <Button title="Tentar novamente" variant="soft" onPress={() => refetch()} />
         </View>
       ) : (
-        <ScrollView
+        <FormScrollView
           style={styles.scroll}
           contentContainerStyle={styles.scrollContent}
-          showsVerticalScrollIndicator={false}
         >
-          {isOffline ? (
-            <OfflineBanner message="Sem conexão — mostrando informações salvas neste dispositivo" />
-          ) : null}
-          {pendingCount > 0 ? (
-            <OfflineBanner
-              tone="pending"
-              message={`${pendingCount} alteração(ões) aguardando sincronização`}
-            />
-          ) : null}
-
           <Text style={styles.pageTitle}>Informações complementares</Text>
 
           <View style={styles.section}>
@@ -99,9 +80,7 @@ export function InfoTab({ trip }: InfoTabProps) {
             ) : (
               <Button
                 title="Adicionar voo"
-                variant="outline"
-                tone="accent"
-                icon={<Ionicons name="add" size={20} color={colors.accent} />}
+                icon={<Ionicons name="add" size={20} color={colors.surface} />}
                 onPress={() => setShowFlightForm(true)}
                 style={styles.addButton}
               />
@@ -129,45 +108,13 @@ export function InfoTab({ trip }: InfoTabProps) {
             ) : (
               <Button
                 title="Adicionar hospedagem"
-                variant="outline"
-                tone="accent"
-                icon={<Ionicons name="add" size={20} color={colors.accent} />}
+                icon={<Ionicons name="add" size={20} color={colors.surface} />}
                 onPress={() => setShowLodgingForm(true)}
                 style={styles.addButton}
               />
             )}
           </View>
-
-          <View style={styles.section}>
-            <View style={styles.sectionHeader}>
-              <Ionicons name="document-text-outline" size={18} color={colors.text.secondary} />
-              <Text style={styles.sectionTitle}>Documentos</Text>
-            </View>
-
-            {documents.length === 0 && !showDocumentForm ? (
-              <Text style={styles.emptyText}>Nenhum documento cadastrado ainda.</Text>
-            ) : (
-              documents.map((info) => <DocumentCard key={info.id} info={info} trip={trip} />)
-            )}
-
-            {showDocumentForm ? (
-              <DocumentForm
-                trip={trip}
-                onCancel={() => setShowDocumentForm(false)}
-                onSuccess={() => setShowDocumentForm(false)}
-              />
-            ) : (
-              <Button
-                title="Adicionar documento"
-                variant="outline"
-                tone="accent"
-                icon={<Ionicons name="add" size={20} color={colors.accent} />}
-                onPress={() => setShowDocumentForm(true)}
-                style={styles.addButton}
-              />
-            )}
-          </View>
-        </ScrollView>
+        </FormScrollView>
       )}
     </View>
   );
@@ -193,7 +140,7 @@ const styles = StyleSheet.create({
   },
   pageTitle: {
     fontSize: 16,
-    fontFamily: fonts.serif.bold,
+    fontFamily: fonts.bold,
     color: colors.text.primary,
     marginBottom: spacing.md,
   },
@@ -208,13 +155,13 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     fontSize: 15,
-    fontFamily: fonts.serif.bold,
+    fontFamily: fonts.bold,
     color: colors.text.secondary,
   },
   emptyText: {
     marginBottom: spacing.md,
     fontSize: 14,
-    fontFamily: fonts.serif.regular,
+    fontFamily: fonts.regular,
     color: colors.text.secondary,
   },
   addButton: {

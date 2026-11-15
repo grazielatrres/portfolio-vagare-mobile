@@ -5,5 +5,9 @@ import { TripDetail } from '@/screens/TripDetail';
 export default function TripDetailRoute() {
   const { id } = useLocalSearchParams<{ id: string }>();
 
-  return <TripDetail tripId={id} onBack={() => router.back()} />;
+  return <TripDetail
+      tripId={id}
+      onBack={() => router.back()}
+      onEdit={() => router.push({ pathname: '/trip/[id]/edit', params: { id } })}
+    />;
 }

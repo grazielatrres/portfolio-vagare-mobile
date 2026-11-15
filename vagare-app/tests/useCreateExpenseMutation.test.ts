@@ -34,7 +34,12 @@ describe('useCreateExpenseMutation', () => {
 
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
 
-    expect(createExpenseMock).toHaveBeenCalledWith('test-token', 'trip-1', payload);
+    expect(createExpenseMock).toHaveBeenCalledWith(
+      'test-token',
+      'trip-1',
+      payload,
+      expect.stringMatching(/^local-/),
+    );
     expect(invalidateSpy).toHaveBeenCalledWith({ queryKey: budgetQueryKey('trip-1') });
 
     invalidateSpy.mockRestore();

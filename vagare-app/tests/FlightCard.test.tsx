@@ -1,5 +1,5 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { fireEvent, render, screen, waitFor } from '@testing-library/react-native';
+import { act, fireEvent, render, screen, waitFor } from '@testing-library/react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import { ToastProvider } from '@/contexts/ToastContext';
@@ -43,6 +43,26 @@ describe('FlightCard', () => {
     const [url, options] = (global.fetch as jest.Mock).mock.calls[0];
     expect(url).toContain(`/trips/trip-1/infos/${info.id}`);
     expect(options.method).toBe('DELETE');
+  });
+
+  it('mostra a falha ao excluir num toast temporário, sem deixar o erro fixo no card', async () => {
+    jest.useFakeTimers();
+    (global.fetch as jest.Mock).mockResolvedValue(
+      mockJsonResponse({ error: 'Voo não encontrado' }, false),
+    );
+    await renderCard();
+
+    await fireEvent.press(screen.getByTestId('delete-button'));
+    await fireEvent.press(screen.getByText('Excluir'));
+
+    await waitFor(() => expect(screen.getByText('Não foi possível excluir o voo')).toBeTruthy());
+    expect(screen.getByText('Voo não encontrado')).toBeTruthy();
+
+    await act(async () => {
+      jest.runAllTimers();
+    });
+    expect(screen.queryByText('Voo não encontrado')).toBeNull();
+    jest.useRealTimers();
   });
 
   it('abre o formulário de edição ao tocar no ícone de editar', async () => {

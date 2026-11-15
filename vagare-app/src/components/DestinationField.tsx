@@ -9,6 +9,7 @@ import { Input } from './Input';
 export interface DestinationFieldProps {
   label?: string;
   required?: boolean;
+  error?: string | null;
   value: string;
   onChangeText: (text: string) => void;
   onSelectPlace: (place: PlaceSuggestion) => void;
@@ -20,6 +21,7 @@ const MIN_QUERY_LENGTH = 3;
 export function DestinationField({
   label = 'Destino',
   required,
+  error,
   value,
   onChangeText,
   onSelectPlace,
@@ -69,6 +71,7 @@ export function DestinationField({
       <Input
         label={label}
         required={required}
+        error={error}
         placeholder="Ex: Santorini, Grécia"
         value={value}
         onChangeText={handleChangeText}
@@ -111,7 +114,7 @@ const styles = StyleSheet.create({
   hint: {
     marginTop: spacing.xs,
     fontSize: 13,
-    fontFamily: fonts.serif.regular,
+    fontFamily: fonts.regular,
     color: colors.text.secondary,
   },
   dropdown: {
@@ -133,7 +136,7 @@ const styles = StyleSheet.create({
   },
   optionText: {
     fontSize: 15,
-    fontFamily: fonts.serif.regular,
+    fontFamily: fonts.regular,
     color: colors.text.primary,
   },
 });

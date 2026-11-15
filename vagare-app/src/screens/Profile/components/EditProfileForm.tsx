@@ -1,17 +1,20 @@
-import { useState } from 'react';
-import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { Ionicons } from "@expo/vector-icons";
+import { useState } from "react";
+import {
+  ActivityIndicator,
+  Pressable,
+  StyleSheet,
+  Text,
+  View,
+} from "react-native";
 
-import { Button, Divider, FormError, Input } from '@/components';
-import { useAuth } from '@/contexts/AuthContext';
-import { useToast } from '@/contexts/ToastContext';
-import { useUpdateProfileMutation } from '@/hooks/useUpdateProfileMutation';
-import { ApiError } from '@/services/api';
-import { colors, fonts, spacing } from '@/theme';
-import { RemoveAccountModal } from './RemoveAccountModal';
-
-const EMAIL_LOCKED_HINT = 'O e-mail não pode ser alterado.';
-
+import { Button, Divider, FormError, Input } from "@/components";
+import { useAuth } from "@/contexts/AuthContext";
+import { useToast } from "@/contexts/ToastContext";
+import { useUpdateProfileMutation } from "@/hooks/useUpdateProfileMutation";
+import { ApiError } from "@/services/api";
+import { colors, fonts, spacing } from "@/theme";
+import { RemoveAccountModal } from "./RemoveAccountModal";
 export interface EditProfileFormProps {
   name: string;
   email: string;
@@ -19,7 +22,12 @@ export interface EditProfileFormProps {
   onSaved: () => void;
 }
 
-export function EditProfileForm({ name, email, onCancel, onSaved }: EditProfileFormProps) {
+export function EditProfileForm({
+  name,
+  email,
+  onCancel,
+  onSaved,
+}: EditProfileFormProps) {
   const { updateUser, deleteAccount } = useAuth();
   const { showToast } = useToast();
   const updateProfileMutation = useUpdateProfileMutation();
@@ -28,7 +36,7 @@ export function EditProfileForm({ name, email, onCancel, onSaved }: EditProfileF
   const [nameError, setNameError] = useState<string | null>(null);
   const [formError, setFormError] = useState<string | null>(null);
 
-  const [isDeleteDialogVisible, setIsDeleteDialogVisible] = useState(false);
+  const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
   const [deleteError, setDeleteError] = useState<string | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const [isHoveringDelete, setIsHoveringDelete] = useState(false);
@@ -44,7 +52,7 @@ export function EditProfileForm({ name, email, onCancel, onSaved }: EditProfileF
     const trimmedName = nameValue.trim();
 
     if (!trimmedName) {
-      setNameError('Nome é obrigatório');
+      setNameError("Nome é obrigatório");
       return;
     }
 
@@ -59,10 +67,15 @@ export function EditProfileForm({ name, email, onCancel, onSaved }: EditProfileF
       await updateProfileMutation.mutateAsync({ name: trimmedName });
       await updateUser({ name: trimmedName });
       onSaved();
-      showToast({ title: 'Dados atualizados', message: 'Seu perfil foi salvo.' });
+      showToast({
+        title: "Dados atualizados",
+        message: "Seu perfil foi salvo.",
+      });
     } catch (err) {
       setFormError(
-        err instanceof ApiError ? err.message : 'Não foi possível salvar seus dados. Tente novamente.',
+        err instanceof ApiError
+          ? err.message
+          : "Não foi possível salvar seus dados. Tente novamente.",
       );
     }
   }
@@ -72,11 +85,16 @@ export function EditProfileForm({ name, email, onCancel, onSaved }: EditProfileF
     setIsDeleting(true);
     try {
       await deleteAccount();
-      showToast({ title: 'Conta excluída', message: 'Sua conta foi removida.' });
+      showToast({
+        title: "Conta excluída",
+        message: "Sua conta foi removida.",
+      });
     } catch (err) {
       setIsDeleting(false);
       setDeleteError(
-        err instanceof ApiError ? err.message : 'Não foi possível excluir sua conta. Tente novamente.',
+        err instanceof ApiError
+          ? err.message
+          : "Não foi possível excluir sua conta. Tente novamente.",
       );
     }
   }
@@ -84,9 +102,8 @@ export function EditProfileForm({ name, email, onCancel, onSaved }: EditProfileF
   return (
     <View style={styles.card}>
       <Text style={styles.cardTitle}>Editar dados</Text>
-
       <Input
-        label="Nome completo"
+        label="Nome"
         placeholder="Seu nome"
         value={nameValue}
         onChangeText={handleNameChange}
@@ -100,24 +117,22 @@ export function EditProfileForm({ name, email, onCancel, onSaved }: EditProfileF
         label="Email"
         value={email}
         editable={false}
-        accessibilityHint={EMAIL_LOCKED_HINT}
         containerStyle={styles.field}
         inputStyle={styles.roundedDisabledInput}
       />
-      <Text style={styles.emailHint}>{EMAIL_LOCKED_HINT}</Text>
 
       <FormError message={formError} style={styles.formError} />
 
       <View style={styles.actions}>
         <Button
           title="Cancelar"
-          variant="outline"
+          variant="soft"
           onPress={onCancel}
           disabled={updateProfileMutation.isPending}
           style={styles.actionButton}
         />
         <Button
-          title={updateProfileMutation.isPending ? 'Salvando...' : 'Salvar'}
+          title={updateProfileMutation.isPending ? "Salvando..." : "Salvar"}
           onPress={handleSave}
           disabled={updateProfileMutation.isPending}
           icon={
@@ -132,24 +147,27 @@ export function EditProfileForm({ name, email, onCancel, onSaved }: EditProfileF
       <Divider />
 
       <Pressable
-        onPress={() => setIsDeleteDialogVisible(true)}
+        onPress={() => setIsDeleteModalVisible(true)}
         onHoverIn={() => setIsHoveringDelete(true)}
         onHoverOut={() => setIsHoveringDelete(false)}
         hitSlop={8}
         accessibilityRole="button"
         accessibilityLabel="Excluir conta"
-        style={[styles.deleteButton, isHoveringDelete && styles.deleteButtonHovered]}
+        style={[
+          styles.deleteButton,
+          isHoveringDelete && styles.deleteButtonHovered,
+        ]}
       >
         <Ionicons name="trash-outline" size={20} color={colors.danger} />
         <Text style={styles.deleteButtonText}>Excluir conta</Text>
       </Pressable>
 
       <RemoveAccountModal
-        visible={isDeleteDialogVisible}
+        visible={isDeleteModalVisible}
         isDeleting={isDeleting}
         error={deleteError}
         onConfirm={handleConfirmDelete}
-        onCancel={() => setIsDeleteDialogVisible(false)}
+        onCancel={() => setIsDeleteModalVisible(false)}
       />
     </View>
   );
@@ -166,7 +184,7 @@ const styles = StyleSheet.create({
   },
   cardTitle: {
     fontSize: 19,
-    fontFamily: fonts.serif.bold,
+    fontFamily: fonts.bold,
     color: colors.text.primary,
     marginBottom: spacing.lg,
   },
@@ -185,7 +203,7 @@ const styles = StyleSheet.create({
     marginTop: -spacing.sm,
     marginBottom: spacing.md,
     fontSize: 16,
-    fontFamily: fonts.serif.regular,
+    fontFamily: fonts.regular,
     color: colors.text.secondary,
   },
   formError: {
@@ -193,7 +211,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
   actions: {
-    flexDirection: 'row',
+    flexDirection: "row",
     gap: spacing.sm,
     marginTop: spacing.sm,
     marginBottom: spacing.lg,
@@ -202,21 +220,21 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   deleteButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
     gap: spacing.sm,
     minHeight: 44,
     marginTop: spacing.lg,
     borderRadius: 10,
-    backgroundColor: 'transparent',
+    backgroundColor: "transparent",
   },
   deleteButtonHovered: {
     backgroundColor: colors.dangerSoft,
   },
   deleteButtonText: {
     fontSize: 16,
-    fontFamily: fonts.serif.semiBold,
+    fontFamily: fonts.semiBold,
     color: colors.danger,
   },
 });

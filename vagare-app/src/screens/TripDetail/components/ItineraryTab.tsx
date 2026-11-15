@@ -1,10 +1,9 @@
 import { useState } from 'react';
 import { Ionicons } from '@expo/vector-icons';
-import { ActivityIndicator, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
 
-import { Button, EmptyState, FormError, OfflineBanner } from '@/components';
+import { Button, EmptyState, FormError, FormScrollView } from '@/components';
 import { useActivitiesQuery } from '@/hooks/useActivitiesQuery';
-import { usePendingMutationsQuery } from '@/hooks/usePendingMutationsQuery';
 import { ApiError } from '@/services/api';
 import { Trip } from '@/services/trips';
 import { colors, fonts, spacing } from '@/theme';
@@ -19,12 +18,9 @@ export interface ItineraryTabProps {
 
 export function ItineraryTab({ trip }: ItineraryTabProps) {
   const { data, isPending, isError, error, refetch } = useActivitiesQuery(trip.id);
-  const { data: pendingMutations } = usePendingMutationsQuery(trip.id);
   const [showForm, setShowForm] = useState(false);
 
   const activities = data?.activities;
-  const isOffline = data?.isOffline ?? false;
-  const pendingCount = pendingMutations?.length ?? 0;
   const dayGroups = activities ? groupByDay(activities, trip.startDate) : [];
 
   return (
@@ -41,24 +37,13 @@ export function ItineraryTab({ trip }: ItineraryTabProps) {
             }
             style={styles.noMargin}
           />
-          <Button title="Tentar novamente" variant="outline" onPress={() => refetch()} />
+          <Button title="Tentar novamente" variant="soft" onPress={() => refetch()} />
         </View>
       ) : (
-        <ScrollView
+        <FormScrollView
           style={styles.scroll}
           contentContainerStyle={styles.scrollContent}
-          showsVerticalScrollIndicator={false}
         >
-          {isOffline ? (
-            <OfflineBanner message="Sem conexão — mostrando o roteiro salvo neste dispositivo" />
-          ) : null}
-          {pendingCount > 0 ? (
-            <OfflineBanner
-              tone="pending"
-              message={`${pendingCount} alteração(ões) aguardando sincronização`}
-            />
-          ) : null}
-
           {dayGroups.length === 0 ? (
             showForm ? null : (
               <EmptyState
@@ -86,14 +71,12 @@ export function ItineraryTab({ trip }: ItineraryTabProps) {
           ) : (
             <Button
               title="Adicionar ao roteiro"
-              variant="outline"
-              tone="accent"
-              icon={<Ionicons name="add" size={20} color={colors.accent} />}
+              icon={<Ionicons name="add" size={20} color={colors.surface} />}
               onPress={() => setShowForm(true)}
               style={styles.addButton}
             />
           )}
-        </ScrollView>
+        </FormScrollView>
       )}
     </View>
   );
@@ -125,7 +108,7 @@ const styles = StyleSheet.create({
   },
   dayHeader: {
     fontSize: 16,
-    fontFamily: fonts.serif.bold,
+    fontFamily: fonts.bold,
     color: colors.text.primary,
     marginBottom: spacing.sm,
   },

@@ -35,7 +35,12 @@ describe('useCreateActivityMutation', () => {
 
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
 
-    expect(createActivityMock).toHaveBeenCalledWith('test-token', 'trip-1', payload);
+    expect(createActivityMock).toHaveBeenCalledWith(
+      'test-token',
+      'trip-1',
+      payload,
+      expect.stringMatching(/^local-/),
+    );
     expect(invalidateSpy).toHaveBeenCalledWith({ queryKey: activitiesQueryKey('trip-1') });
     expect(invalidateSpy).toHaveBeenCalledWith({ queryKey: budgetQueryKey('trip-1') });
 

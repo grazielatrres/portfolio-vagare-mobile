@@ -1,12 +1,23 @@
-import { useState } from 'react';
-import { StyleSheet, View } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useState } from "react";
+import { StyleSheet, View } from "react-native";
 
-import { BackButton, Button, FormError, Input, PasswordInput } from '@/components';
-import { useAuth } from '@/contexts/AuthContext';
-import { ApiError } from '@/services/api';
-import { colors, spacing } from '@/theme';
-import { AuthHeader } from '../components/AuthHeader';
+import {
+  BackButton,
+  Button,
+  FormError,
+  FormScrollView,
+  Input,
+  PASSWORD_FORM_KEYBOARD_OFFSET,
+  PasswordInput,
+  PasswordRequirements,
+  Screen,
+} from "@/components";
+import { useAuth } from "@/contexts/AuthContext";
+import { useFieldErrors } from "@/hooks/useFieldErrors";
+import { ApiError } from "@/services/api";
+import { spacing } from "@/theme";
+import { passwordErrors } from "@/utils/passwordPolicy";
+import { AuthHeader } from "../components/AuthHeader";
 
 export interface SignInProps {
   onBack?: () => void;
@@ -14,28 +25,24 @@ export interface SignInProps {
 
 export function SignIn({ onBack }: SignInProps) {
   const { register, isLoading } = useAuth();
-  const insets = useSafeAreaInsets();
-  const [name, setName] = useState('');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
+  const { errors, validate, clearError } = useFieldErrors<
+    "name" | "email" | "password" | "confirmPassword"
+  >();
 
   async function handleSubmit() {
     setError(null);
 
-    if (!name || !email || !password || !confirmPassword) {
-      setError('Preencha todos os campos para continuar.');
-      return;
-    }
-
-    if (password.length < 6) {
-      setError('A senha deve ter no mínimo 6 caracteres.');
-      return;
-    }
-
-    if (password !== confirmPassword) {
-      setError('As senhas não coincidem.');
+    const isValid = validate({
+      ...(!name.trim() && { name: "Informe seu nome" }),
+      ...(!email.trim() && { email: "Informe seu e-mail" }),
+      ...passwordErrors(password, confirmPassword),
+    });
+    if (!isValid) {
       return;
     }
 
@@ -43,75 +50,100 @@ export function SignIn({ onBack }: SignInProps) {
       await register(name, email, password);
     } catch (err) {
       setError(
-        err instanceof ApiError ? err.message : 'Não foi possível criar a conta. Tente novamente.',
+        err instanceof ApiError
+          ? err.message
+          : "Não foi possível criar a conta. Tente novamente.",
       );
     }
   }
 
   return (
-    <View style={[styles.root, { paddingTop: insets.top + spacing.md }]}>
-      <BackButton onPress={onBack} style={styles.backButton} />
+    <Screen>
+      <FormScrollView
+        contentContainerStyle={styles.content}
+        bottomOffset={PASSWORD_FORM_KEYBOARD_OFFSET}
+      >
+        <BackButton onPress={onBack} style={styles.backButton} />
 
-      <AuthHeader title="Criar conta" subtitle="Crie sua conta no Vagare" />
+        <AuthHeader title="Criar conta" subtitle="Crie sua conta no Vagare" />
 
-      <View style={styles.form}>
-        <Input
-          label="Nome completo"
-          placeholder="Seu nome"
-          value={name}
-          onChangeText={setName}
-          autoCapitalize="words"
-          containerStyle={styles.field}
-        />
-        <Input
-          label="Email"
-          placeholder="seu@email.com"
-          value={email}
-          onChangeText={setEmail}
-          keyboardType="email-address"
-          autoCapitalize="none"
-          autoCorrect={false}
-          containerStyle={styles.field}
-        />
-        <PasswordInput
-          label="Senha"
-          placeholder="Mínimo 6 caracteres"
-          value={password}
-          onChangeText={setPassword}
-          containerStyle={styles.field}
-        />
-        <PasswordInput
-          label="Confirmar senha"
-          placeholder="Repita a senha"
-          value={confirmPassword}
-          onChangeText={setConfirmPassword}
-          containerStyle={styles.field}
-        />
+        <View style={styles.form}>
+          <Input
+            label="Nome"
+            placeholder="Seu nome"
+            value={name}
+            onChangeText={(text) => {
+              setName(text);
+              clearError("name");
+            }}
+            error={errors.name}
+            autoCapitalize="words"
+            containerStyle={styles.field}
+          />
+          <Input
+            label="Email"
+            placeholder="seu@email.com"
+            value={email}
+            onChangeText={(text) => {
+              setEmail(text);
+              clearError("email");
+            }}
+            error={errors.email}
+            keyboardType="email-address"
+            autoCapitalize="none"
+            autoCorrect={false}
+            containerStyle={styles.field}
+          />
+          <PasswordInput
+            label="Senha"
+            placeholder="Crie uma senha forte"
+            value={password}
+            onChangeText={(text) => {
+              setPassword(text);
+              clearError("password");
+            }}
+            error={errors.password}
+            containerStyle={styles.field}
+          />
+          <PasswordRequirements password={password} />
+          <PasswordInput
+            label="Confirmar senha"
+            placeholder="Repita a senha"
+            value={confirmPassword}
+            onChangeText={(text) => {
+              setConfirmPassword(text);
+              clearError("confirmPassword");
+            }}
+            error={errors.confirmPassword}
+            containerStyle={styles.field}
+          />
 
-        <FormError message={error} />
+          <FormError message={error} />
 
-        <Button
-          title={isLoading ? 'Criando conta...' : 'Criar Conta'}
-          onPress={handleSubmit}
-          disabled={isLoading}
-        />
-      </View>
-    </View>
+          <Button
+            title={isLoading ? "Criando conta..." : "Criar Conta"}
+            onPress={handleSubmit}
+            disabled={isLoading}
+          />
+        </View>
+      </FormScrollView>
+    </Screen>
   );
 }
 
 const styles = StyleSheet.create({
-  root: {
-    flex: 1,
-    backgroundColor: colors.background,
+  content: {
+    flexGrow: 1,
+    paddingTop: spacing.md,
     paddingHorizontal: spacing.lg,
+    paddingBottom: spacing.xl,
   },
   backButton: {
     marginBottom: spacing.xl,
   },
   form: {
-    alignSelf: 'stretch',
-    width: '100%',
+    alignSelf: "stretch",
+    width: "100%",
   },
   field: {
     marginBottom: spacing.md,

@@ -1,6 +1,9 @@
 import { Expense } from './expenses';
 import { getDatabase } from './database';
+import { LOCAL_ID_PREFIX } from './localId';
 import { logError } from './logger';
+import { NO_PENDING_MUTATION_SQL, PENDING_IDS_SQL } from './pendingGuard';
+import { runInTransaction } from './transactionQueue';
 
 export async function getCachedExpenses(tripId: string): Promise<Expense[]> {
   try {
@@ -16,13 +19,17 @@ export async function saveExpensesToCache(tripId: string, expenses: Expense[]): 
   try {
     const db = await getDatabase();
 
-    await db.withTransactionAsync(async () => {
-      await db.runAsync('DELETE FROM expenses WHERE tripId = ?', [tripId]);
+    await runInTransaction(db, async () => {
+      await db.runAsync(
+        `DELETE FROM expenses WHERE tripId = ? AND id NOT LIKE '${LOCAL_ID_PREFIX}%'
+         AND id NOT IN (${PENDING_IDS_SQL})`,
+        [tripId],
+      );
 
       for (const expense of expenses) {
         await db.runAsync(
           `INSERT INTO expenses (id, tripId, description, amount, currency, category)
-           VALUES (?, ?, ?, ?, ?, ?)`,
+           SELECT ?, ?, ?, ?, ?, ? ${NO_PENDING_MUTATION_SQL}`,
           [
             expense.id,
             expense.tripId,
@@ -30,6 +37,7 @@ export async function saveExpensesToCache(tripId: string, expenses: Expense[]): 
             expense.amount,
             expense.currency,
             expense.category,
+            expense.id,
           ],
         );
       }

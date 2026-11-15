@@ -34,7 +34,7 @@ export async function searchPlaces(query: string): Promise<PlaceSuggestion[]> {
       headers: { 'User-Agent': 'VagareTravelApp/1.0' },
     });
   } catch {
-    throw new Error('Não foi possível buscar destinos. Verifique sua conexão.');
+    throw new Error('Sem conexão para buscar sugestões — digite o destino e salve mesmo assim.');
   }
 
   if (!response.ok) {

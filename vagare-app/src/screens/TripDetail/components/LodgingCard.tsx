@@ -8,6 +8,7 @@ import {
   View,
 } from "react-native";
 
+import { ConfirmModal } from "@/components";
 import { useToast } from "@/contexts/ToastContext";
 import { useDeleteInfoMutation } from "@/hooks/useDeleteInfoMutation";
 import { ApiError } from "@/services/api";
@@ -130,7 +131,7 @@ const styles = StyleSheet.create({
   name: {
     flex: 1,
     fontSize: 16,
-    fontFamily: fonts.serif.bold,
+    fontFamily: fonts.bold,
     color: colors.text.primary,
   },
   actions: {
@@ -142,7 +143,7 @@ const styles = StyleSheet.create({
   detailLine: {
     marginTop: spacing.xs,
     fontSize: 14,
-    fontFamily: fonts.serif.regular,
+    fontFamily: fonts.regular,
     color: colors.text.secondary,
   },
 });

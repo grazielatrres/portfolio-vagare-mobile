@@ -90,7 +90,7 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 18,
-    fontFamily: fonts.serif.bold,
+    fontFamily: fonts.bold,
     color: colors.text.primary,
     marginBottom: spacing.sm,
   },
@@ -107,11 +107,11 @@ const styles = StyleSheet.create({
   },
   optionText: {
     fontSize: 16,
-    fontFamily: fonts.serif.regular,
+    fontFamily: fonts.regular,
     color: colors.text.primary,
   },
   optionTextSelected: {
-    fontFamily: fonts.serif.semiBold,
+    fontFamily: fonts.semiBold,
     color: colors.accent,
   },
 });

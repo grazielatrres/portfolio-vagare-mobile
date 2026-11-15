@@ -274,12 +274,12 @@ const styles = StyleSheet.create({
   },
   summaryLabel: {
     fontSize: 14,
-    fontFamily: fonts.serif.regular,
+    fontFamily: fonts.regular,
     color: colors.text.secondary,
   },
   summaryValue: {
     fontSize: 14,
-    fontFamily: fonts.serif.medium,
+    fontFamily: fonts.medium,
     color: colors.text.primary,
   },
   divider: {
@@ -289,12 +289,12 @@ const styles = StyleSheet.create({
   },
   totalLabel: {
     fontSize: 16,
-    fontFamily: fonts.serif.bold,
+    fontFamily: fonts.bold,
     color: colors.text.primary,
   },
   totalValue: {
     fontSize: 16,
-    fontFamily: fonts.serif.bold,
+    fontFamily: fonts.bold,
     color: colors.text.primary,
   },
   progressTrack: {
@@ -315,12 +315,12 @@ const styles = StyleSheet.create({
   remainingText: {
     marginTop: spacing.xs,
     fontSize: 13,
-    fontFamily: fonts.serif.regular,
+    fontFamily: fonts.regular,
     color: colors.text.secondary,
   },
   remainingTextNegative: {
     color: colors.danger,
-    fontFamily: fonts.serif.medium,
+    fontFamily: fonts.medium,
   },
   expenseCard: {
     flexDirection: 'row',
@@ -340,18 +340,18 @@ const styles = StyleSheet.create({
   },
   expenseDescription: {
     fontSize: 16,
-    fontFamily: fonts.serif.bold,
+    fontFamily: fonts.bold,
     color: colors.text.primary,
   },
   expenseCategory: {
     marginTop: 2,
     fontSize: 13,
-    fontFamily: fonts.serif.regular,
+    fontFamily: fonts.regular,
     color: colors.text.secondary,
   },
   expenseAmount: {
     fontSize: 16,
-    fontFamily: fonts.serif.bold,
+    fontFamily: fonts.bold,
     color: colors.text.primary,
   },
   formCard: {
@@ -369,7 +369,7 @@ const styles = StyleSheet.create({
   },
   formTitle: {
     fontSize: 18,
-    fontFamily: fonts.serif.bold,
+    fontFamily: fonts.bold,
     color: colors.text.primary,
   },
   field: {

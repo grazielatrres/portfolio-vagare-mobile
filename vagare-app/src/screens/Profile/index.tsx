@@ -184,7 +184,7 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 28,
-    fontFamily: fonts.serif.bold,
+    fontFamily: fonts.bold,
     color: colors.text.primary,
     marginBottom: spacing.xl,
   },
@@ -207,7 +207,7 @@ const styles = StyleSheet.create({
   },
   name: {
     fontSize: 19,
-    fontFamily: fonts.serif.bold,
+    fontFamily: fonts.bold,
     color: colors.text.primary,
     marginBottom: spacing.xs,
   },
@@ -218,7 +218,7 @@ const styles = StyleSheet.create({
   },
   email: {
     fontSize: 14,
-    fontFamily: fonts.serif.regular,
+    fontFamily: fonts.regular,
     color: colors.text.secondary,
   },
   editButton: {
@@ -233,7 +233,7 @@ const styles = StyleSheet.create({
   },
   editButtonText: {
     fontSize: 16,
-    fontFamily: fonts.serif.medium,
+    fontFamily: fonts.medium,
     color: colors.text.secondary,
   },
   card: {
@@ -246,7 +246,7 @@ const styles = StyleSheet.create({
   },
   cardTitle: {
     fontSize: 17,
-    fontFamily: fonts.serif.bold,
+    fontFamily: fonts.bold,
     color: colors.text.primary,
     marginBottom: spacing.md,
   },
@@ -263,7 +263,7 @@ const styles = StyleSheet.create({
   },
   statValue: {
     fontSize: 26,
-    fontFamily: fonts.serif.bold,
+    fontFamily: fonts.bold,
     color: colors.accent,
     marginBottom: spacing.xs,
   },
@@ -274,12 +274,12 @@ const styles = StyleSheet.create({
   },
   statLabel: {
     fontSize: 13,
-    fontFamily: fonts.serif.regular,
+    fontFamily: fonts.regular,
     color: colors.text.secondary,
   },
   errorText: {
     fontSize: 14,
-    fontFamily: fonts.serif.regular,
+    fontFamily: fonts.regular,
     color: colors.danger,
     textAlign: "center",
   },

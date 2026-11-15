@@ -73,11 +73,11 @@ const styles = StyleSheet.create({
     flexShrink: 1,
   },
   primaryText: {
-    fontFamily: fonts.serif.semiBold,
+    fontFamily: fonts.semiBold,
     color: colors.surface,
   },
   softText: {
-    fontFamily: fonts.serif.semiBold,
+    fontFamily: fonts.semiBold,
     color: colors.accent,
   },
 });

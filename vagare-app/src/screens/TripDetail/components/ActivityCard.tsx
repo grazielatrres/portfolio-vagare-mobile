@@ -170,7 +170,7 @@ const styles = StyleSheet.create({
   name: {
     flex: 1,
     fontSize: 18,
-    fontFamily: fonts.serif.bold,
+    fontFamily: fonts.bold,
     color: colors.text.primary,
   },
   actions: {
@@ -187,7 +187,7 @@ const styles = StyleSheet.create({
   },
   periodBadgeText: {
     fontSize: 13,
-    fontFamily: fonts.serif.medium,
+    fontFamily: fonts.medium,
     color: colors.text.secondary,
   },
   categoryBadge: {
@@ -198,7 +198,7 @@ const styles = StyleSheet.create({
   },
   categoryBadgeText: {
     fontSize: 13,
-    fontFamily: fonts.serif.medium,
+    fontFamily: fonts.medium,
     color: colors.accent,
   },
   details: {
@@ -212,7 +212,7 @@ const styles = StyleSheet.create({
   rowText: {
     flex: 1,
     fontSize: 15,
-    fontFamily: fonts.serif.regular,
+    fontFamily: fonts.regular,
     color: colors.text.secondary,
     lineHeight: 20,
   },

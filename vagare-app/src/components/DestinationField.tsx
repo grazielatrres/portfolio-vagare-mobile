@@ -111,7 +111,7 @@ const styles = StyleSheet.create({
   hint: {
     marginTop: spacing.xs,
     fontSize: 13,
-    fontFamily: fonts.serif.regular,
+    fontFamily: fonts.regular,
     color: colors.text.secondary,
   },
   dropdown: {
@@ -133,7 +133,7 @@ const styles = StyleSheet.create({
   },
   optionText: {
     fontSize: 15,
-    fontFamily: fonts.serif.regular,
+    fontFamily: fonts.regular,
     color: colors.text.primary,
   },
 });

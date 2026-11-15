@@ -212,7 +212,7 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 18,
-    fontFamily: fonts.serif.bold,
+    fontFamily: fonts.bold,
     color: colors.text.primary,
   },
   field: {
@@ -222,7 +222,7 @@ const styles = StyleSheet.create({
     marginTop: -spacing.sm,
     marginBottom: spacing.md,
     fontSize: 13,
-    fontFamily: fonts.serif.regular,
+    fontFamily: fonts.regular,
     color: colors.text.secondary,
   },
   multilineInput: {

@@ -15,7 +15,7 @@ export default function TabsLayout() {
           borderTopColor: colors.border.default,
         },
         tabBarLabelStyle: {
-          fontFamily: fonts.serif.medium,
+          fontFamily: fonts.medium,
           fontSize: 12,
         },
       }}

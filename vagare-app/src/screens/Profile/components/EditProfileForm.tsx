@@ -190,7 +190,7 @@ const styles = StyleSheet.create({
   },
   cardTitle: {
     fontSize: 19,
-    fontFamily: fonts.serif.bold,
+    fontFamily: fonts.bold,
     color: colors.text.primary,
     marginBottom: spacing.lg,
   },
@@ -209,7 +209,7 @@ const styles = StyleSheet.create({
     marginTop: -spacing.sm,
     marginBottom: spacing.md,
     fontSize: 16,
-    fontFamily: fonts.serif.regular,
+    fontFamily: fonts.regular,
     color: colors.text.secondary,
   },
   formError: {
@@ -240,7 +240,7 @@ const styles = StyleSheet.create({
   },
   deleteButtonText: {
     fontSize: 16,
-    fontFamily: fonts.serif.semiBold,
+    fontFamily: fonts.semiBold,
     color: colors.danger,
   },
 });

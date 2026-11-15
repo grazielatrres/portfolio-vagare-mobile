@@ -137,7 +137,7 @@ const styles = StyleSheet.create({
   name: {
     flex: 1,
     fontSize: 16,
-    fontFamily: fonts.serif.bold,
+    fontFamily: fonts.bold,
     color: colors.text.primary,
   },
   actions: {
@@ -149,7 +149,7 @@ const styles = StyleSheet.create({
   detailLine: {
     marginTop: spacing.xs,
     fontSize: 14,
-    fontFamily: fonts.serif.regular,
+    fontFamily: fonts.regular,
     color: colors.text.secondary,
   },
 });

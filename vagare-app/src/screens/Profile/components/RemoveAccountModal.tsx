@@ -92,18 +92,18 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 18,
-    fontFamily: fonts.serif.bold,
+    fontFamily: fonts.bold,
     color: colors.text.primary,
     marginBottom: spacing.sm,
   },
   message: {
     fontSize: 16,
-    fontFamily: fonts.serif.regular,
+    fontFamily: fonts.regular,
     color: colors.text.secondary,
     marginBottom: spacing.lg,
   },
   bold: {
-    fontFamily: fonts.serif.bold,
+    fontFamily: fonts.bold,
     color: colors.text.primary,
   },
   field: {

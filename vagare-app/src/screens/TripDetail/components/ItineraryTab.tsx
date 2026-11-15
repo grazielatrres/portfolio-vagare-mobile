@@ -109,7 +109,7 @@ const styles = StyleSheet.create({
   },
   dayHeader: {
     fontSize: 16,
-    fontFamily: fonts.serif.bold,
+    fontFamily: fonts.bold,
     color: colors.text.primary,
     marginBottom: spacing.sm,
   },

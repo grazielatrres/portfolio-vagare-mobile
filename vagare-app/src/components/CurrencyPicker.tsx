@@ -38,7 +38,7 @@ const styles = StyleSheet.create({
   label: {
     marginBottom: spacing.sm,
     fontSize: 16,
-    fontFamily: fonts.serif.medium,
+    fontFamily: fonts.medium,
     color: colors.text.primary,
   },
   row: {
@@ -61,7 +61,7 @@ const styles = StyleSheet.create({
   },
   pillText: {
     fontSize: 14,
-    fontFamily: fonts.serif.medium,
+    fontFamily: fonts.medium,
     color: colors.text.primary,
   },
   pillTextSelected: {

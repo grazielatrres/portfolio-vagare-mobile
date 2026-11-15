@@ -150,7 +150,7 @@ const styles = StyleSheet.create({
   },
   forgotPasswordText: {
     fontSize: 14,
-    fontFamily: fonts.serif.medium,
+    fontFamily: fonts.medium,
     color: colors.accent,
     textDecorationLine: 'underline',
   },
@@ -160,12 +160,12 @@ const styles = StyleSheet.create({
   },
   footerText: {
     fontSize: 14,
-    fontFamily: fonts.serif.regular,
+    fontFamily: fonts.regular,
     color: colors.text.secondary,
   },
   footerLink: {
     fontSize: 14,
-    fontFamily: fonts.serif.bold,
+    fontFamily: fonts.bold,
     color: colors.accent,
     textDecorationLine: 'underline',
   },

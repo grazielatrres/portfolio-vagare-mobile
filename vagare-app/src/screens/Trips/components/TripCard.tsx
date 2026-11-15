@@ -158,7 +158,7 @@ const styles = StyleSheet.create({
   destination: {
     flex: 1,
     fontSize: 18,
-    fontFamily: fonts.serif.bold,
+    fontFamily: fonts.bold,
     color: colors.text.primary,
     marginRight: spacing.sm,
   },
@@ -175,12 +175,12 @@ const styles = StyleSheet.create({
   },
   rowText: {
     fontSize: 14,
-    fontFamily: fonts.serif.regular,
+    fontFamily: fonts.regular,
     color: colors.text.secondary,
   },
   plannedText: {
     fontSize: 14,
-    fontFamily: fonts.serif.medium,
+    fontFamily: fonts.medium,
     color: colors.accent,
   },
   syncStatus: {

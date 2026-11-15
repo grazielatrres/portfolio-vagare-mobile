@@ -210,13 +210,13 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 26,
-    fontFamily: fonts.serif.bold,
+    fontFamily: fonts.bold,
     color: colors.text.primary,
     marginBottom: spacing.xs,
   },
   subtitle: {
     fontSize: 15,
-    fontFamily: fonts.serif.regular,
+    fontFamily: fonts.regular,
     color: colors.text.secondary,
     marginBottom: spacing.xl,
   },

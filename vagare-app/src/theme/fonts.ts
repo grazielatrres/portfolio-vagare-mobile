@@ -1,8 +1,6 @@
 export const fonts = {
-  serif: {
-    regular: 'Lora_400Regular',
-    medium: 'Lora_500Medium',
-    semiBold: 'Lora_600SemiBold',
-    bold: 'Lora_700Bold',
-  },
+  regular: 'Nunito_400Regular',
+  medium: 'Nunito_500Medium',
+  semiBold: 'Nunito_600SemiBold',
+  bold: 'Nunito_700Bold',
 } as const;

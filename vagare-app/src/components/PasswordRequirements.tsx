@@ -51,6 +51,6 @@ const styles = StyleSheet.create({
   },
   label: {
     fontSize: 13,
-    fontFamily: fonts.serif.regular,
+    fontFamily: fonts.regular,
   },
 });

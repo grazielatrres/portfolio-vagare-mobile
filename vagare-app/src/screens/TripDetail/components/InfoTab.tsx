@@ -173,7 +173,7 @@ const styles = StyleSheet.create({
   },
   pageTitle: {
     fontSize: 16,
-    fontFamily: fonts.serif.bold,
+    fontFamily: fonts.bold,
     color: colors.text.primary,
     marginBottom: spacing.md,
   },
@@ -188,13 +188,13 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     fontSize: 15,
-    fontFamily: fonts.serif.bold,
+    fontFamily: fonts.bold,
     color: colors.text.secondary,
   },
   emptyText: {
     marginBottom: spacing.md,
     fontSize: 14,
-    fontFamily: fonts.serif.regular,
+    fontFamily: fonts.regular,
     color: colors.text.secondary,
   },
   addButton: {

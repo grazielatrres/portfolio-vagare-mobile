@@ -126,7 +126,7 @@ const styles = StyleSheet.create({
   },
   errorText: {
     fontSize: 14,
-    fontFamily: fonts.serif.regular,
+    fontFamily: fonts.regular,
     color: colors.danger,
     marginBottom: spacing.md,
     textAlign: 'center',

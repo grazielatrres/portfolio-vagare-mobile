@@ -7,7 +7,7 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import { AuthProvider, useAuth } from '@/contexts/AuthContext';
 import { ToastProvider } from '@/contexts/ToastContext';
-import { useSerifFonts } from '@/hooks/useSerifFonts';
+import { useAppFonts } from '@/hooks/useAppFonts';
 import { useSyncQueueDrain } from '@/hooks/useSyncQueueDrain';
 import { queryClient } from '@/services/queryClient';
 
@@ -53,7 +53,7 @@ function RootNavigator() {
 }
 
 export default function RootLayout() {
-  const [fontsLoaded] = useSerifFonts();
+  const [fontsLoaded] = useAppFonts();
 
   return (
     <SafeAreaProvider>

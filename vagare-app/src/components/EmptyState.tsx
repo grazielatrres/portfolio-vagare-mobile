@@ -50,7 +50,7 @@ const styles = StyleSheet.create({
   },
   text: {
     fontSize: 14,
-    fontFamily: fonts.serif.regular,
+    fontFamily: fonts.regular,
     color: colors.text.secondary,
     textAlign: "center",
   },

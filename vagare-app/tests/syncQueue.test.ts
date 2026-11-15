@@ -397,7 +397,7 @@ describe('syncQueue', () => {
     });
   });
 
-  it('não drena duas vezes em paralelo (guard isDraining)', async () => {
+  it('não drena duas vezes em paralelo: a segunda chamada aguarda a mesma drenagem', async () => {
     await enqueueMutation({
       tripId: 't1',
       entityType: 'activity',
@@ -408,12 +408,15 @@ describe('syncQueue', () => {
 
     (createActivity as jest.Mock).mockResolvedValue({ id: 'real-1', tripId: 't1', name: 'A' });
 
-    // isDraining é marcado de forma síncrona no início de drainPendingMutations,
-    // então a segunda chamada já retorna sem tocar no banco/rede.
+    // currentDrain é definido de forma síncrona no início de drainPendingMutations,
+    // então a segunda chamada reaproveita a mesma drenagem sem tocar no banco/rede.
     const first = drainPendingMutations('token-1');
     const second = drainPendingMutations('token-1');
-    await Promise.all([first, second]);
+    expect(second).toBe(first);
+    await second;
 
+    // Ao terminar a segunda chamada, a fila já foi enviada.
     expect(createActivity).toHaveBeenCalledTimes(1);
+    await expect(getPendingMutations('t1')).resolves.toEqual([]);
   });
 });

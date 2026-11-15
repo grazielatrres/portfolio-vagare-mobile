@@ -123,6 +123,19 @@ export async function getPendingTripDeletionIds(): Promise<Set<string>> {
   }
 }
 
+export async function countPendingMutations(): Promise<number> {
+  try {
+    const db = await getDatabase();
+    const row = await db.getFirstAsync<{ total: number }>(
+      'SELECT COUNT(*) AS total FROM pending_mutations',
+    );
+    return row?.total ?? 0;
+  } catch (error) {
+    logError('syncQueue.countPendingMutations', error);
+    return 0;
+  }
+}
+
 export async function hasPendingMutations(): Promise<boolean> {
   try {
     const db = await getDatabase();
@@ -244,7 +257,10 @@ export async function clearPendingMutations(): Promise<void> {
   syncedIds.clear();
 }
 
-let isDraining = false;
+// Drenagem em andamento. Quem chamar durante ela recebe a mesma promise, em vez
+// de voltar na hora: assim dá para aguardar o fim da sincronização (ex.: antes
+// do logout) mesmo quando ela foi disparada por outro gatilho.
+let currentDrain: Promise<void> | null = null;
 
 // Estado "sincronizando" observável pela UI: só fica true enquanto há
 // alterações de fato sendo enviadas (fila vazia não mostra loading).
@@ -268,12 +284,19 @@ export function subscribeSyncStatus(listener: () => void): () => void {
   return () => syncStatusListeners.delete(listener);
 }
 
-export async function drainPendingMutations(token: string | null): Promise<void> {
-  if (!token || isDraining) {
-    return;
+export function drainPendingMutations(token: string | null): Promise<void> {
+  if (!token) {
+    return Promise.resolve();
   }
+  if (!currentDrain) {
+    currentDrain = runDrain(token).finally(() => {
+      currentDrain = null;
+    });
+  }
+  return currentDrain;
+}
 
-  isDraining = true;
+async function runDrain(token: string): Promise<void> {
   try {
     const db = await getDatabase();
     const mutations = await db.getAllAsync<PendingMutation>(
@@ -346,7 +369,6 @@ export async function drainPendingMutations(token: string | null): Promise<void>
   } catch (error) {
     logError('syncQueue.drainPendingMutations', error);
   } finally {
-    isDraining = false;
     setSyncing(false);
   }
 }

@@ -1,4 +1,5 @@
 import { Ionicons } from "@expo/vector-icons";
+import * as WebBrowser from "expo-web-browser";
 import { useState } from "react";
 import {
   ActivityIndicator,
@@ -20,6 +21,11 @@ import { countDistinctCountries } from "@/utils/format";
 import { EditProfileForm } from "./components/EditProfileForm";
 
 const COMPACT_WIDTH_BREAKPOINT = 380;
+
+// Mesma URL informada nas lojas (Google Play / App Store).
+export const PRIVACY_POLICY_URL =
+  process.env.EXPO_PUBLIC_PRIVACY_POLICY_URL ??
+  "https://portfolio-vagare-privacy-politcs.vercel.app";
 
 function buildUnsyncedLogoutMessage(count: number): string {
   const changes =
@@ -143,6 +149,25 @@ export function Profile() {
             </View>
           )}
         </View>
+
+        <Pressable
+          onPress={() => WebBrowser.openBrowserAsync(PRIVACY_POLICY_URL)}
+          accessibilityRole="link"
+          accessibilityLabel="Abrir política de privacidade"
+          style={styles.linkRow}
+        >
+          <Ionicons
+            name="shield-checkmark-outline"
+            size={18}
+            color={colors.text.secondary}
+          />
+          <Text style={styles.linkText}>Política de privacidade</Text>
+          <Ionicons
+            name="open-outline"
+            size={16}
+            color={colors.text.secondary}
+          />
+        </Pressable>
 
         <Button
           title={
@@ -273,6 +298,19 @@ const styles = StyleSheet.create({
     fontSize: 13,
     fontFamily: fonts.regular,
     color: colors.text.secondary,
+  },
+  linkRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing.sm,
+    minHeight: 44,
+    marginBottom: spacing.lg,
+  },
+  linkText: {
+    flex: 1,
+    fontSize: 15,
+    fontFamily: fonts.medium,
+    color: colors.text.primary,
   },
   errorText: {
     fontSize: 14,

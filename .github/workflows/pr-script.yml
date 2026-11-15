@@ -1,14 +1,23 @@
 name: Script no Pull Request
 
+# Lint, typecheck e testes com cobertura em todo PR, e também nos pushes em
+# main/develop para o SonarCloud ter a análise das branches principais.
 on:
   pull_request:
     types: [opened, synchronize, reopened]
+  push:
+    branches: [main, develop]
 
 jobs:
   executar-script:
     runs-on: ubuntu-latest
+    env:
+      SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
     steps:
       - uses: actions/checkout@v5
+        with:
+          # Histórico completo: o SonarCloud usa o blame para atribuir issues novas.
+          fetch-depth: 0
 
       - uses: actions/setup-node@v5
         with:
@@ -20,3 +29,9 @@ jobs:
         working-directory: vagare-app
 
       - run: bash scripts/pr-checks.sh
+
+      # Análise estática no SonarQube Cloud, com a cobertura gerada pelo pr-checks.sh.
+      # Fica desligada até o secret SONAR_TOKEN existir (PRs de fork também não o recebem).
+      - name: SonarCloud scan
+        if: env.SONAR_TOKEN != ''
+        uses: SonarSource/sonarqube-scan-action@59202af334b4ba7b5db01b701b8e79f8b3bef0f4 # v8.5.0

@@ -8,7 +8,7 @@ on:
   workflow_dispatch:
     inputs:
       ambiente:
-        description: Ambiente (development = develop → Play interno + TestFlight · production = main → teste fechado + TestFlight)
+        description: Ambiente (development = develop → Play interno + TestFlight · production = main → Play interno + TestFlight)
         type: choice
         options: [development, production]
         default: development
@@ -86,7 +86,7 @@ jobs:
           expo-token: ${{ secrets.EXPO_TOKEN }}
 
   prod-android:
-    name: Produção · Android (teste fechado)
+    name: Produção · Android (Play interno)
     needs: checks
     if: (inputs.ambiente || 'production') == 'production' && (inputs.plataforma || 'all') != 'ios'
     runs-on: ubuntu-latest

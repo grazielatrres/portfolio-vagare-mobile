@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { BackButton, Button, FormError, OfflineBanner, PendingSyncBanner } from '@/components';
+import { BackButton, Button, FormError, SyncStatusBanner } from '@/components';
 import { useIsOnline } from '@/hooks/useIsOnline';
 import { usePendingMutationsQuery } from '@/hooks/usePendingMutationsQuery';
 import { useTripQuery } from '@/hooks/useTripQuery';
@@ -48,10 +48,11 @@ export function TripDetail({ tripId, onBack }: TripDetailProps) {
         </View>
       ) : (
         <>
-          {!isOnline ? (
-            <OfflineBanner message="Sem conexão — mostrando dados salvos neste dispositivo" />
-          ) : null}
-          <PendingSyncBanner count={pendingMutations?.length ?? 0} />
+          <SyncStatusBanner
+            isOffline={!isOnline}
+            pendingCount={pendingMutations?.length ?? 0}
+            offlineMessage="Sem conexão — mostrando dados salvos neste dispositivo"
+          />
 
           <Text style={styles.destination}>{trip.destination}</Text>
           <Text style={styles.subtitle}>

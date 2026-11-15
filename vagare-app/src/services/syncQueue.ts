@@ -17,8 +17,8 @@ import { createInfo, deleteInfo, updateInfo } from './infos';
 import { removeInfoFromCache, upsertInfoToCache } from './infosCache';
 import { logError } from './logger';
 import { queryClient } from './queryClient';
-import { createTrip, deleteTrip } from './trips';
-import { removeTripFromCache, replaceLocalTrip } from './tripsCache';
+import { createTrip, deleteTrip, updateTrip } from './trips';
+import { removeTripFromCache, replaceLocalTrip, upsertTripToCache } from './tripsCache';
 
 export type EntityType = 'trip' | 'activity' | 'expense' | 'info';
 export type Operation = 'create' | 'update' | 'delete';
@@ -202,6 +202,9 @@ async function applyMutation(
       const created = await createTrip(token, payload, mutation.localId);
       syncedIds.set(mutation.localId, created.id);
       await replaceLocalTrip(mutation.localId, created);
+    } else if (mutation.operation === 'update') {
+      const updated = await updateTrip(token, resolvedId, payload);
+      await upsertTripToCache(updated);
     } else if (mutation.operation === 'delete') {
       await deleteTrip(token, resolvedId);
       await removeTripFromCache(resolvedId);

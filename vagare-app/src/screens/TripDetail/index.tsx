@@ -1,5 +1,6 @@
+import { Ionicons } from '@expo/vector-icons';
 import { useState } from 'react';
-import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { BackButton, Button, FormError, Screen, SyncStatusBanner } from '@/components';
 import { useIsOnline } from '@/hooks/useIsOnline';
@@ -19,9 +20,10 @@ import { WeatherTab } from './components/WeatherTab';
 export interface TripDetailProps {
   tripId: string;
   onBack?: () => void;
+  onEdit?: () => void;
 }
 
-export function TripDetail({ tripId, onBack }: TripDetailProps) {
+export function TripDetail({ tripId, onBack, onEdit }: TripDetailProps) {
   const { data, isPending, isError, error, refetch } = useTripQuery(tripId);
   const trip = data?.trip;
   const isOnline = useIsOnline();
@@ -30,7 +32,21 @@ export function TripDetail({ tripId, onBack }: TripDetailProps) {
 
   return (
     <Screen style={styles.root}>
-      <BackButton onPress={onBack} style={styles.backButton} />
+      <View style={styles.header}>
+        <BackButton onPress={onBack} />
+        {trip && onEdit ? (
+          <Pressable
+            onPress={onEdit}
+            hitSlop={8}
+            accessibilityRole="button"
+            accessibilityLabel="Editar viagem"
+            style={({ pressed }) => [styles.editButton, pressed && styles.pressed]}
+          >
+            <Ionicons name="create-outline" size={18} color={colors.accent} />
+            <Text style={styles.editLabel}>Editar</Text>
+          </Pressable>
+        ) : null}
+      </View>
 
       {isPending ? (
         <ActivityIndicator color={colors.accent} style={styles.stateSpacing} />
@@ -87,8 +103,28 @@ const styles = StyleSheet.create({
     backgroundColor: colors.background,
     paddingHorizontal: spacing.md,
   },
-  backButton: {
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
     marginBottom: spacing.lg,
+  },
+  editButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.xs,
+    paddingVertical: spacing.xs,
+    paddingHorizontal: spacing.sm,
+    borderRadius: 8,
+    backgroundColor: colors.accentSoft,
+  },
+  editLabel: {
+    fontSize: 14,
+    fontFamily: fonts.semiBold,
+    color: colors.accent,
+  },
+  pressed: {
+    opacity: 0.85,
   },
   stateSpacing: {
     marginTop: spacing.lg,

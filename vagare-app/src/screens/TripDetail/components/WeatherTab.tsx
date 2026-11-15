@@ -52,7 +52,7 @@ export function WeatherTab({ trip }: WeatherTabProps) {
             }
             style={styles.noMargin}
           />
-          <Button title="Tentar novamente" variant="outline" onPress={() => refetch()} />
+          <Button title="Tentar novamente" variant="soft" onPress={() => refetch()} />
         </View>
       ) : (
         <ScrollView
@@ -108,7 +108,7 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     fontSize: 16,
-    fontFamily: fonts.serif.bold,
+    fontFamily: fonts.bold,
     color: colors.text.primary,
     marginBottom: spacing.md,
   },
@@ -136,12 +136,12 @@ const styles = StyleSheet.create({
   },
   dayLabel: {
     fontSize: 16,
-    fontFamily: fonts.serif.bold,
+    fontFamily: fonts.bold,
     color: colors.text.primary,
   },
   condition: {
     fontSize: 14,
-    fontFamily: fonts.serif.regular,
+    fontFamily: fonts.regular,
     color: colors.text.secondary,
   },
   tempRow: {
@@ -152,7 +152,7 @@ const styles = StyleSheet.create({
   },
   temperature: {
     fontSize: 18,
-    fontFamily: fonts.serif.bold,
+    fontFamily: fonts.bold,
     color: colors.text.primary,
   },
 });

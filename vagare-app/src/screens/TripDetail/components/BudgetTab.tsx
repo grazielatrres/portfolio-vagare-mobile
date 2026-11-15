@@ -1,21 +1,16 @@
 import { useState } from 'react';
 import { Ionicons } from '@expo/vector-icons';
-import { ActivityIndicator, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
 
-import { Button, FormError, Input, SelectField } from '@/components';
+import { Button, FormError, FormScrollView } from '@/components';
 import { useBudgetQuery } from '@/hooks/useBudgetQuery';
-import { useCreateExpenseMutation } from '@/hooks/useCreateExpenseMutation';
 import { ApiError } from '@/services/api';
 import { BudgetSummary } from '@/services/budget';
 import { Trip } from '@/services/trips';
 import { colors, fonts, spacing } from '@/theme';
-import {
-  CurrencyCode,
-  digitsToAmount,
-  formatAmountFromDigits,
-  formatCurrencyValue,
-} from '@/utils/currency';
-import { EXPENSE_CATEGORIES } from '@/utils/expenseCategory';
+import { CurrencyCode, formatCurrencyValue } from '@/utils/currency';
+import { ExpenseCard } from './ExpenseCard';
+import { ExpenseForm } from './ExpenseForm';
 
 export interface BudgetTabProps {
   trip: Trip;
@@ -23,53 +18,11 @@ export interface BudgetTabProps {
 
 export function BudgetTab({ trip }: BudgetTabProps) {
   const { data: queryData, isPending, isError, error, refetch } = useBudgetQuery(trip.id);
-  const { mutateAsync, isPending: isSaving } = useCreateExpenseMutation(trip.id);
 
   const data = queryData?.summary;
+  const currency = trip.currency;
 
   const [showForm, setShowForm] = useState(false);
-  const [description, setDescription] = useState('');
-  const [costDigits, setCostDigits] = useState('');
-  const [category, setCategory] = useState<string | null>(null);
-  const [formError, setFormError] = useState<string | null>(null);
-
-  const currency = trip.currency;
-  const formattedCost = costDigits ? formatAmountFromDigits(costDigits, currency) : '';
-
-  function resetForm() {
-    setDescription('');
-    setCostDigits('');
-    setCategory(null);
-    setFormError(null);
-    setShowForm(false);
-  }
-
-  async function handleAddExpense() {
-    setFormError(null);
-
-    if (!description.trim()) {
-      setFormError('Descrição é obrigatória');
-      return;
-    }
-
-    const amount = costDigits ? digitsToAmount(costDigits) : 0;
-    if (amount <= 0) {
-      setFormError('Valor deve ser maior que zero');
-      return;
-    }
-
-    try {
-      await mutateAsync({
-        description: description.trim(),
-        amount,
-        currency,
-        category,
-      });
-      resetForm();
-    } catch (err) {
-      setFormError(err instanceof ApiError ? err.message : 'Não foi possível adicionar o gasto.');
-    }
-  }
 
   return (
     <View style={styles.root}>
@@ -83,102 +36,34 @@ export function BudgetTab({ trip }: BudgetTabProps) {
             }
             style={styles.noMargin}
           />
-          <Button title="Tentar novamente" variant="outline" onPress={() => refetch()} />
+          <Button title="Tentar novamente" variant="soft" onPress={() => refetch()} />
         </View>
       ) : (
-        <ScrollView
+        <FormScrollView
           style={styles.scroll}
           contentContainerStyle={styles.scrollContent}
-          showsVerticalScrollIndicator={false}
         >
           <BudgetSummaryCard summary={data} currency={currency} />
 
           {data.expenses.items.map((expense) => (
-            <View key={expense.id} style={styles.expenseCard}>
-              <View style={styles.expenseInfo}>
-                <Text style={styles.expenseDescription}>{expense.description}</Text>
-                {expense.category ? (
-                  <Text style={styles.expenseCategory}>{expense.category}</Text>
-                ) : null}
-              </View>
-              <Text style={styles.expenseAmount}>
-                {formatCurrencyValue(expense.amount, currency)}
-              </Text>
-            </View>
+            <ExpenseCard key={expense.id} expense={expense} trip={trip} />
           ))}
 
           {showForm ? (
-            <View style={styles.formCard}>
-              <View style={styles.formHeader}>
-                <Ionicons name="add" size={20} color={colors.text.primary} />
-                <Text style={styles.formTitle}>Novo gasto</Text>
-              </View>
-
-              <Input
-                label="Descrição"
-                required
-                placeholder="Ex: Jantar no centro"
-                value={description}
-                onChangeText={setDescription}
-                containerStyle={styles.field}
-              />
-
-              <View style={styles.formRow}>
-                <Input
-                  label="Valor"
-                  required
-                  placeholder={formatAmountFromDigits('', currency)}
-                  value={formattedCost}
-                  onChangeText={(text) => setCostDigits(text.replace(/\D/g, ''))}
-                  keyboardType="number-pad"
-                  selection={{ start: formattedCost.length, end: formattedCost.length }}
-                  containerStyle={styles.formRowItem}
-                />
-                <Input
-                  label="Moeda"
-                  value={currency}
-                  editable={false}
-                  containerStyle={styles.formRowItem}
-                />
-              </View>
-
-              <SelectField
-                label="Categoria"
-                value={category}
-                options={EXPENSE_CATEGORIES}
-                onChange={setCategory}
-                containerStyle={styles.field}
-              />
-
-              <FormError message={formError} />
-
-              <View style={styles.formActions}>
-                <Button
-                  title="Cancelar"
-                  variant="soft"
-                  onPress={resetForm}
-                  disabled={isSaving}
-                  style={styles.formButton}
-                />
-                <Button
-                  title={isSaving ? 'Adicionando...' : 'Adicionar'}
-                  onPress={handleAddExpense}
-                  disabled={isSaving}
-                  style={styles.formButton}
-                />
-              </View>
-            </View>
+            <ExpenseForm
+              trip={trip}
+              onCancel={() => setShowForm(false)}
+              onSuccess={() => setShowForm(false)}
+            />
           ) : (
             <Button
               title="Novo gasto"
-              variant="outline"
-              tone="accent"
-              icon={<Ionicons name="add" size={20} color={colors.accent} />}
+              icon={<Ionicons name="add" size={20} color={colors.surface} />}
               onPress={() => setShowForm(true)}
               style={styles.addButton}
             />
           )}
-        </ScrollView>
+        </FormScrollView>
       )}
     </View>
   );
@@ -276,12 +161,12 @@ const styles = StyleSheet.create({
   },
   summaryLabel: {
     fontSize: 14,
-    fontFamily: fonts.serif.regular,
+    fontFamily: fonts.regular,
     color: colors.text.secondary,
   },
   summaryValue: {
     fontSize: 14,
-    fontFamily: fonts.serif.medium,
+    fontFamily: fonts.medium,
     color: colors.text.primary,
   },
   divider: {
@@ -291,12 +176,12 @@ const styles = StyleSheet.create({
   },
   totalLabel: {
     fontSize: 16,
-    fontFamily: fonts.serif.bold,
+    fontFamily: fonts.bold,
     color: colors.text.primary,
   },
   totalValue: {
     fontSize: 16,
-    fontFamily: fonts.serif.bold,
+    fontFamily: fonts.bold,
     color: colors.text.primary,
   },
   progressTrack: {
@@ -317,80 +202,12 @@ const styles = StyleSheet.create({
   remainingText: {
     marginTop: spacing.xs,
     fontSize: 13,
-    fontFamily: fonts.serif.regular,
+    fontFamily: fonts.regular,
     color: colors.text.secondary,
   },
   remainingTextNegative: {
     color: colors.danger,
-    fontFamily: fonts.serif.medium,
-  },
-  expenseCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    gap: spacing.sm,
-    backgroundColor: colors.surface,
-    borderWidth: 1,
-    borderColor: colors.border.default,
-    borderRadius: 12,
-    padding: spacing.md,
-    marginBottom: spacing.md,
-  },
-  expenseInfo: {
-    flex: 1,
-    minWidth: 0,
-  },
-  expenseDescription: {
-    fontSize: 16,
-    fontFamily: fonts.serif.bold,
-    color: colors.text.primary,
-  },
-  expenseCategory: {
-    marginTop: 2,
-    fontSize: 13,
-    fontFamily: fonts.serif.regular,
-    color: colors.text.secondary,
-  },
-  expenseAmount: {
-    fontSize: 16,
-    fontFamily: fonts.serif.bold,
-    color: colors.text.primary,
-  },
-  formCard: {
-    backgroundColor: colors.surface,
-    borderWidth: 1,
-    borderColor: colors.border.default,
-    borderRadius: 12,
-    padding: spacing.md,
-  },
-  formHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.xs,
-    marginBottom: spacing.md,
-  },
-  formTitle: {
-    fontSize: 18,
-    fontFamily: fonts.serif.bold,
-    color: colors.text.primary,
-  },
-  field: {
-    marginBottom: spacing.md,
-  },
-  formRow: {
-    flexDirection: 'row',
-    gap: spacing.sm,
-  },
-  formRowItem: {
-    flex: 1,
-    marginBottom: spacing.md,
-  },
-  formActions: {
-    flexDirection: 'row',
-    gap: spacing.sm,
-  },
-  formButton: {
-    flex: 1,
+    fontFamily: fonts.medium,
   },
   addButton: {
     marginTop: spacing.sm,

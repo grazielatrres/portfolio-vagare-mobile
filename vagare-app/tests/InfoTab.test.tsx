@@ -32,7 +32,7 @@ describe('InfoTab', () => {
 
     expect(await screen.findByText('Nenhum voo cadastrado ainda.')).toBeTruthy();
     expect(screen.getByText('Nenhuma hospedagem cadastrada ainda.')).toBeTruthy();
-    expect(screen.getByText('Nenhum documento cadastrado ainda.')).toBeTruthy();
+    expect(screen.queryByText('Documentos')).toBeNull();
   });
 
   it('agrupa as informações existentes na seção correta e some com o estado vazio dela', async () => {
@@ -49,6 +49,5 @@ describe('InfoTab', () => {
     expect(screen.getByText('Canaves Oia Suites')).toBeTruthy();
     expect(screen.queryByText('Nenhum voo cadastrado ainda.')).toBeNull();
     expect(screen.queryByText('Nenhuma hospedagem cadastrada ainda.')).toBeNull();
-    expect(screen.getByText('Nenhum documento cadastrado ainda.')).toBeTruthy();
   });
 });

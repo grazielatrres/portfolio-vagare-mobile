@@ -57,7 +57,7 @@ const styles = StyleSheet.create({
   text: {
     flex: 1,
     fontSize: 13,
-    fontFamily: fonts.serif.regular,
+    fontFamily: fonts.regular,
     color: colors.text.secondary,
   },
   textPending: {

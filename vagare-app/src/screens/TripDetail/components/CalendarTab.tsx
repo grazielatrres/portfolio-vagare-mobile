@@ -48,7 +48,7 @@ export function CalendarTab({ trip }: CalendarTabProps) {
             }
             style={styles.noMargin}
           />
-          <Button title="Tentar novamente" variant="outline" onPress={() => refetch()} />
+          <Button title="Tentar novamente" variant="soft" onPress={() => refetch()} />
         </View>
       ) : (
         <ScrollView
@@ -123,7 +123,7 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     fontSize: 16,
-    fontFamily: fonts.serif.bold,
+    fontFamily: fonts.bold,
     color: colors.text.primary,
     marginBottom: spacing.md,
   },
@@ -151,7 +151,7 @@ const styles = StyleSheet.create({
   },
   dayDate: {
     fontSize: 15,
-    fontFamily: fonts.serif.bold,
+    fontFamily: fonts.bold,
     color: colors.text.primary,
   },
   dayDateSelected: {
@@ -159,13 +159,13 @@ const styles = StyleSheet.create({
   },
   dayCount: {
     fontSize: 11,
-    fontFamily: fonts.serif.medium,
+    fontFamily: fonts.medium,
     color: colors.accent,
     textAlign: 'center',
   },
   dayHeader: {
     fontSize: 16,
-    fontFamily: fonts.serif.bold,
+    fontFamily: fonts.bold,
     color: colors.text.primary,
     marginBottom: spacing.sm,
   },

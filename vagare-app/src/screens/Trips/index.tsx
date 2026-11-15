@@ -9,9 +9,8 @@ import {
   Text,
   View,
 } from "react-native";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import { Button, EmptyState, FormError, OfflineBanner } from "@/components";
+import { Button, EmptyState, FormError, OfflineBanner, Screen } from "@/components";
 import { useAuth } from "@/contexts/AuthContext";
 import { useActivityCountsQuery } from "@/hooks/useActivityCountsQuery";
 import { useIsSyncing } from "@/hooks/useIsSyncing";
@@ -23,7 +22,6 @@ import { TripCard } from "./components/TripCard";
 
 export function Trips() {
   const { user } = useAuth();
-  const insets = useSafeAreaInsets();
   const { data, isPending, isError, error, refetch } = useTripsQuery();
   const isSyncing = useIsSyncing();
   const { data: activityCounts, refetch: refetchActivityCounts } = useActivityCountsQuery();
@@ -49,7 +47,7 @@ export function Trips() {
   }
 
   return (
-    <View style={[styles.root, { paddingTop: insets.top + spacing.md }]}>
+    <Screen edges={['top']} style={styles.root}>
       <View style={styles.header}>
         <Text style={styles.greeting}>{getGreeting()},</Text>
         <Text style={styles.name}>{user?.name}</Text>
@@ -84,7 +82,7 @@ export function Trips() {
           />
           <Button
             title="Tentar novamente"
-            variant="outline"
+            variant="soft"
             onPress={() => refetch()}
           />
         </View>
@@ -111,13 +109,14 @@ export function Trips() {
           }
         />
       )}
-    </View>
+    </Screen>
   );
 }
 
 const styles = StyleSheet.create({
   root: {
     flex: 1,
+    paddingTop: spacing.md,
     backgroundColor: colors.background,
     paddingHorizontal: spacing.lg,
   },
@@ -126,12 +125,12 @@ const styles = StyleSheet.create({
   },
   greeting: {
     fontSize: 16,
-    fontFamily: fonts.serif.regular,
+    fontFamily: fonts.regular,
     color: colors.text.secondary,
   },
   name: {
     fontSize: 26,
-    fontFamily: fonts.serif.bold,
+    fontFamily: fonts.bold,
     color: colors.text.primary,
   },
   createButton: {
@@ -139,7 +138,7 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     fontSize: 18,
-    fontFamily: fonts.serif.bold,
+    fontFamily: fonts.bold,
     color: colors.text.primary,
     marginBottom: spacing.md,
   },

@@ -46,6 +46,12 @@ export function createTrip(token: string, payload: CreateTripPayload, idempotenc
   });
 }
 
+// PUT substitui a viagem inteira: campos opcionais omitidos viram null no
+// servidor, então o payload sempre leva todos os campos do formulário.
+export function updateTrip(token: string, id: string, payload: CreateTripPayload) {
+  return apiRequest<Trip>(`/trips/${id}`, { method: 'PUT', token, body: payload });
+}
+
 export function deleteTrip(token: string, id: string) {
   return apiRequest<void>(`/trips/${id}`, { method: 'DELETE', token });
 }
@@ -68,5 +74,13 @@ export function buildTripFromPayload(id: string, userId: string, payload: Create
     numberOfPeople: payload.numberOfPeople ?? null,
     createdAt: now,
     updatedAt: now,
+  };
+}
+
+// Versão local de uma viagem editada offline, preservando dono e criação.
+export function buildUpdatedTrip(trip: Trip, payload: CreateTripPayload): Trip {
+  return {
+    ...buildTripFromPayload(trip.id, trip.userId, payload),
+    createdAt: trip.createdAt,
   };
 }

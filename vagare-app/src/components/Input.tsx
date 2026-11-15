@@ -95,7 +95,7 @@ const styles = StyleSheet.create({
   label: {
     marginBottom: spacing.sm,
     fontSize: 16,
-    fontFamily: fonts.serif.medium,
+    fontFamily: fonts.medium,
     color: colors.text.primary,
   },
   required: {
@@ -113,7 +113,7 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     backgroundColor: colors.surface,
     fontSize: 16,
-    fontFamily: fonts.serif.regular,
+    fontFamily: fonts.regular,
     color: colors.text.primary,
   },
   inputWithRightElement: {
@@ -128,7 +128,7 @@ const styles = StyleSheet.create({
   errorText: {
     marginTop: spacing.xs,
     fontSize: 16,
-    fontFamily: fonts.serif.regular,
+    fontFamily: fonts.regular,
     color: colors.danger,
   },
   rightElement: {

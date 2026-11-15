@@ -3,14 +3,13 @@ import { Pressable, StyleSheet, Text, ViewStyle } from 'react-native';
 
 import { colors, fonts, spacing } from '@/theme';
 
-export type ButtonVariant = 'primary' | 'outline' | 'soft';
-export type ButtonTone = 'neutral' | 'accent';
+/** Every button is filled: `primary` for the main action, `soft` for secondary ones. */
+export type ButtonVariant = 'primary' | 'soft';
 
 export interface ButtonProps {
   title: string;
   onPress?: () => void;
   variant?: ButtonVariant;
-  tone?: ButtonTone;
   icon?: ReactNode;
   disabled?: boolean;
   style?: ViewStyle;
@@ -20,30 +19,13 @@ export function Button({
   title,
   onPress,
   variant = 'primary',
-  tone = 'neutral',
   icon,
   disabled,
   style,
 }: ButtonProps) {
-  const isOutline = variant === 'outline';
   const isSoft = variant === 'soft';
-  const isAccentTone = tone === 'accent';
-
-  const variantStyle = isSoft
-    ? styles.soft
-    : isOutline
-      ? isAccentTone
-        ? styles.outlineAccent
-        : styles.outline
-      : styles.primary;
-
-  const textVariantStyle = isSoft
-    ? styles.softText
-    : isOutline
-      ? isAccentTone
-        ? styles.outlineAccentText
-        : styles.outlineText
-      : styles.primaryText;
+  const variantStyle = isSoft ? styles.soft : styles.primary;
+  const textVariantStyle = isSoft ? styles.softText : styles.primaryText;
 
   return (
     <Pressable
@@ -76,16 +58,6 @@ const styles = StyleSheet.create({
   primary: {
     backgroundColor: colors.accent,
   },
-  outline: {
-    backgroundColor: 'transparent',
-    borderWidth: 1,
-    borderColor: colors.border.default,
-  },
-  outlineAccent: {
-    backgroundColor: 'transparent',
-    borderWidth: 1,
-    borderColor: colors.accent,
-  },
   soft: {
     backgroundColor: colors.accentSoft,
   },
@@ -101,19 +73,11 @@ const styles = StyleSheet.create({
     flexShrink: 1,
   },
   primaryText: {
-    fontFamily: fonts.serif.semiBold,
+    fontFamily: fonts.semiBold,
     color: colors.surface,
   },
-  outlineText: {
-    fontFamily: fonts.serif.medium,
-    color: colors.text.primary,
-  },
-  outlineAccentText: {
-    fontFamily: fonts.serif.semiBold,
-    color: colors.accent,
-  },
   softText: {
-    fontFamily: fonts.serif.semiBold,
+    fontFamily: fonts.semiBold,
     color: colors.accent,
   },
 });

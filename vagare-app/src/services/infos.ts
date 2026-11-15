@@ -1,6 +1,6 @@
 import { apiRequest, idempotencyHeaders } from './api';
 
-export type InfoType = 'flight' | 'lodging' | 'document';
+export type InfoType = 'flight' | 'lodging';
 
 export interface FlightDetails {
   origin: string;
@@ -13,10 +13,6 @@ export interface LodgingDetails {
   address: string;
   checkIn: string;
   checkOut: string;
-}
-
-export interface DocumentDetails {
-  number: string;
 }
 
 export interface Info {

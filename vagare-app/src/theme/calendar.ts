@@ -12,7 +12,7 @@ export const calendarTheme = {
   textDisabledColor: colors.text.placeholder,
   monthTextColor: colors.text.primary,
   arrowColor: colors.accent,
-  textDayFontFamily: fonts.serif.regular,
-  textMonthFontFamily: fonts.serif.bold,
-  textDayHeaderFontFamily: fonts.serif.medium,
+  textDayFontFamily: fonts.regular,
+  textMonthFontFamily: fonts.bold,
+  textDayHeaderFontFamily: fonts.medium,
 };

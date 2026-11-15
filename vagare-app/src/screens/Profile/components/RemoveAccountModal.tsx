@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Modal, Pressable, StyleSheet, Text, View } from 'react-native';
+import { KeyboardAvoidingView } from 'react-native-keyboard-controller';
 
 import { Button, FormError, Input } from '@/components';
 import { colors, fonts, spacing } from '@/theme';
@@ -35,53 +36,58 @@ export function RemoveAccountModal({
 
   return (
     <Modal visible={visible} transparent animationType="fade" onRequestClose={onCancel}>
-      <Pressable style={styles.backdrop} onPress={onCancel}>
-        <Pressable style={styles.sheet} onPress={(event) => event.stopPropagation()}>
-          <Text style={styles.title}>Excluir conta</Text>
-          <Text style={styles.message}>
-            Esta ação é permanente: suas viagens e dados serão removidos. Para confirmar, digite{' '}
-            <Text style={styles.bold}>{CONFIRMATION_PHRASE}</Text> abaixo.
-          </Text>
+      <KeyboardAvoidingView behavior="padding" style={styles.overlay}>
+        <Pressable style={styles.backdrop} onPress={onCancel}>
+          <Pressable style={styles.sheet} onPress={(event) => event.stopPropagation()}>
+            <Text style={styles.title}>Excluir conta</Text>
+            <Text style={styles.message}>
+              Esta ação é permanente: suas viagens e dados serão removidos. Para confirmar, digite{' '}
+              <Text style={styles.bold}>{CONFIRMATION_PHRASE}</Text> abaixo.
+            </Text>
 
-          <Input
-            label="Frase de confirmação"
-            placeholder={CONFIRMATION_PHRASE}
-            value={phrase}
-            onChangeText={setPhrase}
-            autoComplete="off"
-            autoCapitalize="none"
-            autoCorrect={false}
-            containerStyle={styles.field}
-          />
-
-          <FormError message={error} style={styles.errorText} />
-
-          <View style={styles.actions}>
-            <Button
-              title={isDeleting ? 'Excluindo...' : 'Excluir definitivamente'}
-              onPress={onConfirm}
-              disabled={!canConfirm}
-              style={styles.confirmButton}
+            <Input
+              label="Frase de confirmação"
+              placeholder={CONFIRMATION_PHRASE}
+              value={phrase}
+              onChangeText={setPhrase}
+              autoComplete="off"
+              autoCapitalize="none"
+              autoCorrect={false}
+              containerStyle={styles.field}
             />
-            <Button
-              title="Cancelar"
-              variant="outline"
-              onPress={onCancel}
-              disabled={isDeleting}
-            />
-          </View>
+
+            <FormError message={error} style={styles.errorText} />
+
+            <View style={styles.actions}>
+              <Button
+                title={isDeleting ? 'Excluindo...' : 'Excluir definitivamente'}
+                onPress={onConfirm}
+                disabled={!canConfirm}
+                style={styles.confirmButton}
+              />
+              <Button
+                title="Cancelar"
+                variant="soft"
+                onPress={onCancel}
+                disabled={isDeleting}
+              />
+            </View>
+          </Pressable>
         </Pressable>
-      </Pressable>
+      </KeyboardAvoidingView>
     </Modal>
   );
 }
 
 const styles = StyleSheet.create({
+  overlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.4)',
+  },
   backdrop: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: 'rgba(0, 0, 0, 0.4)',
     padding: spacing.lg,
   },
   sheet: {
@@ -92,18 +98,18 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 18,
-    fontFamily: fonts.serif.bold,
+    fontFamily: fonts.bold,
     color: colors.text.primary,
     marginBottom: spacing.sm,
   },
   message: {
     fontSize: 16,
-    fontFamily: fonts.serif.regular,
+    fontFamily: fonts.regular,
     color: colors.text.secondary,
     marginBottom: spacing.lg,
   },
   bold: {
-    fontFamily: fonts.serif.bold,
+    fontFamily: fonts.bold,
     color: colors.text.primary,
   },
   field: {

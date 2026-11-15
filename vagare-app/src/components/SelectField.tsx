@@ -8,6 +8,7 @@ import { Input } from './Input';
 export interface SelectFieldProps {
   label: string;
   required?: boolean;
+  error?: string | null;
   value: string | null;
   options: readonly string[];
   placeholder?: string;
@@ -18,6 +19,7 @@ export interface SelectFieldProps {
 export function SelectField({
   label,
   required,
+  error,
   value,
   options,
   placeholder = 'Selecione',
@@ -32,6 +34,7 @@ export function SelectField({
         <Input
           label={label}
           required={required}
+          error={error}
           placeholder={placeholder}
           value={value ?? ''}
           editable={false}
@@ -90,7 +93,7 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 18,
-    fontFamily: fonts.serif.bold,
+    fontFamily: fonts.bold,
     color: colors.text.primary,
     marginBottom: spacing.sm,
   },
@@ -107,11 +110,11 @@ const styles = StyleSheet.create({
   },
   optionText: {
     fontSize: 16,
-    fontFamily: fonts.serif.regular,
+    fontFamily: fonts.regular,
     color: colors.text.primary,
   },
   optionTextSelected: {
-    fontFamily: fonts.serif.semiBold,
+    fontFamily: fonts.semiBold,
     color: colors.accent,
   },
 });

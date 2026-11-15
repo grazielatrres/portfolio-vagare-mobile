@@ -17,11 +17,14 @@ export function useCreateExpenseMutation(tripId: string) {
 
   return useMutation({
     mutationFn: async (payload: CreateExpensePayload) => {
+      // Gerado antes da tentativa: serve de Idempotency-Key e, se a resposta não
+      // chegar, de id local. O reenvio pela fila usa a mesma chave e não duplica.
+      const localId = generateLocalId();
       try {
-        return await createExpense(token as string, tripId, payload);
+        return await createExpense(token as string, tripId, payload, localId);
       } catch (err) {
         if (err instanceof ApiError && err.status === 0) {
-          const local = buildExpenseFromPayload(generateLocalId(), tripId, payload);
+          const local = buildExpenseFromPayload(localId, tripId, payload);
           await upsertExpenseToCache(local);
           await enqueueMutation({
             tripId,

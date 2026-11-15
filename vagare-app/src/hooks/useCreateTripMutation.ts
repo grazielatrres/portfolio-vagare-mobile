@@ -16,11 +16,14 @@ export function useCreateTripMutation() {
 
   return useMutation({
     mutationFn: async (payload: CreateTripPayload) => {
+      // Gerado antes da tentativa: serve de Idempotency-Key e, se a resposta não
+      // chegar, de id local. O reenvio pela fila usa a mesma chave e não duplica.
+      const localId = generateLocalId();
       try {
-        return await createTrip(token as string, payload);
+        return await createTrip(token as string, payload, localId);
       } catch (err) {
         if (err instanceof ApiError && err.status === 0) {
-          const local = buildTripFromPayload(generateLocalId(), user?.id ?? '', payload);
+          const local = buildTripFromPayload(localId, user?.id ?? '', payload);
           await upsertTripToCache(local);
           await enqueueMutation({
             tripId: local.id,

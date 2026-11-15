@@ -18,11 +18,14 @@ export function useCreateActivityMutation(tripId: string) {
 
   return useMutation({
     mutationFn: async (payload: CreateActivityPayload) => {
+      // Gerado antes da tentativa: serve de Idempotency-Key e, se a resposta não
+      // chegar, de id local. O reenvio pela fila usa a mesma chave e não duplica.
+      const localId = generateLocalId();
       try {
-        return await createActivity(token as string, tripId, payload);
+        return await createActivity(token as string, tripId, payload, localId);
       } catch (err) {
         if (err instanceof ApiError && err.status === 0) {
-          const local = buildActivityFromPayload(generateLocalId(), tripId, payload);
+          const local = buildActivityFromPayload(localId, tripId, payload);
           await upsertActivityToCache(local);
           await enqueueMutation({
             tripId,

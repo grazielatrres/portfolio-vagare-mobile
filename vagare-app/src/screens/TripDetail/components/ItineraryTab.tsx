@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Ionicons } from '@expo/vector-icons';
 import { ActivityIndicator, ScrollView, StyleSheet, Text, View } from 'react-native';
 
-import { Button, EmptyState, FormError, OfflineBanner, PendingSyncBanner } from '@/components';
+import { Button, EmptyState, FormError, PendingSyncBanner } from '@/components';
 import { useActivitiesQuery } from '@/hooks/useActivitiesQuery';
 import { usePendingMutationsQuery } from '@/hooks/usePendingMutationsQuery';
 import { ApiError } from '@/services/api';
@@ -23,7 +23,6 @@ export function ItineraryTab({ trip }: ItineraryTabProps) {
   const [showForm, setShowForm] = useState(false);
 
   const activities = data?.activities;
-  const isOffline = data?.isOffline ?? false;
   const pendingCount = pendingMutations?.length ?? 0;
   const dayGroups = activities ? groupByDay(activities, trip.startDate) : [];
 
@@ -49,9 +48,6 @@ export function ItineraryTab({ trip }: ItineraryTabProps) {
           contentContainerStyle={styles.scrollContent}
           showsVerticalScrollIndicator={false}
         >
-          {isOffline ? (
-            <OfflineBanner message="Sem conexão — mostrando o roteiro salvo neste dispositivo" />
-          ) : null}
           <PendingSyncBanner count={pendingCount} />
 
           {dayGroups.length === 0 ? (

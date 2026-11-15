@@ -1,4 +1,4 @@
-import { notifyBackOnline } from './connectivity';
+import { notifyBackOnline, notifyOffline } from './connectivity';
 import { LOCAL_ID_PREFIX } from './localId';
 
 const API_URL = process.env.EXPO_PUBLIC_API_URL ?? 'http://localhost:3000';
@@ -95,6 +95,7 @@ async function performRequest<T>(path: string, options: ApiRequestOptions): Prom
     const isJson = response.headers.get('content-type')?.includes('application/json');
     data = isJson ? await response.json() : null;
   } catch {
+    notifyOffline();
     throw new ApiError(0, 'Não foi possível conectar ao servidor. Verifique sua conexão.');
   } finally {
     clearTimeout(timeoutId);

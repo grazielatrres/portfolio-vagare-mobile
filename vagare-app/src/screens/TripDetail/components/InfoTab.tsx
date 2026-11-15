@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Ionicons } from '@expo/vector-icons';
 import { ActivityIndicator, ScrollView, StyleSheet, Text, View } from 'react-native';
 
-import { Button, FormError, OfflineBanner, PendingSyncBanner } from '@/components';
+import { Button, FormError, PendingSyncBanner } from '@/components';
 import { useInfosQuery } from '@/hooks/useInfosQuery';
 import { usePendingMutationsQuery } from '@/hooks/usePendingMutationsQuery';
 import { ApiError } from '@/services/api';
@@ -37,7 +37,6 @@ export function InfoTab({ trip }: InfoTabProps) {
   const [showDocumentForm, setShowDocumentForm] = useState(false);
 
   const infos = data?.infos;
-  const isOffline = data?.isOffline ?? false;
   const pendingCount = pendingMutations?.length ?? 0;
 
   const flights = sortByDate((infos ?? []).filter((info) => info.type === 'flight'));
@@ -66,9 +65,6 @@ export function InfoTab({ trip }: InfoTabProps) {
           contentContainerStyle={styles.scrollContent}
           showsVerticalScrollIndicator={false}
         >
-          {isOffline ? (
-            <OfflineBanner message="Sem conexão — mostrando informações salvas neste dispositivo" />
-          ) : null}
           <PendingSyncBanner count={pendingCount} />
 
           <Text style={styles.pageTitle}>Informações complementares</Text>

@@ -3,6 +3,7 @@ import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { BackButton, Button, FormError, OfflineBanner } from '@/components';
+import { useIsOnline } from '@/hooks/useIsOnline';
 import { useTripQuery } from '@/hooks/useTripQuery';
 import { ApiError } from '@/services/api';
 import { colors, fonts, spacing } from '@/theme';
@@ -24,7 +25,9 @@ export function TripDetail({ tripId, onBack }: TripDetailProps) {
   const insets = useSafeAreaInsets();
   const { data, isPending, isError, error, refetch } = useTripQuery(tripId);
   const trip = data?.trip;
-  const isOffline = data?.isOffline ?? false;
+  // Aviso único para a tela toda: reflete qualquer requisição da viagem (dados
+  // da viagem e de cada aba), em vez de um aviso por aba empilhado com este.
+  const isOnline = useIsOnline();
   const [activeTab, setActiveTab] = useState<TripTabKey>('roteiro');
 
   return (
@@ -45,7 +48,7 @@ export function TripDetail({ tripId, onBack }: TripDetailProps) {
         </View>
       ) : (
         <>
-          {isOffline ? (
+          {!isOnline ? (
             <OfflineBanner message="Sem conexão — mostrando dados salvos neste dispositivo" />
           ) : null}
 

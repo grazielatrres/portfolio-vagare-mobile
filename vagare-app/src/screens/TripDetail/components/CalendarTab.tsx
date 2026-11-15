@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react';
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 
-import { Button, EmptyState, FormError, OfflineBanner } from '@/components';
+import { Button, EmptyState, FormError } from '@/components';
 import { useActivitiesQuery } from '@/hooks/useActivitiesQuery';
 import { ApiError } from '@/services/api';
 import { Trip } from '@/services/trips';
@@ -17,7 +17,6 @@ export interface CalendarTabProps {
 export function CalendarTab({ trip }: CalendarTabProps) {
   const { data, isPending, isError, error, refetch } = useActivitiesQuery(trip.id);
   const activities = data?.activities;
-  const isOffline = data?.isOffline ?? false;
 
   const dates = useMemo(
     () => tripDayDates(trip.startDate, trip.endDate),
@@ -57,9 +56,6 @@ export function CalendarTab({ trip }: CalendarTabProps) {
           contentContainerStyle={styles.scrollContent}
           showsVerticalScrollIndicator={false}
         >
-          {isOffline ? (
-            <OfflineBanner message="Sem conexão — mostrando o roteiro salvo neste dispositivo" />
-          ) : null}
 
           <Text style={styles.sectionTitle}>Calendário da viagem</Text>
 

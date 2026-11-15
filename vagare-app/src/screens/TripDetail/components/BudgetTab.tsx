@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Ionicons } from '@expo/vector-icons';
 import { ActivityIndicator, ScrollView, StyleSheet, Text, View } from 'react-native';
 
-import { Button, FormError, Input, OfflineBanner, PendingSyncBanner, SelectField } from '@/components';
+import { Button, FormError, Input, PendingSyncBanner, SelectField } from '@/components';
 import { useBudgetQuery } from '@/hooks/useBudgetQuery';
 import { useCreateExpenseMutation } from '@/hooks/useCreateExpenseMutation';
 import { usePendingMutationsQuery } from '@/hooks/usePendingMutationsQuery';
@@ -28,7 +28,6 @@ export function BudgetTab({ trip }: BudgetTabProps) {
   const { mutateAsync, isPending: isSaving } = useCreateExpenseMutation(trip.id);
 
   const data = queryData?.summary;
-  const isOffline = queryData?.isOffline ?? false;
   const pendingCount = pendingMutations?.length ?? 0;
 
   const [showForm, setShowForm] = useState(false);
@@ -95,9 +94,6 @@ export function BudgetTab({ trip }: BudgetTabProps) {
           contentContainerStyle={styles.scrollContent}
           showsVerticalScrollIndicator={false}
         >
-          {isOffline ? (
-            <OfflineBanner message="Sem conexão — mostrando o orçamento salvo neste dispositivo" />
-          ) : null}
           <PendingSyncBanner count={pendingCount} />
 
           <BudgetSummaryCard summary={data} currency={currency} />

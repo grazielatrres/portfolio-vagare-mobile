@@ -6,9 +6,11 @@ import {
   pingServer,
   setTokenRefresher,
 } from '@/services/api';
+import { notifyOffline } from '@/services/connectivity';
 
 jest.mock('@/services/connectivity', () => ({
   notifyBackOnline: jest.fn(),
+  notifyOffline: jest.fn(),
 }));
 
 function jsonResponse(status: number, body: unknown) {
@@ -151,8 +153,9 @@ describe('pingServer', () => {
     expect(fetchMock.mock.calls[0][0]).toMatch(/\/health$/);
   });
 
-  it('resolve false sem lançar quando não há conexão', async () => {
+  it('resolve false sem lançar quando não há conexão, e marca o app como offline', async () => {
     fetchMock.mockRejectedValueOnce(new TypeError('Network request failed'));
     await expect(pingServer()).resolves.toBe(false);
+    expect(notifyOffline).toHaveBeenCalled();
   });
 });

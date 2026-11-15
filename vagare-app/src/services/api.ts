@@ -113,6 +113,13 @@ async function performRequest<T>(path: string, options: ApiRequestOptions): Prom
   return data as T;
 }
 
+// Criações levam o id local como Idempotency-Key: se a resposta não chegar (ex.:
+// tempo limite) e a fila reenviar com a mesma chave, o servidor devolve o item
+// já criado em vez de duplicá-lo.
+export function idempotencyHeaders(key?: string): Record<string, string> | undefined {
+  return key ? { 'Idempotency-Key': key } : undefined;
+}
+
 const PING_TIMEOUT_MS = 5_000;
 
 // Checagem leve de "a rede voltou?" usada pela fila offline. Um sucesso passa

@@ -1,5 +1,5 @@
 import { CurrencyCode } from '@/utils/currency';
-import { apiRequest } from './api';
+import { apiRequest, idempotencyHeaders } from './api';
 
 export interface Trip {
   id: string;
@@ -37,8 +37,13 @@ export function getTrip(token: string, id: string) {
   return apiRequest<Trip>(`/trips/${id}`, { token });
 }
 
-export function createTrip(token: string, payload: CreateTripPayload) {
-  return apiRequest<Trip>('/trips', { method: 'POST', token, body: payload });
+export function createTrip(token: string, payload: CreateTripPayload, idempotencyKey?: string) {
+  return apiRequest<Trip>('/trips', {
+    method: 'POST',
+    token,
+    body: payload,
+    headers: idempotencyHeaders(idempotencyKey),
+  });
 }
 
 export function deleteTrip(token: string, id: string) {

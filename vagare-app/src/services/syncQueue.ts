@@ -191,7 +191,7 @@ async function applyMutation(
 
   if (mutation.entityType === 'trip') {
     if (mutation.operation === 'create') {
-      const created = await createTrip(token, payload);
+      const created = await createTrip(token, payload, mutation.localId);
       syncedIds.set(mutation.localId, created.id);
       await replaceLocalTrip(mutation.localId, created);
     } else if (mutation.operation === 'delete') {
@@ -203,7 +203,7 @@ async function applyMutation(
 
   if (mutation.entityType === 'activity') {
     if (mutation.operation === 'create') {
-      const created = await createActivity(token, tripId, payload);
+      const created = await createActivity(token, tripId, payload, mutation.localId);
       syncedIds.set(mutation.localId, created.id);
       await removeActivityFromCache(mutation.localId);
       await upsertActivityToCache(created);
@@ -219,7 +219,7 @@ async function applyMutation(
 
   if (mutation.entityType === 'expense') {
     if (mutation.operation === 'create') {
-      const created = await createExpense(token, tripId, payload);
+      const created = await createExpense(token, tripId, payload, mutation.localId);
       syncedIds.set(mutation.localId, created.id);
       await removeExpenseFromCache(mutation.localId);
       await upsertExpenseToCache(created);
@@ -234,7 +234,7 @@ async function applyMutation(
   }
 
   if (mutation.operation === 'create') {
-    const created = await createInfo(token, tripId, payload);
+    const created = await createInfo(token, tripId, payload, mutation.localId);
     syncedIds.set(mutation.localId, created.id);
     await removeInfoFromCache(mutation.localId);
     await upsertInfoToCache(created);
@@ -333,8 +333,15 @@ async function runDrain(token: string): Promise<void> {
           affectedTripIds.add(resolvedTripId);
         }
       } catch (error) {
-        if (isNetworkFailure(error) || (error instanceof ApiError && error.status === 401)) {
-          // Ainda offline ou token recusado: para aqui e preserva a ordem do que resta na fila.
+        const isRetryable =
+          isNetworkFailure(error) ||
+          (error instanceof ApiError &&
+            // 409 numa criação = a tentativa original (mesma Idempotency-Key)
+            // ainda está em processamento no servidor; tenta de novo depois.
+            (error.status === 401 || (error.status === 409 && mutation.operation === 'create')));
+        if (isRetryable) {
+          // Ainda offline, token recusado ou criação em andamento: para aqui e
+          // preserva a ordem do que resta na fila.
           break;
         }
         // Rejeição real do servidor (ex.: validação) — descarta para não

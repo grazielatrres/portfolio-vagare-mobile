@@ -1,4 +1,4 @@
-import { apiRequest } from './api';
+import { apiRequest, idempotencyHeaders } from './api';
 
 export interface Expense {
   id: string;
@@ -20,11 +20,17 @@ export function listExpenses(token: string, tripId: string) {
   return apiRequest<Expense[]>(`/trips/${tripId}/expenses`, { token });
 }
 
-export function createExpense(token: string, tripId: string, payload: CreateExpensePayload) {
+export function createExpense(
+  token: string,
+  tripId: string,
+  payload: CreateExpensePayload,
+  idempotencyKey?: string,
+) {
   return apiRequest<Expense>(`/trips/${tripId}/expenses`, {
     method: 'POST',
     token,
     body: payload,
+    headers: idempotencyHeaders(idempotencyKey),
   });
 }
 

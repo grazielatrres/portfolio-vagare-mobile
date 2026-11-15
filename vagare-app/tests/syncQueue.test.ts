@@ -245,12 +245,18 @@ describe('syncQueue', () => {
 
     await drainPendingMutations('token-1');
 
-    expect(createTrip).toHaveBeenCalledWith('token-1', tripPayload);
+    // Reenvio usa o id local como Idempotency-Key, igual à tentativa original.
+    expect(createTrip).toHaveBeenCalledWith('token-1', tripPayload, 'local-trip');
     expect(replaceLocalTrip).toHaveBeenCalledWith('local-trip', createdTrip);
     expect(resolveSyncedId('local-trip')).toBe('real-trip');
     // A tela aberta com o id local é recarregada para passar a usar o id real.
     expect(queryClient.invalidateQueries).toHaveBeenCalledWith({ queryKey: ['trips', 'local-trip'] });
-    expect(createActivity).toHaveBeenCalledWith('token-1', 'real-trip', { name: 'A', date: '2026-12-02' });
+    expect(createActivity).toHaveBeenCalledWith(
+      'token-1',
+      'real-trip',
+      { name: 'A', date: '2026-12-02' },
+      'local-act',
+    );
     expect(queryClient.invalidateQueries).toHaveBeenCalledWith({ queryKey: ['trips'], exact: true });
     expect(queryClient.invalidateQueries).toHaveBeenCalledWith({ queryKey: ['trips', 'real-trip'] });
   });
@@ -395,6 +401,24 @@ describe('syncQueue', () => {
       name: 'A editada',
       date: '2026-01-01',
     });
+  });
+
+  it('mantém a criação na fila quando o servidor ainda processa a tentativa original (409)', async () => {
+    await enqueueMutation({
+      tripId: 't1',
+      entityType: 'activity',
+      operation: 'create',
+      localId: 'local-1',
+      payload: { name: 'A', date: '2026-01-01' },
+    });
+    (createActivity as jest.Mock).mockRejectedValueOnce(
+      new ApiError(409, 'Requisição original ainda em processamento'),
+    );
+
+    await drainPendingMutations('token-1');
+
+    await expect(getPendingMutations('t1')).resolves.toHaveLength(1);
+    expect(removeActivityFromCache).not.toHaveBeenCalled();
   });
 
   it('não drena duas vezes em paralelo: a segunda chamada aguarda a mesma drenagem', async () => {

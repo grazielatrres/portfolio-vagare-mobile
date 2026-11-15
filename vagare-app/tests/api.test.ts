@@ -2,6 +2,7 @@ import {
   ApiError,
   UnsyncedEntityError,
   apiRequest,
+  idempotencyHeaders,
   isNetworkFailure,
   pingServer,
   setTokenRefresher,
@@ -157,5 +158,12 @@ describe('pingServer', () => {
     fetchMock.mockRejectedValueOnce(new TypeError('Network request failed'));
     await expect(pingServer()).resolves.toBe(false);
     expect(notifyOffline).toHaveBeenCalled();
+  });
+});
+
+describe('idempotencyHeaders', () => {
+  it('monta o cabeçalho Idempotency-Key só quando há chave', () => {
+    expect(idempotencyHeaders('local-abc')).toEqual({ 'Idempotency-Key': 'local-abc' });
+    expect(idempotencyHeaders(undefined)).toBeUndefined();
   });
 });

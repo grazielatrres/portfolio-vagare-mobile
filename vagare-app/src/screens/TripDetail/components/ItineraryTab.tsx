@@ -2,9 +2,8 @@ import { useState } from 'react';
 import { Ionicons } from '@expo/vector-icons';
 import { ActivityIndicator, ScrollView, StyleSheet, Text, View } from 'react-native';
 
-import { Button, EmptyState, FormError, PendingSyncBanner } from '@/components';
+import { Button, EmptyState, FormError } from '@/components';
 import { useActivitiesQuery } from '@/hooks/useActivitiesQuery';
-import { usePendingMutationsQuery } from '@/hooks/usePendingMutationsQuery';
 import { ApiError } from '@/services/api';
 import { Trip } from '@/services/trips';
 import { colors, fonts, spacing } from '@/theme';
@@ -19,11 +18,9 @@ export interface ItineraryTabProps {
 
 export function ItineraryTab({ trip }: ItineraryTabProps) {
   const { data, isPending, isError, error, refetch } = useActivitiesQuery(trip.id);
-  const { data: pendingMutations } = usePendingMutationsQuery(trip.id);
   const [showForm, setShowForm] = useState(false);
 
   const activities = data?.activities;
-  const pendingCount = pendingMutations?.length ?? 0;
   const dayGroups = activities ? groupByDay(activities, trip.startDate) : [];
 
   return (
@@ -48,8 +45,6 @@ export function ItineraryTab({ trip }: ItineraryTabProps) {
           contentContainerStyle={styles.scrollContent}
           showsVerticalScrollIndicator={false}
         >
-          <PendingSyncBanner count={pendingCount} />
-
           {dayGroups.length === 0 ? (
             showForm ? null : (
               <EmptyState

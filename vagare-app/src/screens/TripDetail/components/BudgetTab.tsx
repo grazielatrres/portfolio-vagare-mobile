@@ -2,10 +2,9 @@ import { useState } from 'react';
 import { Ionicons } from '@expo/vector-icons';
 import { ActivityIndicator, ScrollView, StyleSheet, Text, View } from 'react-native';
 
-import { Button, FormError, Input, PendingSyncBanner, SelectField } from '@/components';
+import { Button, FormError, Input, SelectField } from '@/components';
 import { useBudgetQuery } from '@/hooks/useBudgetQuery';
 import { useCreateExpenseMutation } from '@/hooks/useCreateExpenseMutation';
-import { usePendingMutationsQuery } from '@/hooks/usePendingMutationsQuery';
 import { ApiError } from '@/services/api';
 import { BudgetSummary } from '@/services/budget';
 import { Trip } from '@/services/trips';
@@ -24,11 +23,9 @@ export interface BudgetTabProps {
 
 export function BudgetTab({ trip }: BudgetTabProps) {
   const { data: queryData, isPending, isError, error, refetch } = useBudgetQuery(trip.id);
-  const { data: pendingMutations } = usePendingMutationsQuery(trip.id);
   const { mutateAsync, isPending: isSaving } = useCreateExpenseMutation(trip.id);
 
   const data = queryData?.summary;
-  const pendingCount = pendingMutations?.length ?? 0;
 
   const [showForm, setShowForm] = useState(false);
   const [description, setDescription] = useState('');
@@ -94,8 +91,6 @@ export function BudgetTab({ trip }: BudgetTabProps) {
           contentContainerStyle={styles.scrollContent}
           showsVerticalScrollIndicator={false}
         >
-          <PendingSyncBanner count={pendingCount} />
-
           <BudgetSummaryCard summary={data} currency={currency} />
 
           {data.expenses.items.map((expense) => (

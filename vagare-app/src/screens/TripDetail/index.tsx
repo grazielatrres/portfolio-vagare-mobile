@@ -2,8 +2,9 @@ import { useState } from 'react';
 import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { BackButton, Button, FormError, OfflineBanner } from '@/components';
+import { BackButton, Button, FormError, OfflineBanner, PendingSyncBanner } from '@/components';
 import { useIsOnline } from '@/hooks/useIsOnline';
+import { usePendingMutationsQuery } from '@/hooks/usePendingMutationsQuery';
 import { useTripQuery } from '@/hooks/useTripQuery';
 import { ApiError } from '@/services/api';
 import { colors, fonts, spacing } from '@/theme';
@@ -28,6 +29,9 @@ export function TripDetail({ tripId, onBack }: TripDetailProps) {
   // Aviso único para a tela toda: reflete qualquer requisição da viagem (dados
   // da viagem e de cada aba), em vez de um aviso por aba empilhado com este.
   const isOnline = useIsOnline();
+  // Pendências da viagem inteira (roteiro, gastos, infos e a própria viagem),
+  // num aviso só no topo em vez de repetido em algumas abas.
+  const { data: pendingMutations } = usePendingMutationsQuery(trip?.id ?? '');
   const [activeTab, setActiveTab] = useState<TripTabKey>('roteiro');
 
   return (
@@ -51,6 +55,7 @@ export function TripDetail({ tripId, onBack }: TripDetailProps) {
           {!isOnline ? (
             <OfflineBanner message="Sem conexão — mostrando dados salvos neste dispositivo" />
           ) : null}
+          <PendingSyncBanner count={pendingMutations?.length ?? 0} />
 
           <Text style={styles.destination}>{trip.destination}</Text>
           <Text style={styles.subtitle}>

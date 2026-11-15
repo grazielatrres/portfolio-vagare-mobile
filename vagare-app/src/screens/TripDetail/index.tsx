@@ -1,8 +1,7 @@
 import { useState } from 'react';
 import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { BackButton, Button, FormError, SyncStatusBanner } from '@/components';
+import { BackButton, Button, FormError, Screen, SyncStatusBanner } from '@/components';
 import { useIsOnline } from '@/hooks/useIsOnline';
 import { usePendingMutationsQuery } from '@/hooks/usePendingMutationsQuery';
 import { useTripQuery } from '@/hooks/useTripQuery';
@@ -23,7 +22,6 @@ export interface TripDetailProps {
 }
 
 export function TripDetail({ tripId, onBack }: TripDetailProps) {
-  const insets = useSafeAreaInsets();
   const { data, isPending, isError, error, refetch } = useTripQuery(tripId);
   const trip = data?.trip;
   const isOnline = useIsOnline();
@@ -31,7 +29,7 @@ export function TripDetail({ tripId, onBack }: TripDetailProps) {
   const [activeTab, setActiveTab] = useState<TripTabKey>('roteiro');
 
   return (
-    <View style={[styles.root, { paddingTop: insets.top + spacing.md }]}>
+    <Screen style={styles.root}>
       <BackButton onPress={onBack} style={styles.backButton} />
 
       {isPending ? (
@@ -78,13 +76,14 @@ export function TripDetail({ tripId, onBack }: TripDetailProps) {
           </View>
         </>
       )}
-    </View>
+    </Screen>
   );
 }
 
 const styles = StyleSheet.create({
   root: {
     flex: 1,
+    paddingTop: spacing.md,
     backgroundColor: colors.background,
     paddingHorizontal: spacing.md,
   },

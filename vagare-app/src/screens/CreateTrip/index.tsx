@@ -1,6 +1,5 @@
 import { useMemo, useState } from 'react';
 import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, View } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import {
   BackButton,
@@ -10,6 +9,7 @@ import {
   DestinationField,
   FormError,
   Input,
+  Screen,
 } from '@/components';
 import { useCreateTripMutation } from '@/hooks/useCreateTripMutation';
 import { ApiError } from '@/services/api';
@@ -30,7 +30,6 @@ function startOfToday(): Date {
 }
 
 export function CreateTrip({ onBack, onCreated }: CreateTripProps) {
-  const insets = useSafeAreaInsets();
   const { mutateAsync, isPending } = useCreateTripMutation();
   const today = useMemo(() => startOfToday(), []);
 
@@ -123,76 +122,78 @@ export function CreateTrip({ onBack, onCreated }: CreateTripProps) {
   }
 
   return (
-    <KeyboardAvoidingView
-      style={styles.root}
-      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-    >
-      <ScrollView
-        contentContainerStyle={[styles.content, { paddingTop: insets.top + spacing.md }]}
-        keyboardShouldPersistTaps="handled"
+    <Screen>
+      <KeyboardAvoidingView
+        style={styles.root}
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       >
-        <BackButton onPress={onBack} style={styles.backButton} />
+        <ScrollView
+          contentContainerStyle={styles.content}
+          keyboardShouldPersistTaps="handled"
+        >
+          <BackButton onPress={onBack} style={styles.backButton} />
 
-        <Text style={styles.title}>Nova viagem</Text>
-        <Text style={styles.subtitle}>Planeje sua próxima aventura</Text>
+          <Text style={styles.title}>Nova viagem</Text>
+          <Text style={styles.subtitle}>Planeje sua próxima aventura</Text>
 
-        <View style={styles.form}>
-          <Input
-            label="Nome da viagem"
-            required
-            placeholder="Ex: Férias de verão"
-            value={name}
-            onChangeText={setName}
-            containerStyle={styles.field}
-          />
-          <DestinationField
-            label="Destino"
-            required
-            value={destination}
-            onChangeText={handleDestinationChange}
-            onSelectPlace={handleSelectPlace}
-            containerStyle={styles.field}
-          />
+          <View style={styles.form}>
+            <Input
+              label="Nome da viagem"
+              required
+              placeholder="Ex: Férias de verão"
+              value={name}
+              onChangeText={setName}
+              containerStyle={styles.field}
+            />
+            <DestinationField
+              label="Destino"
+              required
+              value={destination}
+              onChangeText={handleDestinationChange}
+              onSelectPlace={handleSelectPlace}
+              containerStyle={styles.field}
+            />
 
-          <DateRangeField
-            label="Período da viagem"
-            required
-            startDate={startDate}
-            endDate={endDate}
-            onChange={handlePeriodChange}
-            minimumDate={today}
-            containerStyle={styles.field}
-          />
+            <DateRangeField
+              label="Período da viagem"
+              required
+              startDate={startDate}
+              endDate={endDate}
+              onChange={handlePeriodChange}
+              minimumDate={today}
+              containerStyle={styles.field}
+            />
 
-          <CurrencyPicker value={currency} onChange={setCurrency} containerStyle={styles.field} />
-          <Input
-            label="Orçamento estimado"
-            placeholder={formatAmountFromDigits('', currency)}
-            value={formattedBudget}
-            onChangeText={(text) => setBudgetDigits(text.replace(/\D/g, ''))}
-            keyboardType="number-pad"
-            selection={{ start: formattedBudget.length, end: formattedBudget.length }}
-            containerStyle={styles.field}
-          />
-          <Input
-            label="Número de pessoas"
-            placeholder="Ex: 2"
-            value={numberOfPeople}
-            onChangeText={(text) => setNumberOfPeople(text.replace(/\D/g, ''))}
-            keyboardType="number-pad"
-            containerStyle={styles.field}
-          />
+            <CurrencyPicker value={currency} onChange={setCurrency} containerStyle={styles.field} />
+            <Input
+              label="Orçamento estimado"
+              placeholder={formatAmountFromDigits('', currency)}
+              value={formattedBudget}
+              onChangeText={(text) => setBudgetDigits(text.replace(/\D/g, ''))}
+              keyboardType="number-pad"
+              selection={{ start: formattedBudget.length, end: formattedBudget.length }}
+              containerStyle={styles.field}
+            />
+            <Input
+              label="Número de pessoas"
+              placeholder="Ex: 2"
+              value={numberOfPeople}
+              onChangeText={(text) => setNumberOfPeople(text.replace(/\D/g, ''))}
+              keyboardType="number-pad"
+              containerStyle={styles.field}
+            />
 
-          <FormError message={error} />
+            <FormError message={error} />
 
-          <Button
-            title={isPending ? 'Criando viagem...' : 'Criar viagem'}
-            onPress={handleSubmit}
-            disabled={isPending}
-          />
-        </View>
-      </ScrollView>
-    </KeyboardAvoidingView>
+            <Button
+              title={isPending ? 'Criando viagem...' : 'Criar viagem'}
+              onPress={handleSubmit}
+              disabled={isPending}
+            />
+          </View>
+        </ScrollView>
+      </KeyboardAvoidingView>
+    </Screen>
   );
 }
 
@@ -202,6 +203,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.background,
   },
   content: {
+    paddingTop: spacing.md,
     paddingHorizontal: spacing.lg,
     paddingBottom: spacing.xl,
   },

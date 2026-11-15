@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
-import { Button, Divider, FormError, Input, PasswordInput } from '@/components';
+import { Button, Divider, FormError, Input, PasswordInput, Screen } from '@/components';
 import { useAuth } from '@/contexts/AuthContext';
 import { useGoogleAuth } from '@/hooks/useGoogleAuth';
 import { ApiError } from '@/services/api';
@@ -54,7 +54,7 @@ export function Login({ onCreateAccount, onForgotPassword }: LoginProps) {
   }
 
   return (
-    <View style={styles.root}>
+    <Screen style={styles.root}>
       <AuthHeader
         align="center"
         icon={<Ionicons name="compass-outline" size={30} color={colors.surface} />}
@@ -120,7 +120,7 @@ export function Login({ onCreateAccount, onForgotPassword }: LoginProps) {
           </Pressable>
         </View>
       </View>
-    </View>
+    </Screen>
   );
 }
 

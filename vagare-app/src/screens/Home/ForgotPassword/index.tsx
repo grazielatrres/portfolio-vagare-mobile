@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
-import { BackButton, Button, Input } from '@/components';
+import { BackButton, Button, Input, Screen } from '@/components';
 import { forgotPassword } from '@/services/auth';
 import { ApiError } from '@/services/api';
 import { colors, fonts, spacing } from '@/theme';
@@ -41,7 +41,7 @@ export function ForgotPassword({ onBack }: ForgotPasswordProps) {
   }
 
   return (
-    <View style={styles.root}>
+    <Screen style={styles.root}>
       <AuthHeader
         align="center"
         icon={<Ionicons name="compass-outline" size={30} color={colors.surface} />}
@@ -74,7 +74,7 @@ export function ForgotPassword({ onBack }: ForgotPasswordProps) {
 
         <BackButton label="Voltar para o login" onPress={onBack} tone="muted" align="center" />
       </View>
-    </View>
+    </Screen>
   );
 }
 

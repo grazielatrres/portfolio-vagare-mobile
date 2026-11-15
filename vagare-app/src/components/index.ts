@@ -26,6 +26,8 @@ export { PasswordInput } from "./PasswordInput";
 export type { PasswordInputProps } from "./PasswordInput";
 export { PasswordRequirements } from "./PasswordRequirements";
 export type { PasswordRequirementsProps } from "./PasswordRequirements";
+export { Screen } from "./Screen";
+export type { ScreenEdge, ScreenProps } from "./Screen";
 export { SelectField } from "./SelectField";
 export type { SelectFieldProps } from "./SelectField";
 export { SyncStatusBanner } from "./SyncStatusBanner";

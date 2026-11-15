@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { StyleSheet, View } from "react-native";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import {
   BackButton,
@@ -9,6 +8,7 @@ import {
   Input,
   PasswordInput,
   PasswordRequirements,
+  Screen,
 } from "@/components";
 import { useAuth } from "@/contexts/AuthContext";
 import { ApiError } from "@/services/api";
@@ -22,7 +22,6 @@ export interface SignInProps {
 
 export function SignIn({ onBack }: SignInProps) {
   const { register, isLoading } = useAuth();
-  const insets = useSafeAreaInsets();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -59,7 +58,7 @@ export function SignIn({ onBack }: SignInProps) {
   }
 
   return (
-    <View style={[styles.root, { paddingTop: insets.top + spacing.md }]}>
+    <Screen style={styles.root}>
       <BackButton onPress={onBack} style={styles.backButton} />
 
       <AuthHeader title="Criar conta" subtitle="Crie sua conta no Vagare" />
@@ -107,13 +106,14 @@ export function SignIn({ onBack }: SignInProps) {
           disabled={isLoading}
         />
       </View>
-    </View>
+    </Screen>
   );
 }
 
 const styles = StyleSheet.create({
   root: {
     flex: 1,
+    paddingTop: spacing.md,
     backgroundColor: colors.background,
     paddingHorizontal: spacing.lg,
   },

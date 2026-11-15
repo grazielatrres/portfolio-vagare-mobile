@@ -8,9 +8,8 @@ import {
   View,
   useWindowDimensions,
 } from "react-native";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import { Button, ConfirmModal } from "@/components";
+import { Button, ConfirmModal, Screen } from "@/components";
 import { useAuth } from "@/contexts/AuthContext";
 import { useProfileQuery } from "@/hooks/useProfileQuery";
 import { useSafeLogout } from "@/hooks/useSafeLogout";
@@ -40,7 +39,6 @@ export function Profile() {
     isChecking,
     unsyncedCount,
   } = useSafeLogout();
-  const insets = useSafeAreaInsets();
   const { width } = useWindowDimensions();
   const profileQuery = useProfileQuery();
   const tripsQuery = useTripsQuery();
@@ -63,7 +61,7 @@ export function Profile() {
   const isCompact = width < COMPACT_WIDTH_BREAKPOINT;
 
   return (
-    <View style={[styles.root, { paddingTop: insets.top + spacing.md }]}>
+    <Screen edges={['top']} style={styles.root}>
       <Text style={styles.title}>Meu Perfil</Text>
 
       {isEditing ? (
@@ -169,13 +167,14 @@ export function Profile() {
         onConfirm={confirmLogout}
         onCancel={cancelLogout}
       />
-    </View>
+    </Screen>
   );
 }
 
 const styles = StyleSheet.create({
   root: {
     flex: 1,
+    paddingTop: spacing.md,
     backgroundColor: colors.background,
     paddingHorizontal: spacing.lg,
   },

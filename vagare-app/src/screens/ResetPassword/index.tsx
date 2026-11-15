@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
-import { Button, PasswordInput, PasswordRequirements } from '@/components';
+import { Button, PasswordInput, PasswordRequirements, Screen } from '@/components';
 import { ApiError } from '@/services/api';
 import { resetPassword } from '@/services/auth';
 import { colors, fonts, spacing } from '@/theme';
@@ -59,7 +59,7 @@ export function ResetPassword({ token, onDone }: ResetPasswordProps) {
 
   if (success) {
     return (
-      <View style={styles.root}>
+      <Screen style={styles.root}>
         <AuthHeader
           align="center"
           icon={<Ionicons name="checkmark-circle-outline" size={30} color={colors.surface} />}
@@ -67,12 +67,12 @@ export function ResetPassword({ token, onDone }: ResetPasswordProps) {
           subtitle="Sua senha foi alterada com sucesso. Faça login novamente."
         />
         <Button title="Ir para o login" onPress={onDone} style={styles.field} />
-      </View>
+      </Screen>
     );
   }
 
   return (
-    <View style={styles.root}>
+    <Screen style={styles.root}>
       <AuthHeader
         align="center"
         icon={<Ionicons name="lock-closed-outline" size={30} color={colors.surface} />}
@@ -106,7 +106,7 @@ export function ResetPassword({ token, onDone }: ResetPasswordProps) {
           icon={isLoading ? <ActivityIndicator color={colors.surface} /> : undefined}
         />
       </View>
-    </View>
+    </Screen>
   );
 }
 

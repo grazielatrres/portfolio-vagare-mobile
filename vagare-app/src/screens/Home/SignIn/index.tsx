@@ -1,13 +1,20 @@
-import { useState } from 'react';
-import { StyleSheet, View } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useState } from "react";
+import { StyleSheet, View } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import { BackButton, Button, FormError, Input, PasswordInput, PasswordRequirements } from '@/components';
-import { useAuth } from '@/contexts/AuthContext';
-import { ApiError } from '@/services/api';
-import { colors, spacing } from '@/theme';
-import { isStrongPassword } from '@/utils/passwordPolicy';
-import { AuthHeader } from '../components/AuthHeader';
+import {
+  BackButton,
+  Button,
+  FormError,
+  Input,
+  PasswordInput,
+  PasswordRequirements,
+} from "@/components";
+import { useAuth } from "@/contexts/AuthContext";
+import { ApiError } from "@/services/api";
+import { colors, spacing } from "@/theme";
+import { isStrongPassword } from "@/utils/passwordPolicy";
+import { AuthHeader } from "../components/AuthHeader";
 
 export interface SignInProps {
   onBack?: () => void;
@@ -16,27 +23,27 @@ export interface SignInProps {
 export function SignIn({ onBack }: SignInProps) {
   const { register, isLoading } = useAuth();
   const insets = useSafeAreaInsets();
-  const [name, setName] = useState('');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
 
   async function handleSubmit() {
     setError(null);
 
     if (!name || !email || !password || !confirmPassword) {
-      setError('Preencha todos os campos para continuar.');
+      setError("Preencha todos os campos para continuar.");
       return;
     }
 
     if (!isStrongPassword(password)) {
-      setError('A senha não atende a todos os requisitos de segurança.');
+      setError("A senha não atende a todos os requisitos de segurança.");
       return;
     }
 
     if (password !== confirmPassword) {
-      setError('As senhas não coincidem.');
+      setError("As senhas não coincidem.");
       return;
     }
 
@@ -44,7 +51,9 @@ export function SignIn({ onBack }: SignInProps) {
       await register(name, email, password);
     } catch (err) {
       setError(
-        err instanceof ApiError ? err.message : 'Não foi possível criar a conta. Tente novamente.',
+        err instanceof ApiError
+          ? err.message
+          : "Não foi possível criar a conta. Tente novamente.",
       );
     }
   }
@@ -57,7 +66,7 @@ export function SignIn({ onBack }: SignInProps) {
 
       <View style={styles.form}>
         <Input
-          label="Nome completo"
+          label="Nome"
           placeholder="Seu nome"
           value={name}
           onChangeText={setName}
@@ -93,7 +102,7 @@ export function SignIn({ onBack }: SignInProps) {
         <FormError message={error} />
 
         <Button
-          title={isLoading ? 'Criando conta...' : 'Criar Conta'}
+          title={isLoading ? "Criando conta..." : "Criar Conta"}
           onPress={handleSubmit}
           disabled={isLoading}
         />
@@ -112,8 +121,8 @@ const styles = StyleSheet.create({
     marginBottom: spacing.xl,
   },
   form: {
-    alignSelf: 'stretch',
-    width: '100%',
+    alignSelf: "stretch",
+    width: "100%",
   },
   field: {
     marginBottom: spacing.md,

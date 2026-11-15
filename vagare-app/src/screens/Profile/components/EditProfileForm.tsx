@@ -15,9 +15,6 @@ import { useUpdateProfileMutation } from "@/hooks/useUpdateProfileMutation";
 import { ApiError } from "@/services/api";
 import { colors, fonts, spacing } from "@/theme";
 import { RemoveAccountModal } from "./RemoveAccountModal";
-
-const EMAIL_LOCKED_HINT = "O e-mail não pode ser alterado.";
-
 export interface EditProfileFormProps {
   name: string;
   email: string;
@@ -120,11 +117,9 @@ export function EditProfileForm({
         label="Email"
         value={email}
         editable={false}
-        accessibilityHint={EMAIL_LOCKED_HINT}
         containerStyle={styles.field}
         inputStyle={styles.roundedDisabledInput}
       />
-      <Text style={styles.emailHint}>{EMAIL_LOCKED_HINT}</Text>
 
       <FormError message={formError} style={styles.formError} />
 

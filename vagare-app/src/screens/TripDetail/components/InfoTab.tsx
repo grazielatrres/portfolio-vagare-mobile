@@ -8,8 +8,6 @@ import { ApiError } from '@/services/api';
 import { Info } from '@/services/infos';
 import { Trip } from '@/services/trips';
 import { colors, fonts, spacing } from '@/theme';
-import { DocumentCard } from './DocumentCard';
-import { DocumentForm } from './DocumentForm';
 import { FlightCard } from './FlightCard';
 import { FlightForm } from './FlightForm';
 import { LodgingCard } from './LodgingCard';
@@ -32,13 +30,11 @@ export function InfoTab({ trip }: InfoTabProps) {
   const { data, isPending, isError, error, refetch } = useInfosQuery(trip.id);
   const [showFlightForm, setShowFlightForm] = useState(false);
   const [showLodgingForm, setShowLodgingForm] = useState(false);
-  const [showDocumentForm, setShowDocumentForm] = useState(false);
 
   const infos = data?.infos;
 
   const flights = sortByDate((infos ?? []).filter((info) => info.type === 'flight'));
   const lodgings = sortByDate((infos ?? []).filter((info) => info.type === 'lodging'));
-  const documents = sortByDate((infos ?? []).filter((info) => info.type === 'document'));
 
   return (
     <View style={styles.root}>
@@ -114,34 +110,6 @@ export function InfoTab({ trip }: InfoTabProps) {
                 title="Adicionar hospedagem"
                 icon={<Ionicons name="add" size={20} color={colors.surface} />}
                 onPress={() => setShowLodgingForm(true)}
-                style={styles.addButton}
-              />
-            )}
-          </View>
-
-          <View style={styles.section}>
-            <View style={styles.sectionHeader}>
-              <Ionicons name="document-text-outline" size={18} color={colors.text.secondary} />
-              <Text style={styles.sectionTitle}>Documentos</Text>
-            </View>
-
-            {documents.length === 0 && !showDocumentForm ? (
-              <Text style={styles.emptyText}>Nenhum documento cadastrado ainda.</Text>
-            ) : (
-              documents.map((info) => <DocumentCard key={info.id} info={info} trip={trip} />)
-            )}
-
-            {showDocumentForm ? (
-              <DocumentForm
-                trip={trip}
-                onCancel={() => setShowDocumentForm(false)}
-                onSuccess={() => setShowDocumentForm(false)}
-              />
-            ) : (
-              <Button
-                title="Adicionar documento"
-                icon={<Ionicons name="add" size={20} color={colors.surface} />}
-                onPress={() => setShowDocumentForm(true)}
                 style={styles.addButton}
               />
             )}

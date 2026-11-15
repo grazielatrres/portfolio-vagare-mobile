@@ -7,6 +7,7 @@ import { CreateExpensePayload, buildExpenseFromPayload, createExpense } from '@/
 import { upsertExpenseToCache } from '@/services/expensesCache';
 import { queryClient } from '@/services/queryClient';
 import { enqueueMutation, generateLocalId } from '@/services/syncQueue';
+import { OFFLINE_SAVED_TOAST } from '@/utils/offlineToasts';
 import { budgetQueryKey } from './useBudgetQuery';
 import { pendingMutationsQueryKey } from './usePendingMutationsQuery';
 
@@ -29,10 +30,7 @@ export function useCreateExpenseMutation(tripId: string) {
             localId: local.id,
             payload,
           });
-          showToast({
-            title: 'Salvo localmente',
-            message: 'Será sincronizado quando a conexão voltar.',
-          });
+          showToast(OFFLINE_SAVED_TOAST);
           return local;
         }
         throw err;

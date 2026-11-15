@@ -7,7 +7,9 @@ import { ApiError } from '@/services/api';
 import { enqueueMutation } from '@/services/syncQueue';
 import { createTrip } from '@/services/trips';
 import { upsertTripToCache } from '@/services/tripsCache';
+import { OFFLINE_SAVED_TOAST } from '@/utils/offlineToasts';
 import { buildTrip } from './helpers/fixtures';
+import { showToastMock } from './helpers/mockToast';
 import { createQueryWrapper } from './helpers/queryWrapper';
 
 // eslint-disable-next-line @typescript-eslint/no-require-imports -- jest.mock factories must use require, not import, to work with hoisting
@@ -83,6 +85,8 @@ describe('useCreateTripMutation', () => {
     expect(upsertTripToCache).toHaveBeenCalledWith(
       expect.objectContaining({ id: 'local-trip-1' }),
     );
+    // Mesmo aviso usado pelas outras entidades (textos centralizados).
+    expect(showToastMock).toHaveBeenCalledWith(OFFLINE_SAVED_TOAST);
     expect(enqueueMutation).toHaveBeenCalledWith({
       tripId: 'local-trip-1',
       entityType: 'trip',

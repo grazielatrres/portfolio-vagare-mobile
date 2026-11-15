@@ -7,6 +7,7 @@ import { queryClient } from '@/services/queryClient';
 import { enqueueMutation, generateLocalId } from '@/services/syncQueue';
 import { CreateTripPayload, buildTripFromPayload, createTrip } from '@/services/trips';
 import { upsertTripToCache } from '@/services/tripsCache';
+import { OFFLINE_SAVED_TOAST } from '@/utils/offlineToasts';
 import { tripsQueryKey } from './useTripsQuery';
 
 export function useCreateTripMutation() {
@@ -28,10 +29,7 @@ export function useCreateTripMutation() {
             localId: local.id,
             payload,
           });
-          showToast({
-            title: 'Viagem salva localmente',
-            message: 'Será sincronizada quando a conexão voltar.',
-          });
+          showToast(OFFLINE_SAVED_TOAST);
           return local;
         }
         throw err;

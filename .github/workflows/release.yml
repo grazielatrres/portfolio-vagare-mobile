@@ -1,12 +1,14 @@
 name: Release
 
-run-name: "Release ${{ inputs.ambiente }} · ${{ inputs.plataforma }}"
+run-name: "Release ${{ (inputs.ambiente || 'production') }} · ${{ (inputs.plataforma || 'all') }}"
 
 on:
+  push:
+    branches: [main]
   workflow_dispatch:
     inputs:
       ambiente:
-        description: Ambiente (development = develop → Play interno + TestFlight · production = main → lojas)
+        description: Ambiente (development = develop → Play interno + TestFlight · production = main → teste fechado + TestFlight)
         type: choice
         options: [development, production]
         default: development
@@ -17,17 +19,17 @@ on:
         default: all
 
 concurrency:
-  group: release-${{ inputs.ambiente }}
+  group: release-${{ (inputs.ambiente || 'production') }}
   cancel-in-progress: false
 
 jobs:
   checks:
-    name: Verificações (${{ inputs.ambiente == 'production' && 'main' || 'develop' }})
+    name: Verificações (${{ (inputs.ambiente || 'production') == 'production' && 'main' || 'develop' }})
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
         with:
-          ref: ${{ inputs.ambiente == 'production' && 'main' || 'develop' }}
+          ref: ${{ (inputs.ambiente || 'production') == 'production' && 'main' || 'develop' }}
 
       - uses: actions/setup-node@v5
         with:
@@ -44,17 +46,17 @@ jobs:
       - name: Resumo
         run: |
           {
-            echo "## Release ${{ inputs.ambiente }}"
+            echo "## Release ${{ (inputs.ambiente || 'production') }}"
             echo
             echo "| Ambiente | Branch | Plataforma | Commit |"
             echo "|---|---|---|---|"
-            echo "| ${{ inputs.ambiente }} | ${{ inputs.ambiente == 'production' && 'main' || 'develop' }} | ${{ inputs.plataforma }} | \`$(git rev-parse --short HEAD)\` |"
+            echo "| ${{ (inputs.ambiente || 'production') }} | ${{ (inputs.ambiente || 'production') == 'production' && 'main' || 'develop' }} | ${{ (inputs.plataforma || 'all') }} | \`$(git rev-parse --short HEAD)\` |"
           } >> "$GITHUB_STEP_SUMMARY"
 
   dev-android:
     name: Development · Android (Play interno)
     needs: checks
-    if: inputs.ambiente == 'development' && inputs.plataforma != 'ios'
+    if: (inputs.ambiente || 'production') == 'development' && (inputs.plataforma || 'all') != 'ios'
     runs-on: ubuntu-latest
     timeout-minutes: 120
     steps:
@@ -70,7 +72,7 @@ jobs:
   dev-ios:
     name: Development · iOS (TestFlight)
     needs: checks
-    if: inputs.ambiente == 'development' && inputs.plataforma != 'android'
+    if: (inputs.ambiente || 'production') == 'development' && (inputs.plataforma || 'all') != 'android'
     runs-on: ubuntu-latest
     timeout-minutes: 120
     steps:
@@ -84,9 +86,9 @@ jobs:
           expo-token: ${{ secrets.EXPO_TOKEN }}
 
   prod-android:
-    name: Produção · Android (Play Store)
+    name: Produção · Android (teste fechado)
     needs: checks
-    if: inputs.ambiente == 'production' && inputs.plataforma != 'ios'
+    if: (inputs.ambiente || 'production') == 'production' && (inputs.plataforma || 'all') != 'ios'
     runs-on: ubuntu-latest
     timeout-minutes: 120
     environment: production
@@ -101,9 +103,9 @@ jobs:
           expo-token: ${{ secrets.EXPO_TOKEN }}
 
   prod-ios:
-    name: Produção · iOS (App Store)
+    name: Produção · iOS (TestFlight)
     needs: checks
-    if: inputs.ambiente == 'production' && inputs.plataforma != 'android'
+    if: (inputs.ambiente || 'production') == 'production' && (inputs.plataforma || 'all') != 'android'
     runs-on: ubuntu-latest
     timeout-minutes: 120
     environment: production

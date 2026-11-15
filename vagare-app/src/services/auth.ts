@@ -9,7 +9,15 @@ export interface AuthUser {
 
 export interface AuthResponse {
   token: string;
+  refreshToken: string;
   user: AuthUser;
+}
+
+export function refreshSession(refreshToken: string) {
+  return apiRequest<AuthResponse>('/auth/refresh', {
+    method: 'POST',
+    body: { refreshToken },
+  });
 }
 
 export function login(email: string, password: string) {

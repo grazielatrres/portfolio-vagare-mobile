@@ -6,7 +6,8 @@ import { ApiError } from '@/services/api';
 import { CreateInfoPayload, buildInfoFromPayload, updateInfo } from '@/services/infos';
 import { upsertInfoToCache } from '@/services/infosCache';
 import { queryClient } from '@/services/queryClient';
-import { enqueueMutation } from '@/services/syncQueue';
+import { enqueueMutation, resolveSyncedId } from '@/services/syncQueue';
+import { OFFLINE_SAVED_TOAST } from '@/utils/offlineToasts';
 import { infosQueryKey } from './useInfosQuery';
 import { pendingMutationsQueryKey } from './usePendingMutationsQuery';
 
@@ -15,12 +16,14 @@ export interface UpdateInfoVariables {
   payload: CreateInfoPayload;
 }
 
-export function useUpdateInfoMutation(tripId: string) {
+export function useUpdateInfoMutation(rawTripId: string) {
   const { token } = useAuth();
   const { showToast } = useToast();
 
   return useMutation({
-    mutationFn: async ({ id, payload }: UpdateInfoVariables) => {
+    mutationFn: async ({ id: rawId, payload }: UpdateInfoVariables) => {
+      const id = resolveSyncedId(rawId);
+      const tripId = resolveSyncedId(rawTripId);
       try {
         return await updateInfo(token as string, tripId, id, payload);
       } catch (err) {
@@ -34,18 +37,15 @@ export function useUpdateInfoMutation(tripId: string) {
             localId: id,
             payload,
           });
-          showToast({
-            title: 'Salvo localmente',
-            message: 'Será sincronizado quando a conexão voltar.',
-          });
+          showToast(OFFLINE_SAVED_TOAST);
           return local;
         }
         throw err;
       }
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: infosQueryKey(tripId) });
-      queryClient.invalidateQueries({ queryKey: pendingMutationsQueryKey(tripId) });
+      queryClient.invalidateQueries({ queryKey: infosQueryKey(rawTripId) });
+      queryClient.invalidateQueries({ queryKey: pendingMutationsQueryKey(rawTripId) });
     },
   });
 }

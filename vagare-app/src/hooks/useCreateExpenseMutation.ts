@@ -7,6 +7,7 @@ import { CreateExpensePayload, buildExpenseFromPayload, createExpense } from '@/
 import { upsertExpenseToCache } from '@/services/expensesCache';
 import { queryClient } from '@/services/queryClient';
 import { enqueueMutation, generateLocalId } from '@/services/syncQueue';
+import { OFFLINE_SAVED_TOAST } from '@/utils/offlineToasts';
 import { budgetQueryKey } from './useBudgetQuery';
 import { pendingMutationsQueryKey } from './usePendingMutationsQuery';
 
@@ -16,11 +17,13 @@ export function useCreateExpenseMutation(tripId: string) {
 
   return useMutation({
     mutationFn: async (payload: CreateExpensePayload) => {
+      // Também é a Idempotency-Key: o reenvio pela fila não duplica o item.
+      const localId = generateLocalId();
       try {
-        return await createExpense(token as string, tripId, payload);
+        return await createExpense(token as string, tripId, payload, localId);
       } catch (err) {
         if (err instanceof ApiError && err.status === 0) {
-          const local = buildExpenseFromPayload(generateLocalId(), tripId, payload);
+          const local = buildExpenseFromPayload(localId, tripId, payload);
           await upsertExpenseToCache(local);
           await enqueueMutation({
             tripId,
@@ -29,10 +32,7 @@ export function useCreateExpenseMutation(tripId: string) {
             localId: local.id,
             payload,
           });
-          showToast({
-            title: 'Salvo localmente',
-            message: 'Será sincronizado quando a conexão voltar.',
-          });
+          showToast(OFFLINE_SAVED_TOAST);
           return local;
         }
         throw err;

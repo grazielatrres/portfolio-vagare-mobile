@@ -2,7 +2,8 @@ import { useState } from 'react';
 import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
-import { ConfirmDialog, FormError } from '@/components';
+import { ConfirmDialog } from '@/components';
+import { useToast } from '@/contexts/ToastContext';
 import { useDeleteInfoMutation } from '@/hooks/useDeleteInfoMutation';
 import { ApiError } from '@/services/api';
 import { DocumentDetails, Info } from '@/services/infos';
@@ -18,16 +19,18 @@ export interface DocumentCardProps {
 
 export function DocumentCard({ info, trip }: DocumentCardProps) {
   const { mutate: deleteInfo, isPending } = useDeleteInfoMutation(trip.id);
+  const { showToast } = useToast();
   const [confirmVisible, setConfirmVisible] = useState(false);
   const [editing, setEditing] = useState(false);
-  const [error, setError] = useState<string | null>(null);
 
   function handleConfirmDelete() {
     setConfirmVisible(false);
-    setError(null);
     deleteInfo(info.id, {
       onError: (err) => {
-        setError(err instanceof ApiError ? err.message : 'Não foi possível excluir o documento.');
+        showToast({
+          title: 'Não foi possível excluir o documento',
+          message: err instanceof ApiError ? err.message : 'Tente novamente.',
+        });
       },
     });
   }
@@ -75,8 +78,6 @@ export function DocumentCard({ info, trip }: DocumentCardProps) {
 
       {detailLine ? <Text style={styles.detailLine}>{detailLine}</Text> : null}
       {info.description ? <Text style={styles.detailLine}>{info.description}</Text> : null}
-
-      <FormError message={error} style={styles.errorText} />
 
       <ConfirmDialog
         visible={confirmVisible}
@@ -130,10 +131,5 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontFamily: fonts.serif.regular,
     color: colors.text.secondary,
-  },
-  errorText: {
-    marginTop: spacing.sm,
-    marginBottom: 0,
-    textAlign: 'left',
   },
 });

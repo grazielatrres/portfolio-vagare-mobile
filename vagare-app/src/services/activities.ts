@@ -1,4 +1,4 @@
-import { apiRequest } from './api';
+import { apiRequest, idempotencyHeaders } from './api';
 
 export type ActivityPeriod = 'manha' | 'tarde' | 'noite';
 
@@ -30,11 +30,17 @@ export function listActivities(token: string, tripId: string) {
   return apiRequest<Activity[]>(`/trips/${tripId}/activities`, { token });
 }
 
-export function createActivity(token: string, tripId: string, payload: CreateActivityPayload) {
+export function createActivity(
+  token: string,
+  tripId: string,
+  payload: CreateActivityPayload,
+  idempotencyKey?: string,
+) {
   return apiRequest<Activity>(`/trips/${tripId}/activities`, {
     method: 'POST',
     token,
     body: payload,
+    headers: idempotencyHeaders(idempotencyKey),
   });
 }
 

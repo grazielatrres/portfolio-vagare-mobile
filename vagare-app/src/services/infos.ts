@@ -1,4 +1,4 @@
-import { apiRequest } from './api';
+import { apiRequest, idempotencyHeaders } from './api';
 
 export type InfoType = 'flight' | 'lodging' | 'document';
 
@@ -41,11 +41,17 @@ export function listInfos(token: string, tripId: string) {
   return apiRequest<Info[]>(`/trips/${tripId}/infos`, { token });
 }
 
-export function createInfo(token: string, tripId: string, payload: CreateInfoPayload) {
+export function createInfo(
+  token: string,
+  tripId: string,
+  payload: CreateInfoPayload,
+  idempotencyKey?: string,
+) {
   return apiRequest<Info>(`/trips/${tripId}/infos`, {
     method: 'POST',
     token,
     body: payload,
+    headers: idempotencyHeaders(idempotencyKey),
   });
 }
 

@@ -1,15 +1,40 @@
 type Listener = () => void;
 
-const listeners = new Set<Listener>();
+const backOnlineListeners = new Set<Listener>();
+const statusListeners = new Set<Listener>();
+
+// Sem NetInfo: o estado vem do resultado das requisições ao servidor.
+let isOnline = true;
+
+function setOnline(next: boolean): void {
+  if (isOnline === next) {
+    return;
+  }
+  isOnline = next;
+  statusListeners.forEach((listener) => listener());
+}
 
 // Sinal de "a rede voltou", emitido por api.ts a cada round-trip bem-sucedido
-// ao servidor. Alternativa ao NetInfo (não instalado neste projeto) para
-// disparar a drenagem da fila de sincronização.
+// ao servidor. Também dispara a drenagem da fila de sincronização.
 export function notifyBackOnline(): void {
-  listeners.forEach((listener) => listener());
+  setOnline(true);
+  backOnlineListeners.forEach((listener) => listener());
+}
+
+export function notifyOffline(): void {
+  setOnline(false);
 }
 
 export function onBackOnline(listener: Listener): () => void {
-  listeners.add(listener);
-  return () => listeners.delete(listener);
+  backOnlineListeners.add(listener);
+  return () => backOnlineListeners.delete(listener);
+}
+
+export function getIsOnline(): boolean {
+  return isOnline;
+}
+
+export function subscribeConnectivity(listener: Listener): () => void {
+  statusListeners.add(listener);
+  return () => statusListeners.delete(listener);
 }

@@ -6,16 +6,19 @@ import { ApiError } from '@/services/api';
 import { deleteInfo } from '@/services/infos';
 import { removeInfoFromCache } from '@/services/infosCache';
 import { queryClient } from '@/services/queryClient';
-import { discardLocalEntity, enqueueMutation, isLocalId } from '@/services/syncQueue';
+import { discardLocalEntity, enqueueMutation, isLocalId, resolveSyncedId } from '@/services/syncQueue';
+import { OFFLINE_DELETED_TOAST } from '@/utils/offlineToasts';
 import { infosQueryKey } from './useInfosQuery';
 import { pendingMutationsQueryKey } from './usePendingMutationsQuery';
 
-export function useDeleteInfoMutation(tripId: string) {
+export function useDeleteInfoMutation(rawTripId: string) {
   const { token } = useAuth();
   const { showToast } = useToast();
 
   return useMutation({
-    mutationFn: async (id: string) => {
+    mutationFn: async (rawId: string) => {
+      const id = resolveSyncedId(rawId);
+      const tripId = resolveSyncedId(rawTripId);
       try {
         await deleteInfo(token as string, tripId, id);
       } catch (err) {
@@ -32,18 +35,15 @@ export function useDeleteInfoMutation(tripId: string) {
               payload: null,
             });
           }
-          showToast({
-            title: 'Excluído localmente',
-            message: 'Será sincronizado quando a conexão voltar.',
-          });
+          showToast(OFFLINE_DELETED_TOAST);
           return;
         }
         throw err;
       }
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: infosQueryKey(tripId) });
-      queryClient.invalidateQueries({ queryKey: pendingMutationsQueryKey(tripId) });
+      queryClient.invalidateQueries({ queryKey: infosQueryKey(rawTripId) });
+      queryClient.invalidateQueries({ queryKey: pendingMutationsQueryKey(rawTripId) });
     },
   });
 }

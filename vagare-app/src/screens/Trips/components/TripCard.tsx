@@ -3,9 +3,12 @@ import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-nati
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 
-import { ConfirmDialog, FormError } from '@/components';
+import { ConfirmDialog } from '@/components';
+import { useToast } from '@/contexts/ToastContext';
 import { useDeleteTripMutation } from '@/hooks/useDeleteTripMutation';
+import { useIsSyncing } from '@/hooks/useIsSyncing';
 import { ApiError } from '@/services/api';
+import { isLocalId } from '@/services/localId';
 import { Trip } from '@/services/trips';
 import { colors, fonts, spacing } from '@/theme';
 import { formatCurrencyValue } from '@/utils/currency';
@@ -13,20 +16,32 @@ import { formatDateRange } from '@/utils/format';
 
 export interface TripCardProps {
   trip: Trip;
+  activityCount: number;
 }
 
-export function TripCard({ trip }: TripCardProps) {
+function formatActivityCount(count: number): string {
+  if (count === 0) {
+    return 'Nenhuma atividade planejada ainda';
+  }
+  return count === 1 ? '1 atividade planejada' : `${count} atividades planejadas`;
+}
+
+export function TripCard({ trip, activityCount }: TripCardProps) {
   const budget = trip.budget !== null ? formatCurrencyValue(trip.budget, trip.currency) : null;
   const { mutate: deleteTrip, isPending } = useDeleteTripMutation();
+  const { showToast } = useToast();
+  const isSyncing = useIsSyncing();
+  const isLocalTrip = isLocalId(trip.id);
   const [confirmVisible, setConfirmVisible] = useState(false);
-  const [error, setError] = useState<string | null>(null);
 
   function handleConfirmDelete() {
     setConfirmVisible(false);
-    setError(null);
     deleteTrip(trip.id, {
       onError: (err) => {
-        setError(err instanceof ApiError ? err.message : 'Não foi possível excluir a viagem.');
+        showToast({
+          title: 'Não foi possível excluir a viagem',
+          message: err instanceof ApiError ? err.message : 'Tente novamente.',
+        });
       },
     });
   }
@@ -66,10 +81,21 @@ export function TripCard({ trip }: TripCardProps) {
 
       <View style={styles.rowItem}>
         <Ionicons name="location-outline" size={16} color={colors.accent} />
-        <Text style={styles.plannedText}>Nenhuma atividade planejada ainda</Text>
+        <Text style={styles.plannedText}>{formatActivityCount(activityCount)}</Text>
       </View>
 
-      <FormError message={error} style={styles.errorText} />
+      {isLocalTrip ? (
+        <View style={[styles.rowItem, styles.syncStatus]}>
+          {isSyncing ? (
+            <ActivityIndicator size="small" color={colors.text.secondary} />
+          ) : (
+            <Ionicons name="cloud-upload-outline" size={16} color={colors.text.secondary} />
+          )}
+          <Text style={styles.rowText}>
+            {isSyncing ? 'Sincronizando…' : 'Aguardando sincronização'}
+          </Text>
+        </View>
+      ) : null}
 
       <ConfirmDialog
         visible={confirmVisible}
@@ -127,9 +153,7 @@ const styles = StyleSheet.create({
     fontFamily: fonts.serif.medium,
     color: colors.accent,
   },
-  errorText: {
+  syncStatus: {
     marginTop: spacing.sm,
-    marginBottom: 0,
-    textAlign: 'left',
   },
 });

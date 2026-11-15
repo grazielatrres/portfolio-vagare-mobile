@@ -2,9 +2,8 @@ import { useState } from 'react';
 import { Ionicons } from '@expo/vector-icons';
 import { ActivityIndicator, ScrollView, StyleSheet, Text, View } from 'react-native';
 
-import { Button, FormError, OfflineBanner } from '@/components';
+import { Button, FormError } from '@/components';
 import { useInfosQuery } from '@/hooks/useInfosQuery';
-import { usePendingMutationsQuery } from '@/hooks/usePendingMutationsQuery';
 import { ApiError } from '@/services/api';
 import { Info } from '@/services/infos';
 import { Trip } from '@/services/trips';
@@ -31,14 +30,11 @@ function sortByDate(infos: Info[]): Info[] {
 
 export function InfoTab({ trip }: InfoTabProps) {
   const { data, isPending, isError, error, refetch } = useInfosQuery(trip.id);
-  const { data: pendingMutations } = usePendingMutationsQuery(trip.id);
   const [showFlightForm, setShowFlightForm] = useState(false);
   const [showLodgingForm, setShowLodgingForm] = useState(false);
   const [showDocumentForm, setShowDocumentForm] = useState(false);
 
   const infos = data?.infos;
-  const isOffline = data?.isOffline ?? false;
-  const pendingCount = pendingMutations?.length ?? 0;
 
   const flights = sortByDate((infos ?? []).filter((info) => info.type === 'flight'));
   const lodgings = sortByDate((infos ?? []).filter((info) => info.type === 'lodging'));
@@ -66,16 +62,6 @@ export function InfoTab({ trip }: InfoTabProps) {
           contentContainerStyle={styles.scrollContent}
           showsVerticalScrollIndicator={false}
         >
-          {isOffline ? (
-            <OfflineBanner message="Sem conexão — mostrando informações salvas neste dispositivo" />
-          ) : null}
-          {pendingCount > 0 ? (
-            <OfflineBanner
-              tone="pending"
-              message={`${pendingCount} alteração(ões) aguardando sincronização`}
-            />
-          ) : null}
-
           <Text style={styles.pageTitle}>Informações complementares</Text>
 
           <View style={styles.section}>

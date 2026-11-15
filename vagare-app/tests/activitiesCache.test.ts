@@ -1,6 +1,7 @@
 import {
   clearActivitiesCache,
   getCachedActivities,
+  getCachedActivityCounts,
   removeActivityFromCache,
   saveActivitiesToCache,
   upsertActivityToCache,
@@ -50,3 +51,42 @@ describe('activitiesCache — nunca propaga erro de SQLite', () => {
     await expect(clearActivitiesCache()).resolves.toBeUndefined();
   });
 });
+
+describe('activitiesCache — contagem por viagem', () => {
+  it('getCachedActivityCounts devolve um mapa tripId → quantidade', async () => {
+    const db = {
+      getAllAsync: jest.fn().mockResolvedValue([
+        { tripId: 't1', total: 3 },
+        { tripId: 'local-t2', total: 1 },
+      ]),
+    };
+    (getDatabase as jest.Mock).mockResolvedValue(db);
+
+    await expect(getCachedActivityCounts()).resolves.toEqual({ t1: 3, 'local-t2': 1 });
+  });
+
+  it('getCachedActivityCounts resolve {} em falha de SQLite', async () => {
+    (getDatabase as jest.Mock).mockRejectedValue(new Error('sqlite indisponível'));
+    await expect(getCachedActivityCounts()).resolves.toEqual({});
+  });
+});
+
+describe('activitiesCache — itens com alteração offline pendente', () => {
+  it('saveActivitiesToCache não apaga nem reinsere itens que ainda estão na fila', async () => {
+    const db = {
+      runAsync: jest.fn().mockResolvedValue(undefined),
+      withTransactionAsync: jest.fn(async (task: () => Promise<void>) => task()),
+    };
+    (getDatabase as jest.Mock).mockResolvedValue(db);
+
+    await saveActivitiesToCache('t1', [activity]);
+
+    const [deleteSql] = db.runAsync.mock.calls[0];
+    expect(deleteSql).toMatch(/NOT IN \(SELECT localId FROM pending_mutations\)/);
+
+    const [insertSql, insertParams] = db.runAsync.mock.calls[1];
+    expect(insertSql).toMatch(/WHERE NOT EXISTS \(SELECT 1 FROM pending_mutations WHERE localId = \?\)/);
+    expect(insertParams[insertParams.length - 1]).toBe(activity.id);
+  });
+});
+

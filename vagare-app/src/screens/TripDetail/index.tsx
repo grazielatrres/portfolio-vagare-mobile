@@ -2,7 +2,9 @@ import { useState } from 'react';
 import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { BackButton, Button, FormError, OfflineBanner } from '@/components';
+import { BackButton, Button, FormError, SyncStatusBanner } from '@/components';
+import { useIsOnline } from '@/hooks/useIsOnline';
+import { usePendingMutationsQuery } from '@/hooks/usePendingMutationsQuery';
 import { useTripQuery } from '@/hooks/useTripQuery';
 import { ApiError } from '@/services/api';
 import { colors, fonts, spacing } from '@/theme';
@@ -24,7 +26,8 @@ export function TripDetail({ tripId, onBack }: TripDetailProps) {
   const insets = useSafeAreaInsets();
   const { data, isPending, isError, error, refetch } = useTripQuery(tripId);
   const trip = data?.trip;
-  const isOffline = data?.isOffline ?? false;
+  const isOnline = useIsOnline();
+  const { data: pendingMutations } = usePendingMutationsQuery(trip?.id ?? '');
   const [activeTab, setActiveTab] = useState<TripTabKey>('roteiro');
 
   return (
@@ -45,9 +48,11 @@ export function TripDetail({ tripId, onBack }: TripDetailProps) {
         </View>
       ) : (
         <>
-          {isOffline ? (
-            <OfflineBanner message="Sem conexão — mostrando dados salvos neste dispositivo" />
-          ) : null}
+          <SyncStatusBanner
+            isOffline={!isOnline}
+            pendingCount={pendingMutations?.length ?? 0}
+            offlineMessage="Sem conexão — mostrando dados salvos neste dispositivo"
+          />
 
           <Text style={styles.destination}>{trip.destination}</Text>
           <Text style={styles.subtitle}>

@@ -7,6 +7,7 @@ import { upsertActivityToCache } from '@/services/activitiesCache';
 import { ApiError } from '@/services/api';
 import { queryClient } from '@/services/queryClient';
 import { enqueueMutation, generateLocalId } from '@/services/syncQueue';
+import { OFFLINE_SAVED_TOAST } from '@/utils/offlineToasts';
 import { activitiesQueryKey } from './useActivitiesQuery';
 import { budgetQueryKey } from './useBudgetQuery';
 import { pendingMutationsQueryKey } from './usePendingMutationsQuery';
@@ -17,11 +18,13 @@ export function useCreateActivityMutation(tripId: string) {
 
   return useMutation({
     mutationFn: async (payload: CreateActivityPayload) => {
+      // Também é a Idempotency-Key: o reenvio pela fila não duplica o item.
+      const localId = generateLocalId();
       try {
-        return await createActivity(token as string, tripId, payload);
+        return await createActivity(token as string, tripId, payload, localId);
       } catch (err) {
         if (err instanceof ApiError && err.status === 0) {
-          const local = buildActivityFromPayload(generateLocalId(), tripId, payload);
+          const local = buildActivityFromPayload(localId, tripId, payload);
           await upsertActivityToCache(local);
           await enqueueMutation({
             tripId,
@@ -30,10 +33,7 @@ export function useCreateActivityMutation(tripId: string) {
             localId: local.id,
             payload,
           });
-          showToast({
-            title: 'Salvo localmente',
-            message: 'Será sincronizado quando a conexão voltar.',
-          });
+          showToast(OFFLINE_SAVED_TOAST);
           return local;
         }
         throw err;

@@ -6,7 +6,8 @@ import { CreateActivityPayload, buildActivityFromPayload, updateActivity } from 
 import { upsertActivityToCache } from '@/services/activitiesCache';
 import { ApiError } from '@/services/api';
 import { queryClient } from '@/services/queryClient';
-import { enqueueMutation } from '@/services/syncQueue';
+import { enqueueMutation, resolveSyncedId } from '@/services/syncQueue';
+import { OFFLINE_SAVED_TOAST } from '@/utils/offlineToasts';
 import { activitiesQueryKey } from './useActivitiesQuery';
 import { budgetQueryKey } from './useBudgetQuery';
 import { pendingMutationsQueryKey } from './usePendingMutationsQuery';
@@ -16,12 +17,14 @@ export interface UpdateActivityVariables {
   payload: CreateActivityPayload;
 }
 
-export function useUpdateActivityMutation(tripId: string) {
+export function useUpdateActivityMutation(rawTripId: string) {
   const { token } = useAuth();
   const { showToast } = useToast();
 
   return useMutation({
-    mutationFn: async ({ id, payload }: UpdateActivityVariables) => {
+    mutationFn: async ({ id: rawId, payload }: UpdateActivityVariables) => {
+      const id = resolveSyncedId(rawId);
+      const tripId = resolveSyncedId(rawTripId);
       try {
         return await updateActivity(token as string, tripId, id, payload);
       } catch (err) {
@@ -35,19 +38,16 @@ export function useUpdateActivityMutation(tripId: string) {
             localId: id,
             payload,
           });
-          showToast({
-            title: 'Salvo localmente',
-            message: 'Será sincronizado quando a conexão voltar.',
-          });
+          showToast(OFFLINE_SAVED_TOAST);
           return local;
         }
         throw err;
       }
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: activitiesQueryKey(tripId) });
-      queryClient.invalidateQueries({ queryKey: budgetQueryKey(tripId) });
-      queryClient.invalidateQueries({ queryKey: pendingMutationsQueryKey(tripId) });
+      queryClient.invalidateQueries({ queryKey: activitiesQueryKey(rawTripId) });
+      queryClient.invalidateQueries({ queryKey: budgetQueryKey(rawTripId) });
+      queryClient.invalidateQueries({ queryKey: pendingMutationsQueryKey(rawTripId) });
     },
   });
 }

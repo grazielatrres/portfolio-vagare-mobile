@@ -3,9 +3,10 @@ import { ActivityIndicator, Pressable, StyleSheet, Text, View, useWindowDimensio
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { Button } from '@/components';
+import { Button, ConfirmDialog } from '@/components';
 import { useAuth } from '@/contexts/AuthContext';
 import { useProfileQuery } from '@/hooks/useProfileQuery';
+import { useSafeLogout } from '@/hooks/useSafeLogout';
 import { useTripsQuery } from '@/hooks/useTripsQuery';
 import { ApiError } from '@/services/api';
 import { colors, fonts, spacing } from '@/theme';
@@ -14,8 +15,19 @@ import { EditProfileForm } from './components/EditProfileForm';
 
 const COMPACT_WIDTH_BREAKPOINT = 380;
 
+function buildUnsyncedLogoutMessage(count: number): string {
+  const changes =
+    count === 1
+      ? '1 alteração feita offline que ainda não foi enviada'
+      : `${count} alterações feitas offline que ainda não foram enviadas`;
+  const lost = count === 1 ? 'ela será perdida' : 'elas serão perdidas';
+  return `Você tem ${changes} ao servidor. Se sair agora, ${lost}. Conecte-se à internet para sincronizar antes de sair.`;
+}
+
 export function Profile() {
-  const { user, logout, isLoading: isLoggingOut } = useAuth();
+  const { user, isLoading: isLoggingOut } = useAuth();
+  const { requestLogout, confirmLogout, cancelLogout, isChecking, unsyncedCount } =
+    useSafeLogout();
   const insets = useSafeAreaInsets();
   const { width } = useWindowDimensions();
   const profileQuery = useProfileQuery();
@@ -105,12 +117,24 @@ export function Profile() {
       </View>
 
       <Button
-        title={isLoggingOut ? 'Saindo...' : 'Sair da conta'}
+        title={
+          isChecking ? 'Sincronizando alterações...' : isLoggingOut ? 'Saindo...' : 'Sair da conta'
+        }
         variant="outline"
         tone="accent"
         icon={<Ionicons name="log-out-outline" size={18} color={colors.accent} />}
-        onPress={logout}
-        disabled={isLoggingOut}
+        onPress={requestLogout}
+        disabled={isChecking || isLoggingOut}
+      />
+
+      <ConfirmDialog
+        visible={unsyncedCount > 0}
+        title="Sair sem sincronizar?"
+        message={buildUnsyncedLogoutMessage(unsyncedCount)}
+        confirmLabel="Sair mesmo assim"
+        destructive
+        onConfirm={confirmLogout}
+        onCancel={cancelLogout}
       />
     </View>
   );

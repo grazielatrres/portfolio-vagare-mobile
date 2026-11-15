@@ -2,10 +2,11 @@ import { useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { BackButton, Button, FormError, Input, PasswordInput } from '@/components';
+import { BackButton, Button, FormError, Input, PasswordInput, PasswordRequirements } from '@/components';
 import { useAuth } from '@/contexts/AuthContext';
 import { ApiError } from '@/services/api';
 import { colors, spacing } from '@/theme';
+import { isStrongPassword } from '@/utils/passwordPolicy';
 import { AuthHeader } from '../components/AuthHeader';
 
 export interface SignInProps {
@@ -29,8 +30,8 @@ export function SignIn({ onBack }: SignInProps) {
       return;
     }
 
-    if (password.length < 6) {
-      setError('A senha deve ter no mínimo 6 caracteres.');
+    if (!isStrongPassword(password)) {
+      setError('A senha não atende a todos os requisitos de segurança.');
       return;
     }
 
@@ -75,11 +76,12 @@ export function SignIn({ onBack }: SignInProps) {
         />
         <PasswordInput
           label="Senha"
-          placeholder="Mínimo 6 caracteres"
+          placeholder="Crie uma senha forte"
           value={password}
           onChangeText={setPassword}
           containerStyle={styles.field}
         />
+        <PasswordRequirements password={password} />
         <PasswordInput
           label="Confirmar senha"
           placeholder="Repita a senha"

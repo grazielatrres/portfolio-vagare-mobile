@@ -2,7 +2,8 @@ import { useState } from 'react';
 import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
-import { ConfirmDialog, FormError } from '@/components';
+import { ConfirmDialog } from '@/components';
+import { useToast } from '@/contexts/ToastContext';
 import { useDeleteActivityMutation } from '@/hooks/useDeleteActivityMutation';
 import { ApiError } from '@/services/api';
 import { Activity } from '@/services/activities';
@@ -22,16 +23,18 @@ export interface ActivityCardProps {
 
 export function ActivityCard({ activity, trip }: ActivityCardProps) {
   const { mutate: deleteActivity, isPending } = useDeleteActivityMutation(trip.id);
+  const { showToast } = useToast();
   const [confirmVisible, setConfirmVisible] = useState(false);
   const [editing, setEditing] = useState(false);
-  const [error, setError] = useState<string | null>(null);
 
   function handleConfirmDelete() {
     setConfirmVisible(false);
-    setError(null);
     deleteActivity(activity.id, {
       onError: (err) => {
-        setError(err instanceof ApiError ? err.message : 'Não foi possível excluir a atividade.');
+        showToast({
+          title: 'Não foi possível excluir a atividade',
+          message: err instanceof ApiError ? err.message : 'Tente novamente.',
+        });
       },
     });
   }
@@ -106,8 +109,6 @@ export function ActivityCard({ activity, trip }: ActivityCardProps) {
           ))}
         </View>
       ) : null}
-
-      <FormError message={error} style={styles.errorText} />
 
       <ConfirmDialog
         visible={confirmVisible}
@@ -192,10 +193,5 @@ const styles = StyleSheet.create({
     fontFamily: fonts.serif.regular,
     color: colors.text.secondary,
     lineHeight: 20,
-  },
-  errorText: {
-    marginTop: spacing.sm,
-    marginBottom: 0,
-    textAlign: 'left',
   },
 });

@@ -58,17 +58,16 @@ export function RemoveAccountModal({
 
           <View style={styles.actions}>
             <Button
-              title="Cancelar"
-              variant="outline"
-              onPress={onCancel}
-              disabled={isDeleting}
-              style={styles.cancelButton}
-            />
-            <Button
               title={isDeleting ? 'Excluindo...' : 'Excluir definitivamente'}
               onPress={onConfirm}
               disabled={!canConfirm}
               style={styles.confirmButton}
+            />
+            <Button
+              title="Cancelar"
+              variant="outline"
+              onPress={onCancel}
+              disabled={isDeleting}
             />
           </View>
         </Pressable>
@@ -115,15 +114,10 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
   actions: {
-    flexDirection: 'row',
     gap: spacing.sm,
     marginTop: spacing.sm,
   },
-  cancelButton: {
-    flex: 1,
-  },
   confirmButton: {
-    flex: 1,
     backgroundColor: colors.danger,
   },
 });

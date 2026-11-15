@@ -3,7 +3,8 @@ import { useQuery } from '@tanstack/react-query';
 import { useAuth } from '@/contexts/AuthContext';
 import { listActivities } from '@/services/activities';
 import { getCachedActivities, saveActivitiesToCache } from '@/services/activitiesCache';
-import { ApiError } from '@/services/api';
+import { ApiError, isNetworkFailure } from '@/services/api';
+import { hasPendingMutationsForTrip } from '@/services/syncQueue';
 
 export function activitiesQueryKey(tripId: string) {
   return ['trips', tripId, 'activities'] as const;
@@ -18,14 +19,15 @@ export function useActivitiesQuery(tripId: string) {
       try {
         const activities = await listActivities(token as string, tripId);
         await saveActivitiesToCache(tripId, activities);
-        return { activities, isOffline: false as const };
+        // A resposta do servidor ainda não inclui as alterações da fila offline.
+        if (await hasPendingMutationsForTrip(tripId)) {
+          return { activities: await getCachedActivities(tripId), isOffline: false };
+        }
+        return { activities, isOffline: false };
       } catch (err) {
         if (err instanceof ApiError && err.status === 0) {
           const cached = await getCachedActivities(tripId);
-          if (cached.length > 0) {
-            return { activities: cached, isOffline: true as const };
-          }
-          throw new ApiError(0, 'Sem conexão e nenhum roteiro salvo neste dispositivo ainda.');
+          return { activities: cached, isOffline: isNetworkFailure(err) };
         }
         throw err;
       }

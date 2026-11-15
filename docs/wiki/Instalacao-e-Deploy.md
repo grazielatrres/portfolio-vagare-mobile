@@ -2,13 +2,13 @@
 
 ## Instalar o app (avaliadores e testadores)
 
-### Android — Google Play (teste fechado)
+### Android — Google Play (teste interno)
 
 1. Peça para ser incluído na lista de testadores (e-mail da conta Google do aparelho).
 2. Abra o link de participação do teste no celular e aceite o convite.
 3. Instale o **Vagare** pela Play Store a partir do mesmo link.
 
-> Link de participação do teste fechado: **(adicionar o link do Play Console → Teste fechado → Testadores)**.
+> Link de participação do teste interno: **(adicionar o link do Play Console → Teste interno → Testadores)**.
 
 ### iOS — TestFlight
 
@@ -57,7 +57,7 @@ yarn lint && yarn typecheck && yarn test:coverage
 flowchart LR
     pr[Pull Request] --> checks[Script no Pull Request<br/>lint · typecheck · testes · SonarCloud]
     develop[develop] -->|Run workflow<br/>ambiente development| dev[EAS build<br/>Play teste interno + TestFlight]
-    main[push na main] --> prod[Release<br/>verificações + EAS build<br/>Play teste fechado + TestFlight]
+    main[push na main] --> prod[Release<br/>verificações + EAS build<br/>Play teste interno + TestFlight]
 ```
 
 | Workflow | Disparo | O que faz |

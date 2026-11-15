@@ -65,4 +65,4 @@ Para parar: `docker compose down` (use `-v` para também apagar o volume do `nod
 
 ## Build e publicação
 
-Os builds de loja são feitos pelo workflow **Release** (GitHub Actions + EAS): automático na `main` (Google Play teste fechado + TestFlight) e manual para `develop`. Detalhes em [Instalação e Deploy](../docs/wiki/Instalacao-e-Deploy.md).
+Os builds de loja são feitos pelo workflow **Release** (GitHub Actions + EAS): automático na `main` (Google Play teste interno + TestFlight) e manual para `develop`. Detalhes em [Instalação e Deploy](../docs/wiki/Instalacao-e-Deploy.md).

@@ -21,7 +21,7 @@ A documentação completa está na **[Wiki](https://github.com/grazielatrres/por
 
 ## Instalar
 
-- **Android:** teste fechado no Google Play — ver [Instalação](docs/wiki/Instalacao-e-Deploy.md#android--google-play-teste-fechado).
+- **Android:** teste interno no Google Play — ver [Instalação](docs/wiki/Instalacao-e-Deploy.md#android--google-play-teste-interno).
 - **iOS:** TestFlight — ver [Instalação](docs/wiki/Instalacao-e-Deploy.md#ios--testflight).
 
 ## Rodar localmente

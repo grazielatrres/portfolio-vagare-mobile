@@ -6,7 +6,7 @@ O **Vagare** é um aplicativo mobile (Android e iOS) para planejar viagens em um
 |---|---|
 | **Backend** | [portfolio-vagare-backend](https://github.com/grazielatrres/portfolio-vagare-backend) · [Wiki da API](https://github.com/grazielatrres/portfolio-vagare-backend/wiki) |
 | **Stack** | Expo 57, React Native 0.86, TypeScript, Expo Router, TanStack Query, SQLite |
-| **Distribuição** | Google Play (teste fechado) e TestFlight, via EAS Build + Submit |
+| **Distribuição** | Google Play (teste interno) e TestFlight, via EAS Build + Submit |
 | **Qualidade** | ESLint, TypeScript, Jest + Testing Library (cobertura ~55%), SonarCloud |
 | **Monitoramento** | Sentry (erros, travamentos e tempo de carregamento das telas) |
 | **Política de privacidade** | [portfolio-vagare-privacy-politcs.vercel.app](https://portfolio-vagare-privacy-politcs.vercel.app) |

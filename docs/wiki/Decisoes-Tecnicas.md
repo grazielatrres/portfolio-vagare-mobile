@@ -42,8 +42,9 @@ Decisões do backend estão na [Wiki da API](https://github.com/grazielatrres/po
 
 ## ADR-M07 — Distribuição pelo EAS em duas trilhas
 
-- **Decisão:** perfil `development-store` (Play teste interno + TestFlight) a partir da `develop`, e `production` (Play teste fechado + TestFlight) a partir da `main`, ambos pelo workflow **Release**.
-- **Consequências:** ambiente de homologação separado da versão que o parceiro e os avaliadores usam.
+- **Decisão:** perfil `development-store` a partir da `develop` e `production` a partir da `main`, ambos enviados para o Play teste interno + TestFlight pelo workflow **Release**.
+- **Situação temporária:** o `production` envia para o teste interno porque o Google Play ainda não liberou o acesso à produção para a conta. Quando liberar, o track do perfil `production` em `eas.json` passa a apontar para a produção.
+- **Consequências:** os perfis usam variáveis de ambiente separadas no EAS (homologação × produção), mas, enquanto isso, no Android compartilham a mesma trilha de teste interno — os testadores recebem o build enviado por último, seja da `develop` ou da `main`.
 
 ## ADR-M08 — Firebase Analytics adiado
 

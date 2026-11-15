@@ -1,5 +1,5 @@
 import { QueryClientProvider } from '@tanstack/react-query';
-import { Stack } from 'expo-router';
+import { Stack, useNavigationContainerRef } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect } from 'react';
@@ -10,9 +10,27 @@ import { AuthProvider, useAuth } from '@/contexts/AuthContext';
 import { ToastProvider } from '@/contexts/ToastContext';
 import { useAppFonts } from '@/hooks/useAppFonts';
 import { useSyncQueueDrain } from '@/hooks/useSyncQueueDrain';
+import {
+  initMonitoring,
+  navigationIntegration,
+  setMonitoringUser,
+  wrapRoot,
+} from '@/services/monitoring';
 import { queryClient } from '@/services/queryClient';
 
+initMonitoring();
 SplashScreen.preventAutoHideAsync();
+
+// Associa os eventos do Sentry ao id do usuário logado (sem e-mail ou nome).
+function MonitoringUserController() {
+  const { user } = useAuth();
+
+  useEffect(() => {
+    setMonitoringUser(user?.id ?? null);
+  }, [user?.id]);
+
+  return null;
+}
 
 function SplashScreenController({ fontsLoaded }: { fontsLoaded: boolean }) {
   const { isRestoring } = useAuth();
@@ -54,8 +72,16 @@ function RootNavigator() {
   );
 }
 
-export default function RootLayout() {
+function RootLayout() {
   const [fontsLoaded] = useAppFonts();
+  const navigationRef = useNavigationContainerRef();
+
+  // Traces de navegação: tempo de carregamento de cada tela no Sentry.
+  useEffect(() => {
+    if (navigationRef) {
+      navigationIntegration.registerNavigationContainer(navigationRef);
+    }
+  }, [navigationRef]);
 
   return (
     <SafeAreaProvider>
@@ -65,6 +91,7 @@ export default function RootLayout() {
             <ToastProvider>
               <SplashScreenController fontsLoaded={fontsLoaded} />
               <SyncQueueController />
+              <MonitoringUserController />
               <StatusBar style="dark" />
               {fontsLoaded && <RootNavigator />}
             </ToastProvider>
@@ -74,3 +101,6 @@ export default function RootLayout() {
     </SafeAreaProvider>
   );
 }
+
+// Sentry.wrap captura erros de renderização e mede o tempo de abertura do app.
+export default wrapRoot(RootLayout);

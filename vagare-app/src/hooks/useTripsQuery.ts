@@ -4,9 +4,11 @@ import { useAuth } from '@/contexts/AuthContext';
 import { ApiError } from '@/services/api';
 import { logError } from '@/services/logger';
 import { prefetchTripsForOffline } from '@/services/offlinePrefetch';
+import { queryClient } from '@/services/queryClient';
 import { getPendingTripDeletionIds } from '@/services/syncQueue';
 import { listTrips } from '@/services/trips';
 import { getCachedTrips, getLocalOnlyTrips, saveTripsToCache } from '@/services/tripsCache';
+import { activityCountsQueryKey } from './useActivityCountsQuery';
 
 export const tripsQueryKey = ['trips'] as const;
 
@@ -25,9 +27,10 @@ export function useTripsQuery() {
         ]);
         const serverTrips = fetchedTrips.filter((trip) => !pendingDeletionIds.has(trip.id));
         await saveTripsToCache(serverTrips);
-        prefetchTripsForOffline(token as string, serverTrips).catch((error) =>
-          logError('useTripsQuery.prefetch', error),
-        );
+        prefetchTripsForOffline(token as string, serverTrips)
+          // O prefetch atualiza as atividades em cache, de onde vem a contagem dos cards.
+          .then(() => queryClient.invalidateQueries({ queryKey: activityCountsQueryKey }))
+          .catch((error) => logError('useTripsQuery.prefetch', error));
         // Viagens criadas offline continuam visíveis até a fila sincronizá-las.
         const localTrips = await getLocalOnlyTrips();
         const trips = [...serverTrips, ...localTrips].sort((a, b) =>

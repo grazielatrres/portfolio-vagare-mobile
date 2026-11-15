@@ -1,6 +1,7 @@
 import {
   clearActivitiesCache,
   getCachedActivities,
+  getCachedActivityCounts,
   removeActivityFromCache,
   saveActivitiesToCache,
   upsertActivityToCache,
@@ -48,5 +49,24 @@ describe('activitiesCache — nunca propaga erro de SQLite', () => {
 
   it('clearActivitiesCache resolve undefined em falha', async () => {
     await expect(clearActivitiesCache()).resolves.toBeUndefined();
+  });
+});
+
+describe('activitiesCache — contagem por viagem', () => {
+  it('getCachedActivityCounts devolve um mapa tripId → quantidade', async () => {
+    const db = {
+      getAllAsync: jest.fn().mockResolvedValue([
+        { tripId: 't1', total: 3 },
+        { tripId: 'local-t2', total: 1 },
+      ]),
+    };
+    (getDatabase as jest.Mock).mockResolvedValue(db);
+
+    await expect(getCachedActivityCounts()).resolves.toEqual({ t1: 3, 'local-t2': 1 });
+  });
+
+  it('getCachedActivityCounts resolve {} em falha de SQLite', async () => {
+    (getDatabase as jest.Mock).mockRejectedValue(new Error('sqlite indisponível'));
+    await expect(getCachedActivityCounts()).resolves.toEqual({});
   });
 });

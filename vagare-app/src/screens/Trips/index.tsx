@@ -1,6 +1,6 @@
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import { Ionicons } from "@expo/vector-icons";
-import { router } from "expo-router";
+import { router, useFocusEffect } from "expo-router";
 import {
   ActivityIndicator,
   FlatList,
@@ -13,6 +13,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { Button, EmptyState, FormError, OfflineBanner } from "@/components";
 import { useAuth } from "@/contexts/AuthContext";
+import { useActivityCountsQuery } from "@/hooks/useActivityCountsQuery";
 import { useIsSyncing } from "@/hooks/useIsSyncing";
 import { useTripsQuery } from "@/hooks/useTripsQuery";
 import { ApiError } from "@/services/api";
@@ -25,7 +26,16 @@ export function Trips() {
   const insets = useSafeAreaInsets();
   const { data, isPending, isError, error, refetch } = useTripsQuery();
   const isSyncing = useIsSyncing();
+  const { data: activityCounts, refetch: refetchActivityCounts } = useActivityCountsQuery();
   const [refreshing, setRefreshing] = useState(false);
+
+  // A lista continua montada enquanto a viagem está aberta por cima; ao voltar,
+  // recarrega a contagem para refletir atividades criadas ou excluídas lá.
+  useFocusEffect(
+    useCallback(() => {
+      refetchActivityCounts();
+    }, [refetchActivityCounts]),
+  );
 
   const trips = data?.trips ?? [];
   const isOffline = data?.isOffline ?? false;
@@ -33,7 +43,7 @@ export function Trips() {
   async function handleRefresh() {
     setRefreshing(true);
     try {
-      await refetch();
+      await Promise.all([refetch(), refetchActivityCounts()]);
     } finally {
       setRefreshing(false);
     }
@@ -87,7 +97,9 @@ export function Trips() {
         <FlatList
           data={trips}
           keyExtractor={(trip) => trip.id}
-          renderItem={({ item }) => <TripCard trip={item} />}
+          renderItem={({ item }) => (
+            <TripCard trip={item} activityCount={activityCounts?.[item.id] ?? 0} />
+          )}
           showsVerticalScrollIndicator={false}
           style={styles.list}
           refreshControl={

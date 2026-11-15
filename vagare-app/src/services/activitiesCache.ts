@@ -17,6 +17,21 @@ export async function getCachedActivities(tripId: string): Promise<Activity[]> {
   }
 }
 
+// Quantidade de atividades por viagem no cache local (inclui as criadas
+// offline). Usada nos cards da lista, que não recebem essa contagem da API.
+export async function getCachedActivityCounts(): Promise<Record<string, number>> {
+  try {
+    const db = await getDatabase();
+    const rows = await db.getAllAsync<{ tripId: string; total: number }>(
+      'SELECT tripId, COUNT(*) AS total FROM activities GROUP BY tripId',
+    );
+    return Object.fromEntries(rows.map((row) => [row.tripId, row.total]));
+  } catch (error) {
+    logError('activitiesCache.getCachedActivityCounts', error);
+    return {};
+  }
+}
+
 export async function saveActivitiesToCache(tripId: string, activities: Activity[]): Promise<void> {
   try {
     const db = await getDatabase();

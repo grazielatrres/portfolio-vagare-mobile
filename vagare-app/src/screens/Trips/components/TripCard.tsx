@@ -16,9 +16,17 @@ import { formatDateRange } from '@/utils/format';
 
 export interface TripCardProps {
   trip: Trip;
+  activityCount: number;
 }
 
-export function TripCard({ trip }: TripCardProps) {
+function formatActivityCount(count: number): string {
+  if (count === 0) {
+    return 'Nenhuma atividade planejada ainda';
+  }
+  return count === 1 ? '1 atividade planejada' : `${count} atividades planejadas`;
+}
+
+export function TripCard({ trip, activityCount }: TripCardProps) {
   const budget = trip.budget !== null ? formatCurrencyValue(trip.budget, trip.currency) : null;
   const { mutate: deleteTrip, isPending } = useDeleteTripMutation();
   const { showToast } = useToast();
@@ -74,7 +82,7 @@ export function TripCard({ trip }: TripCardProps) {
 
       <View style={styles.rowItem}>
         <Ionicons name="location-outline" size={16} color={colors.accent} />
-        <Text style={styles.plannedText}>Nenhuma atividade planejada ainda</Text>
+        <Text style={styles.plannedText}>{formatActivityCount(activityCount)}</Text>
       </View>
 
       {isLocalTrip ? (

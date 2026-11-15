@@ -1,8 +1,7 @@
-import { Ionicons } from "@expo/vector-icons";
 import { useState } from "react";
-import { StyleSheet, Text, View } from "react-native";
+import { StyleSheet, Text } from "react-native";
 
-import { Button, DayField, FormError, Input, SelectField } from "@/components";
+import { DayField, Input, SelectField } from "@/components";
 import { useCreateActivityMutation } from "@/hooks/useCreateActivityMutation";
 import { useFieldErrors } from "@/hooks/useFieldErrors";
 import { useUpdateActivityMutation } from "@/hooks/useUpdateActivityMutation";
@@ -10,6 +9,8 @@ import { Activity } from "@/services/activities";
 import { ApiError } from "@/services/api";
 import { Trip } from "@/services/trips";
 import { colors, fonts, spacing } from "@/theme";
+import { formStyles } from "./cardStyles";
+import { FormCard } from "./FormCard";
 import { ACTIVITY_CATEGORIES } from "@/utils/activityCategory";
 import { PERIOD_LABELS, derivePeriodFromTime } from "@/utils/activityPeriod";
 import {
@@ -125,18 +126,14 @@ export function AddActivityForm({
   }
 
   return (
-    <View style={styles.card}>
-      <View style={styles.header}>
-        <Ionicons
-          name={isEditMode ? "create-outline" : "add"}
-          size={20}
-          color={colors.text.primary}
-        />
-        <Text style={styles.title}>
-          {isEditMode ? "Editar atividade" : "Nova atividade"}
-        </Text>
-      </View>
-
+    <FormCard
+      title={isEditMode ? "Editar atividade" : "Nova atividade"}
+      isEditMode={isEditMode}
+      isPending={isPending}
+      error={error}
+      onCancel={onCancel}
+      onSubmit={handleSubmit}
+    >
       <Input
         label="Nome da atividade"
         required
@@ -219,58 +216,12 @@ export function AddActivityForm({
         inputStyle={styles.multilineInput}
         containerStyle={styles.field}
       />
-
-      <FormError message={error} />
-
-      <View style={styles.actions}>
-        <Button
-          title="Cancelar"
-          variant="soft"
-          onPress={onCancel}
-          disabled={isPending}
-          style={styles.actionButton}
-        />
-        <Button
-          title={
-            isEditMode
-              ? isPending
-                ? "Salvando..."
-                : "Salvar"
-              : isPending
-                ? "Adicionando..."
-                : "Adicionar"
-          }
-          onPress={handleSubmit}
-          disabled={isPending}
-          style={styles.actionButton}
-        />
-      </View>
-    </View>
+    </FormCard>
   );
 }
 
 const styles = StyleSheet.create({
-  card: {
-    backgroundColor: colors.surface,
-    borderWidth: 1,
-    borderColor: colors.border.default,
-    borderRadius: 12,
-    padding: spacing.md,
-  },
-  header: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: spacing.xs,
-    marginBottom: spacing.md,
-  },
-  title: {
-    fontSize: 18,
-    fontFamily: fonts.bold,
-    color: colors.text.primary,
-  },
-  field: {
-    marginBottom: spacing.md,
-  },
+  field: formStyles.field,
   hint: {
     marginTop: -spacing.sm,
     marginBottom: spacing.md,
@@ -282,12 +233,5 @@ const styles = StyleSheet.create({
     height: 80,
     paddingTop: spacing.sm,
     textAlignVertical: "top",
-  },
-  actions: {
-    flexDirection: "row",
-    gap: spacing.sm,
-  },
-  actionButton: {
-    flex: 1,
   },
 });

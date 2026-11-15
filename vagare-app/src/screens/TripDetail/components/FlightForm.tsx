@@ -1,16 +1,16 @@
 import { useState } from 'react';
-import { Ionicons } from '@expo/vector-icons';
-import { StyleSheet, Text, View } from 'react-native';
+import { View } from 'react-native';
 
-import { Button, DayField, FormError, Input } from '@/components';
+import { DayField, Input } from '@/components';
 import { useCreateInfoMutation } from '@/hooks/useCreateInfoMutation';
 import { useFieldErrors } from '@/hooks/useFieldErrors';
 import { useUpdateInfoMutation } from '@/hooks/useUpdateInfoMutation';
 import { ApiError } from '@/services/api';
 import { FlightDetails, Info } from '@/services/infos';
 import { Trip } from '@/services/trips';
-import { colors, fonts, spacing } from '@/theme';
 import { fromISODate, maskTimeInput, toISODate } from '@/utils/date';
+import { formStyles as styles } from './cardStyles';
+import { FormCard } from './FormCard';
 
 export interface FlightFormProps {
   trip: Trip;
@@ -85,12 +85,14 @@ export function FlightForm({ trip, info, onCancel, onSuccess }: FlightFormProps)
   }
 
   return (
-    <View style={styles.card}>
-      <View style={styles.header}>
-        <Ionicons name={isEditMode ? 'create-outline' : 'add'} size={20} color={colors.text.primary} />
-        <Text style={styles.title}>{isEditMode ? 'Editar voo' : 'Adicionar voo'}</Text>
-      </View>
-
+    <FormCard
+      title={isEditMode ? 'Editar voo' : 'Adicionar voo'}
+      isEditMode={isEditMode}
+      isPending={isPending}
+      error={error}
+      onCancel={onCancel}
+      onSubmit={handleSubmit}
+    >
       <Input
         label="Companhia aérea"
         required
@@ -152,66 +154,6 @@ export function FlightForm({ trip, info, onCancel, onSuccess }: FlightFormProps)
           containerStyle={styles.rowItem}
         />
       </View>
-
-      <FormError message={error} />
-
-      <View style={styles.actions}>
-        <Button
-          title="Cancelar"
-          variant="soft"
-          onPress={onCancel}
-          disabled={isPending}
-          style={styles.actionButton}
-        />
-        <Button
-          title={
-            isEditMode ? (isPending ? 'Salvando...' : 'Salvar') : isPending ? 'Adicionando...' : 'Adicionar'
-          }
-          onPress={handleSubmit}
-          disabled={isPending}
-          style={styles.actionButton}
-        />
-      </View>
-    </View>
+    </FormCard>
   );
 }
-
-const styles = StyleSheet.create({
-  card: {
-    backgroundColor: colors.surface,
-    borderWidth: 1,
-    borderColor: colors.border.default,
-    borderRadius: 12,
-    padding: spacing.md,
-    marginBottom: spacing.md,
-  },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.xs,
-    marginBottom: spacing.md,
-  },
-  title: {
-    fontSize: 18,
-    fontFamily: fonts.bold,
-    color: colors.text.primary,
-  },
-  field: {
-    marginBottom: spacing.md,
-  },
-  row: {
-    flexDirection: 'row',
-    gap: spacing.sm,
-  },
-  rowItem: {
-    flex: 1,
-    marginBottom: spacing.md,
-  },
-  actions: {
-    flexDirection: 'row',
-    gap: spacing.sm,
-  },
-  actionButton: {
-    flex: 1,
-  },
-});

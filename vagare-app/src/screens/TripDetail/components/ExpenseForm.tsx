@@ -1,17 +1,17 @@
-import { Ionicons } from '@expo/vector-icons';
 import { useState } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { View } from 'react-native';
 
-import { Button, FormError, Input, SelectField } from '@/components';
+import { Input, SelectField } from '@/components';
 import { useCreateExpenseMutation } from '@/hooks/useCreateExpenseMutation';
 import { useFieldErrors } from '@/hooks/useFieldErrors';
 import { useUpdateExpenseMutation } from '@/hooks/useUpdateExpenseMutation';
 import { ApiError } from '@/services/api';
 import { Expense } from '@/services/expenses';
 import { Trip } from '@/services/trips';
-import { colors, fonts, spacing } from '@/theme';
 import { amountToDigits, digitsFromCurrencyInput, digitsToAmount, formatAmountFromDigits } from '@/utils/currency';
 import { EXPENSE_CATEGORIES } from '@/utils/expenseCategory';
+import { formStyles as styles } from './cardStyles';
+import { FormCard } from './FormCard';
 
 export interface ExpenseFormProps {
   trip: Trip;
@@ -71,16 +71,14 @@ export function ExpenseForm({ trip, expense, onCancel, onSuccess }: ExpenseFormP
   }
 
   return (
-    <View style={styles.card}>
-      <View style={styles.header}>
-        <Ionicons
-          name={isEditMode ? 'create-outline' : 'add'}
-          size={20}
-          color={colors.text.primary}
-        />
-        <Text style={styles.title}>{isEditMode ? 'Editar gasto' : 'Novo gasto'}</Text>
-      </View>
-
+    <FormCard
+      title={isEditMode ? 'Editar gasto' : 'Novo gasto'}
+      isEditMode={isEditMode}
+      isPending={isPending}
+      error={error}
+      onCancel={onCancel}
+      onSubmit={handleSubmit}
+    >
       <Input
         label="Descrição"
         required
@@ -119,72 +117,6 @@ export function ExpenseForm({ trip, expense, onCancel, onSuccess }: ExpenseFormP
         onChange={setCategory}
         containerStyle={styles.field}
       />
-
-      <FormError message={error} />
-
-      <View style={styles.actions}>
-        <Button
-          title="Cancelar"
-          variant="soft"
-          onPress={onCancel}
-          disabled={isPending}
-          style={styles.actionButton}
-        />
-        <Button
-          title={
-            isEditMode
-              ? isPending
-                ? 'Salvando...'
-                : 'Salvar'
-              : isPending
-                ? 'Adicionando...'
-                : 'Adicionar'
-          }
-          onPress={handleSubmit}
-          disabled={isPending}
-          style={styles.actionButton}
-        />
-      </View>
-    </View>
+    </FormCard>
   );
 }
-
-const styles = StyleSheet.create({
-  card: {
-    backgroundColor: colors.surface,
-    borderWidth: 1,
-    borderColor: colors.border.default,
-    borderRadius: 12,
-    padding: spacing.md,
-    marginBottom: spacing.md,
-  },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.xs,
-    marginBottom: spacing.md,
-  },
-  title: {
-    fontSize: 18,
-    fontFamily: fonts.bold,
-    color: colors.text.primary,
-  },
-  field: {
-    marginBottom: spacing.md,
-  },
-  row: {
-    flexDirection: 'row',
-    gap: spacing.sm,
-  },
-  rowItem: {
-    flex: 1,
-    marginBottom: spacing.md,
-  },
-  actions: {
-    flexDirection: 'row',
-    gap: spacing.sm,
-  },
-  actionButton: {
-    flex: 1,
-  },
-});

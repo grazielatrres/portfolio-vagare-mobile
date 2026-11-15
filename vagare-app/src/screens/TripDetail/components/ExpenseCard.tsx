@@ -1,15 +1,15 @@
-import { Ionicons } from '@expo/vector-icons';
 import { useState } from 'react';
-import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
 
 import { ConfirmModal } from '@/components';
-import { useToast } from '@/contexts/ToastContext';
+import { useConfirmDelete } from '@/hooks/useConfirmDelete';
 import { useDeleteExpenseMutation } from '@/hooks/useDeleteExpenseMutation';
-import { ApiError } from '@/services/api';
 import { Expense } from '@/services/expenses';
 import { Trip } from '@/services/trips';
 import { colors, fonts, spacing } from '@/theme';
 import { formatCurrencyValue } from '@/utils/currency';
+import { CardActions } from './CardActions';
+import { cardStyles } from './cardStyles';
 import { ExpenseForm } from './ExpenseForm';
 
 export interface ExpenseCardProps {
@@ -19,21 +19,12 @@ export interface ExpenseCardProps {
 
 export function ExpenseCard({ expense, trip }: ExpenseCardProps) {
   const { mutate: deleteExpense, isPending } = useDeleteExpenseMutation(trip.id);
-  const { showToast } = useToast();
-  const [confirmVisible, setConfirmVisible] = useState(false);
+  const confirmDelete = useConfirmDelete(
+    deleteExpense,
+    expense.id,
+    'Não foi possível excluir o gasto',
+  );
   const [editing, setEditing] = useState(false);
-
-  function handleConfirmDelete() {
-    setConfirmVisible(false);
-    deleteExpense(expense.id, {
-      onError: (err) => {
-        showToast({
-          title: 'Não foi possível excluir o gasto',
-          message: err instanceof ApiError ? err.message : 'Tente novamente.',
-        });
-      },
-    });
-  }
 
   if (editing) {
     return (
@@ -47,45 +38,29 @@ export function ExpenseCard({ expense, trip }: ExpenseCardProps) {
   }
 
   return (
-    <View style={styles.card}>
+    <View style={[cardStyles.card, styles.card]}>
       <View style={styles.info}>
         <Text style={styles.description}>{expense.description}</Text>
         {expense.category ? <Text style={styles.category}>{expense.category}</Text> : null}
       </View>
       <Text style={styles.amount}>{formatCurrencyValue(expense.amount, trip.currency)}</Text>
 
-      <View style={styles.actions}>
-        <Pressable
-          onPress={() => setEditing(true)}
-          hitSlop={12}
-          accessibilityRole="button"
-          accessibilityLabel={`Editar ${expense.description}`}
-        >
-          <Ionicons name="create-outline" size={20} color={colors.text.secondary} />
-        </Pressable>
-        <Pressable
-          onPress={() => setConfirmVisible(true)}
-          disabled={isPending}
-          hitSlop={12}
-          accessibilityRole="button"
-          accessibilityLabel={`Excluir ${expense.description}`}
-        >
-          {isPending ? (
-            <ActivityIndicator size="small" color={colors.danger} />
-          ) : (
-            <Ionicons name="trash-outline" size={20} color={colors.danger} />
-          )}
-        </Pressable>
-      </View>
+      <CardActions
+        itemLabel={expense.description}
+        onEdit={() => setEditing(true)}
+        onDelete={confirmDelete.request}
+        isDeleting={isPending}
+        style={styles.actions}
+      />
 
       <ConfirmModal
-        visible={confirmVisible}
+        visible={confirmDelete.visible}
         title="Excluir gasto?"
         message={`${expense.description} será removido do orçamento. Essa ação não pode ser desfeita.`}
         confirmLabel="Excluir"
         destructive
-        onConfirm={handleConfirmDelete}
-        onCancel={() => setConfirmVisible(false)}
+        onConfirm={confirmDelete.confirm}
+        onCancel={confirmDelete.cancel}
       />
     </View>
   );
@@ -96,12 +71,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: spacing.sm,
-    backgroundColor: colors.surface,
-    borderWidth: 1,
-    borderColor: colors.border.default,
-    borderRadius: 12,
-    padding: spacing.md,
-    marginBottom: spacing.md,
   },
   info: {
     flex: 1,
@@ -124,8 +93,6 @@ const styles = StyleSheet.create({
     color: colors.text.primary,
   },
   actions: {
-    flexDirection: 'row',
-    alignItems: 'center',
     gap: spacing.md,
     marginLeft: spacing.xs,
   },

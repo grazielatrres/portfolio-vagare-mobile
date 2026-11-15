@@ -1,24 +1,19 @@
 import { Ionicons } from "@expo/vector-icons";
 import { useState } from "react";
-import {
-  ActivityIndicator,
-  Pressable,
-  StyleSheet,
-  Text,
-  View,
-} from "react-native";
+import { StyleSheet, Text, View } from "react-native";
 
 import { ConfirmModal } from "@/components";
-import { useToast } from "@/contexts/ToastContext";
+import { useConfirmDelete } from "@/hooks/useConfirmDelete";
 import { useDeleteActivityMutation } from "@/hooks/useDeleteActivityMutation";
 import { Activity } from "@/services/activities";
-import { ApiError } from "@/services/api";
 import { Trip } from "@/services/trips";
 import { colors, fonts, spacing } from "@/theme";
 import { PERIOD_LABELS } from "@/utils/activityPeriod";
 import { formatCurrencyValue } from "@/utils/currency";
 import { formatTime } from "@/utils/date";
 import { AddActivityForm } from "./AddActivityForm";
+import { CardActions } from "./CardActions";
+import { cardStyles } from "./cardStyles";
 
 type IconName = keyof typeof Ionicons.glyphMap;
 
@@ -31,21 +26,12 @@ export function ActivityCard({ activity, trip }: ActivityCardProps) {
   const { mutate: deleteActivity, isPending } = useDeleteActivityMutation(
     trip.id,
   );
-  const { showToast } = useToast();
-  const [confirmVisible, setConfirmVisible] = useState(false);
+  const confirmDelete = useConfirmDelete(
+    deleteActivity,
+    activity.id,
+    "Não foi possível excluir a atividade",
+  );
   const [editing, setEditing] = useState(false);
-
-  function handleConfirmDelete() {
-    setConfirmVisible(false);
-    deleteActivity(activity.id, {
-      onError: (err) => {
-        showToast({
-          title: "Não foi possível excluir a atividade",
-          message: err instanceof ApiError ? err.message : "Tente novamente.",
-        });
-      },
-    });
-  }
 
   if (editing) {
     return (
@@ -76,45 +62,34 @@ export function ActivityCard({ activity, trip }: ActivityCardProps) {
   }
 
   return (
-    <View style={styles.card}>
-      <View style={styles.header}>
-        <View style={styles.titleRow}>
+    <View style={cardStyles.card}>
+      <View style={[cardStyles.header, styles.header]}>
+        <View style={cardStyles.titleRow}>
           <Ionicons name="location-outline" size={20} color={colors.accent} />
-          <Text style={styles.name}>{activity.name}</Text>
+          <Text style={cardStyles.name}>{activity.name}</Text>
         </View>
 
-        <View style={styles.actions}>
+        <CardActions
+          itemLabel={activity.name}
+          onEdit={() => setEditing(true)}
+          onDelete={confirmDelete.request}
+          isDeleting={isPending}
+        >
           {activity.period ? (
-            <View style={styles.periodBadge}>
-              <Text style={styles.periodBadgeText}>
+            <View style={[cardStyles.badge, cardStyles.periodBadge]}>
+              <Text style={cardStyles.badgeText}>
                 {PERIOD_LABELS[activity.period]}
               </Text>
             </View>
           ) : null}
           {activity.category ? (
-            <View style={styles.categoryBadge}>
-              <Text style={styles.categoryBadgeText}>{activity.category}</Text>
+            <View style={[cardStyles.badge, styles.categoryBadge]}>
+              <Text style={[cardStyles.badgeText, styles.categoryBadgeText]}>
+                {activity.category}
+              </Text>
             </View>
           ) : null}
-          <Pressable onPress={() => setEditing(true)} hitSlop={12}>
-            <Ionicons
-              name="create-outline"
-              size={20}
-              color={colors.text.secondary}
-            />
-          </Pressable>
-          <Pressable
-            onPress={() => setConfirmVisible(true)}
-            disabled={isPending}
-            hitSlop={12}
-          >
-            {isPending ? (
-              <ActivityIndicator size="small" color={colors.danger} />
-            ) : (
-              <Ionicons name="trash-outline" size={20} color={colors.danger} />
-            )}
-          </Pressable>
-        </View>
+        </CardActions>
       </View>
 
       {detailRows.length > 0 ? (
@@ -133,72 +108,26 @@ export function ActivityCard({ activity, trip }: ActivityCardProps) {
       ) : null}
 
       <ConfirmModal
-        visible={confirmVisible}
+        visible={confirmDelete.visible}
         title="Excluir atividade?"
         message={`${activity.name} será removida do roteiro. Essa ação não pode ser desfeita.`}
         confirmLabel="Excluir"
         destructive
-        onConfirm={handleConfirmDelete}
-        onCancel={() => setConfirmVisible(false)}
+        onConfirm={confirmDelete.confirm}
+        onCancel={confirmDelete.cancel}
       />
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  card: {
-    backgroundColor: colors.surface,
-    borderWidth: 1,
-    borderColor: colors.border.default,
-    borderRadius: 12,
-    padding: spacing.md,
-    marginBottom: spacing.md,
-  },
   header: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: spacing.sm,
     marginBottom: spacing.sm,
-  },
-  titleRow: {
-    flex: 1,
-    minWidth: 0,
-    flexDirection: "row",
-    alignItems: "center",
-    gap: spacing.sm,
-  },
-  name: {
-    flex: 1,
-    fontSize: 18,
-    fontFamily: fonts.bold,
-    color: colors.text.primary,
-  },
-  actions: {
-    flexShrink: 0,
-    flexDirection: "row",
-    alignItems: "center",
-    gap: spacing.sm,
-  },
-  periodBadge: {
-    backgroundColor: colors.background,
-    borderRadius: 999,
-    paddingHorizontal: spacing.sm,
-    paddingVertical: spacing.xs,
-  },
-  periodBadgeText: {
-    fontSize: 13,
-    fontFamily: fonts.medium,
-    color: colors.text.secondary,
   },
   categoryBadge: {
     backgroundColor: colors.accentSoft,
-    borderRadius: 999,
-    paddingHorizontal: spacing.sm,
-    paddingVertical: spacing.xs,
   },
   categoryBadgeText: {
-    fontSize: 13,
-    fontFamily: fonts.medium,
     color: colors.accent,
   },
   details: {

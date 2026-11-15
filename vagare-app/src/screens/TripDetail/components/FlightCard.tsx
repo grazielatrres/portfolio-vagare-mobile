@@ -1,22 +1,8 @@
-import { Ionicons } from "@expo/vector-icons";
-import { useState } from "react";
-import {
-  ActivityIndicator,
-  Pressable,
-  StyleSheet,
-  Text,
-  View,
-} from "react-native";
-
-import { ConfirmModal } from "@/components";
-import { useToast } from "@/contexts/ToastContext";
-import { useDeleteInfoMutation } from "@/hooks/useDeleteInfoMutation";
-import { ApiError } from "@/services/api";
 import { FlightDetails, Info } from "@/services/infos";
 import { Trip } from "@/services/trips";
-import { colors, fonts, spacing } from "@/theme";
 import { formatDateShort } from "@/utils/format";
 import { FlightForm } from "./FlightForm";
+import { InfoCard } from "./InfoCard";
 
 export interface FlightCardProps {
   info: Info;
@@ -24,34 +10,6 @@ export interface FlightCardProps {
 }
 
 export function FlightCard({ info, trip }: FlightCardProps) {
-  const { mutate: deleteInfo, isPending } = useDeleteInfoMutation(trip.id);
-  const { showToast } = useToast();
-  const [confirmVisible, setConfirmVisible] = useState(false);
-  const [editing, setEditing] = useState(false);
-
-  function handleConfirmDelete() {
-    setConfirmVisible(false);
-    deleteInfo(info.id, {
-      onError: (err) => {
-        showToast({
-          title: "Não foi possível excluir o voo",
-          message: err instanceof ApiError ? err.message : "Tente novamente.",
-        });
-      },
-    });
-  }
-
-  if (editing) {
-    return (
-      <FlightForm
-        trip={trip}
-        info={info}
-        onCancel={() => setEditing(false)}
-        onSuccess={() => setEditing(false)}
-      />
-    );
-  }
-
   const details = (info.details ?? {}) as Partial<FlightDetails>;
   const routeParts = [details.origin, details.destination].filter(Boolean);
   const detailLine = [
@@ -63,96 +21,22 @@ export function FlightCard({ info, trip }: FlightCardProps) {
     .join(" · ");
 
   return (
-    <View style={styles.card}>
-      <View style={styles.header}>
-        <View style={styles.titleRow}>
-          <Ionicons name="airplane-outline" size={20} color={colors.accent} />
-          <Text style={styles.name}>{info.title}</Text>
-        </View>
-
-        <View style={styles.actions}>
-          <Pressable
-            testID="edit-button"
-            onPress={() => setEditing(true)}
-            hitSlop={12}
-          >
-            <Ionicons
-              name="create-outline"
-              size={20}
-              color={colors.text.secondary}
-            />
-          </Pressable>
-          <Pressable
-            testID="delete-button"
-            onPress={() => setConfirmVisible(true)}
-            disabled={isPending}
-            hitSlop={12}
-          >
-            {isPending ? (
-              <ActivityIndicator size="small" color={colors.danger} />
-            ) : (
-              <Ionicons name="trash-outline" size={20} color={colors.danger} />
-            )}
-          </Pressable>
-        </View>
-      </View>
-
-      {detailLine ? <Text style={styles.detailLine}>{detailLine}</Text> : null}
-      {details.flightNumber ? (
-        <Text style={styles.detailLine}>Voo {details.flightNumber}</Text>
-      ) : null}
-
-      <ConfirmModal
-        visible={confirmVisible}
-        title="Excluir voo?"
-        message={`${info.title} será removido das informações da viagem. Essa ação não pode ser desfeita.`}
-        confirmLabel="Excluir"
-        destructive
-        onConfirm={handleConfirmDelete}
-        onCancel={() => setConfirmVisible(false)}
-      />
-    </View>
+    <InfoCard
+      info={info}
+      trip={trip}
+      icon="airplane-outline"
+      detailLines={[
+        detailLine,
+        details.flightNumber ? `Voo ${details.flightNumber}` : null,
+      ]}
+      deleteTexts={{
+        errorTitle: "Não foi possível excluir o voo",
+        confirmTitle: "Excluir voo?",
+        confirmMessage: `${info.title} será removido das informações da viagem. Essa ação não pode ser desfeita.`,
+      }}
+      renderForm={(close) => (
+        <FlightForm trip={trip} info={info} onCancel={close} onSuccess={close} />
+      )}
+    />
   );
 }
-
-const styles = StyleSheet.create({
-  card: {
-    backgroundColor: colors.surface,
-    borderWidth: 1,
-    borderColor: colors.border.default,
-    borderRadius: 12,
-    padding: spacing.md,
-    marginBottom: spacing.md,
-  },
-  header: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    gap: spacing.sm,
-  },
-  titleRow: {
-    flex: 1,
-    minWidth: 0,
-    flexDirection: "row",
-    alignItems: "center",
-    gap: spacing.sm,
-  },
-  name: {
-    flex: 1,
-    fontSize: 16,
-    fontFamily: fonts.bold,
-    color: colors.text.primary,
-  },
-  actions: {
-    flexShrink: 0,
-    flexDirection: "row",
-    alignItems: "center",
-    gap: spacing.sm,
-  },
-  detailLine: {
-    marginTop: spacing.xs,
-    fontSize: 14,
-    fontFamily: fonts.regular,
-    color: colors.text.secondary,
-  },
-});

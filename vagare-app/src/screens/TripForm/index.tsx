@@ -196,7 +196,13 @@ function TripForm({ trip, isPending, onSubmit, onBack, onSaved }: TripFormProps)
             containerStyle={styles.field}
           />
 
-          <CurrencyPicker value={currency} onChange={setCurrency} containerStyle={styles.field} />
+          <CurrencyPicker
+            value={currency}
+            onChange={setCurrency}
+            disabled={isEditMode}
+            hint={isEditMode ? 'A moeda não pode ser alterada depois que a viagem é criada.' : undefined}
+            containerStyle={styles.field}
+          />
           <Input
             label="Orçamento estimado"
             placeholder={formatAmountFromDigits('', currency)}

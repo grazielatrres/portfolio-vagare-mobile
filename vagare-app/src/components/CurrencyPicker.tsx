@@ -7,10 +7,19 @@ export interface CurrencyPickerProps {
   label?: string;
   value: CurrencyCode;
   onChange: (code: CurrencyCode) => void;
+  disabled?: boolean;
+  hint?: string;
   containerStyle?: ViewStyle;
 }
 
-export function CurrencyPicker({ label = 'Moeda', value, onChange, containerStyle }: CurrencyPickerProps) {
+export function CurrencyPicker({
+  label = 'Moeda',
+  value,
+  onChange,
+  disabled = false,
+  hint,
+  containerStyle,
+}: CurrencyPickerProps) {
   return (
     <View style={containerStyle}>
       <Text style={styles.label}>{label}</Text>
@@ -21,7 +30,14 @@ export function CurrencyPicker({ label = 'Moeda', value, onChange, containerStyl
             <Pressable
               key={currency.code}
               onPress={() => onChange(currency.code)}
-              style={[styles.pill, isSelected && styles.pillSelected]}
+              disabled={disabled}
+              accessibilityRole="radio"
+              accessibilityState={{ selected: isSelected, disabled }}
+              style={[
+                styles.pill,
+                isSelected && styles.pillSelected,
+                disabled && !isSelected && styles.pillDisabled,
+              ]}
             >
               <Text style={[styles.pillText, isSelected && styles.pillTextSelected]}>
                 {currency.symbol} {currency.code}
@@ -30,6 +46,7 @@ export function CurrencyPicker({ label = 'Moeda', value, onChange, containerStyl
           );
         })}
       </View>
+      {hint ? <Text style={styles.hint}>{hint}</Text> : null}
     </View>
   );
 }
@@ -58,6 +75,15 @@ const styles = StyleSheet.create({
   pillSelected: {
     backgroundColor: colors.accent,
     borderColor: colors.accent,
+  },
+  pillDisabled: {
+    opacity: 0.4,
+  },
+  hint: {
+    marginTop: spacing.xs,
+    fontSize: 13,
+    fontFamily: fonts.regular,
+    color: colors.text.secondary,
   },
   pillText: {
     fontSize: 14,

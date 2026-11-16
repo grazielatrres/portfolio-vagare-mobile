@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { StyleSheet, Text } from "react-native";
 
-import { DayField, Input, SelectField } from "@/components";
+import { DayField, DestinationField, Input, SelectField } from "@/components";
 import { useCreateActivityMutation } from "@/hooks/useCreateActivityMutation";
 import { useFieldErrors } from "@/hooks/useFieldErrors";
 import { useUpdateActivityMutation } from "@/hooks/useUpdateActivityMutation";
@@ -198,11 +198,13 @@ export function AddActivityForm({
         containerStyle={styles.field}
       />
 
-      <Input
+      <DestinationField
         label="Localização"
         placeholder="Ex: Oia, Santorini"
+        searchKind="place"
         value={location}
         onChangeText={setLocation}
+        onSelectPlace={(place) => setLocation(place.label)}
         containerStyle={styles.field}
       />
 

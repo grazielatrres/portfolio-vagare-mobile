@@ -55,6 +55,11 @@ export function Profile() {
   const isError = profileQuery.isError || tripsQuery.isError;
   const error = profileQuery.error ?? tripsQuery.error;
 
+  // Derivado da lista de viagens (e não de profile.stats) porque essa query é
+  // invalidada a cada criação/exclusão e inclui viagens criadas offline.
+  const tripCount =
+    tripsQuery.data?.trips.length ?? profileQuery.data?.stats.totalTrips ?? 0;
+
   const countryCount = tripsQuery.data
     ? countDistinctCountries(
         tripsQuery.data.trips.map((trip) => trip.destination),
@@ -124,11 +129,9 @@ export function Profile() {
           ) : (
             <View style={styles.statsRow}>
               <View style={styles.statBox}>
-                <Text style={styles.statValue}>
-                  {profileQuery.data?.stats.totalTrips ?? 0}
-                </Text>
+                <Text style={styles.statValue}>{tripCount}</Text>
                 <Text style={styles.statLabel}>
-                  {profileQuery.data?.stats.totalTrips === 1
+                  {tripCount === 1
                     ? "Viagem planejada"
                     : "Viagens planejadas"}
                 </Text>

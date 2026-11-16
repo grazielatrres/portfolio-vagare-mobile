@@ -33,7 +33,7 @@ export function EmptyState({
     <View style={[styles.container, style]}>
       <Image
         source={icon}
-        style={{ width: iconSize, aspectRatio }}
+        style={{ width: iconSize, height: iconSize / aspectRatio }}
         resizeMode="contain"
       />
       <Text style={styles.text}>{message}</Text>

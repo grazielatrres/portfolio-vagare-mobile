@@ -39,7 +39,7 @@ Variáveis do `.env`:
 | `EXPO_PUBLIC_API_URL` | URL da API; no celular, use o IP da máquina na rede (ex.: `http://192.168.0.10:3000`) |
 | `EXPO_PUBLIC_GOOGLE_CLIENT_ID` | Client ID do Google OAuth |
 | `EXPO_PUBLIC_SENTRY_DSN` | DSN do Sentry (vazio = monitoramento desligado) |
-| `EXPO_PUBLIC_APP_ENV` | `development` ou `production` (ambiente no Sentry) |
+| `EXPO_PUBLIC_APP_ENV` | Ambiente no Sentry: `development` local; nos builds do EAS vem do `eas.json` (`staging` na `develop`, `production` na `main`) |
 | `EXPO_PUBLIC_PRIVACY_POLICY_URL` | URL da política de privacidade (padrão: site da política na Vercel) |
 | `EAS_PROJECT_ID` | Projeto no EAS (builds locais) |
 

@@ -18,8 +18,9 @@ export function initMonitoring(dsn = process.env.EXPO_PUBLIC_SENTRY_DSN): void {
   Sentry.init({
     dsn,
     environment: process.env.EXPO_PUBLIC_APP_ENV ?? (__DEV__ ? 'development' : 'production'),
-    // 20% das navegações viram traces: suficiente para ver telas lentas sem estourar a cota.
-    tracesSampleRate: 0.2,
+    // Em dev, todas as navegações viram traces (facilita verificar); nos builds,
+    // 20% bastam para ver telas lentas sem estourar a cota.
+    tracesSampleRate: __DEV__ ? 1.0 : 0.2,
     // LGPD: não envia IP, e-mail nem corpo de requisições; o usuário vai só pelo id.
     sendDefaultPii: false,
     integrations: [navigationIntegration],

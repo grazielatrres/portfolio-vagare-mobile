@@ -12,9 +12,22 @@
 Configuração em `src/services/monitoring.ts`:
 
 - Ligado apenas quando `EXPO_PUBLIC_SENTRY_DSN` está definido (no EAS, por ambiente).
-- `environment` vem de `EXPO_PUBLIC_APP_ENV`, separando eventos de homologação e produção.
-- `tracesSampleRate: 0.2` — 20% das navegações viram traces de performance.
+- `environment` vem de `EXPO_PUBLIC_APP_ENV`, definido por perfil no `eas.json`: `development` (builds internos), `staging` (`development-store`, a partir da `develop`) e `production` (`main`).
+- `tracesSampleRate`: 100% das navegações em desenvolvimento e 20% nos builds de loja.
 - `sendDefaultPii: false` — sem IP, cookies ou corpo de requisições.
+
+### Configuração no build
+
+- `app.config.js` registra o plugin `@sentry/react-native/expo` (organização `vagare-app`, projeto `vagare-mobile`), que configura o SDK nativo (crashes de Android e iOS) e envia os source maps e símbolos de debug no build.
+- `metro.config.js` usa `getSentryExpoConfig`, que gera os Debug IDs que ligam o bundle aos source maps: os erros aparecem com o arquivo e a linha do código TypeScript.
+- O release é definido pelo SDK nativo como `<bundle id>@<versão>+<build>`, o mesmo que aparece nas lojas.
+
+| Variável no EAS (ambientes `preview` e `production`) | Visibilidade | Uso |
+|---|---|---|
+| `EXPO_PUBLIC_SENTRY_DSN` | Plain text | Endereço para onde o app envia os eventos (é público por natureza) |
+| `SENTRY_AUTH_TOKEN` | Secret | Token de organização usado só no build, para enviar os source maps |
+
+Os perfis `development` e `preview` (builds internos) têm `SENTRY_DISABLE_AUTO_UPLOAD=true` e não precisam do token.
 
 O backend envia seus próprios erros ao Sentry, com o release igual ao SHA do commit ([Observabilidade da API](https://github.com/grazielatrres/portfolio-vagare-backend/wiki/Observabilidade)).
 

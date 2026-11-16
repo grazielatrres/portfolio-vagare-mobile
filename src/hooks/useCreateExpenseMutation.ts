@@ -39,8 +39,8 @@ export function useCreateExpenseMutation(tripId: string) {
       }
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: budgetQueryKey(tripId) });
-      queryClient.invalidateQueries({ queryKey: pendingMutationsQueryKey(tripId) });
+      void queryClient.invalidateQueries({ queryKey: budgetQueryKey(tripId) });
+      void queryClient.invalidateQueries({ queryKey: pendingMutationsQueryKey(tripId) });
     },
   });
 }

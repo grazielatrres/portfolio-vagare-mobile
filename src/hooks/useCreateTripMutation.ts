@@ -38,7 +38,7 @@ export function useCreateTripMutation() {
       }
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: tripsQueryKey });
+      void queryClient.invalidateQueries({ queryKey: tripsQueryKey });
     },
   });
 }

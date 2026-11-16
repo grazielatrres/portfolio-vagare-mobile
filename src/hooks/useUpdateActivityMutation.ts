@@ -2,37 +2,38 @@ import { useMutation } from '@tanstack/react-query';
 
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/contexts/ToastContext';
+import { CreateActivityPayload, buildActivityFromPayload, updateActivity } from '@/services/activities';
+import { upsertActivityToCache } from '@/services/activitiesCache';
 import { ApiError } from '@/services/api';
-import { CreateExpensePayload, buildExpenseFromPayload, updateExpense } from '@/services/expenses';
-import { upsertExpenseToCache } from '@/services/expensesCache';
 import { queryClient } from '@/services/queryClient';
 import { enqueueMutation, resolveSyncedId } from '@/services/syncQueue';
 import { OFFLINE_SAVED_TOAST } from '@/utils/offlineToasts';
+import { activitiesQueryKey } from './useActivitiesQuery';
 import { budgetQueryKey } from './useBudgetQuery';
 import { pendingMutationsQueryKey } from './usePendingMutationsQuery';
 
-export interface UpdateExpenseVariables {
+export interface UpdateActivityVariables {
   id: string;
-  payload: CreateExpensePayload;
+  payload: CreateActivityPayload;
 }
 
-export function useUpdateExpenseMutation(rawTripId: string) {
+export function useUpdateActivityMutation(rawTripId: string) {
   const { token } = useAuth();
   const { showToast } = useToast();
 
   return useMutation({
-    mutationFn: async ({ id: rawId, payload }: UpdateExpenseVariables) => {
+    mutationFn: async ({ id: rawId, payload }: UpdateActivityVariables) => {
       const id = resolveSyncedId(rawId);
       const tripId = resolveSyncedId(rawTripId);
       try {
-        return await updateExpense(token as string, tripId, id, payload);
+        return await updateActivity(token as string, tripId, id, payload);
       } catch (err) {
         if (err instanceof ApiError && err.status === 0) {
-          const local = buildExpenseFromPayload(id, tripId, payload);
-          await upsertExpenseToCache(local);
+          const local = buildActivityFromPayload(id, tripId, payload);
+          await upsertActivityToCache(local);
           await enqueueMutation({
             tripId,
-            entityType: 'expense',
+            entityType: 'activity',
             operation: 'update',
             localId: id,
             payload,
@@ -44,8 +45,9 @@ export function useUpdateExpenseMutation(rawTripId: string) {
       }
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: budgetQueryKey(rawTripId) });
-      queryClient.invalidateQueries({ queryKey: pendingMutationsQueryKey(rawTripId) });
+      void queryClient.invalidateQueries({ queryKey: activitiesQueryKey(rawTripId) });
+      void queryClient.invalidateQueries({ queryKey: budgetQueryKey(rawTripId) });
+      void queryClient.invalidateQueries({ queryKey: pendingMutationsQueryKey(rawTripId) });
     },
   });
 }

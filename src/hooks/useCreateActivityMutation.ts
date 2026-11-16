@@ -2,40 +2,35 @@ import { useMutation } from '@tanstack/react-query';
 
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/contexts/ToastContext';
-import { CreateActivityPayload, buildActivityFromPayload, updateActivity } from '@/services/activities';
+import { CreateActivityPayload, buildActivityFromPayload, createActivity } from '@/services/activities';
 import { upsertActivityToCache } from '@/services/activitiesCache';
 import { ApiError } from '@/services/api';
 import { queryClient } from '@/services/queryClient';
-import { enqueueMutation, resolveSyncedId } from '@/services/syncQueue';
+import { enqueueMutation, generateLocalId } from '@/services/syncQueue';
 import { OFFLINE_SAVED_TOAST } from '@/utils/offlineToasts';
 import { activitiesQueryKey } from './useActivitiesQuery';
 import { budgetQueryKey } from './useBudgetQuery';
 import { pendingMutationsQueryKey } from './usePendingMutationsQuery';
 
-export interface UpdateActivityVariables {
-  id: string;
-  payload: CreateActivityPayload;
-}
-
-export function useUpdateActivityMutation(rawTripId: string) {
+export function useCreateActivityMutation(tripId: string) {
   const { token } = useAuth();
   const { showToast } = useToast();
 
   return useMutation({
-    mutationFn: async ({ id: rawId, payload }: UpdateActivityVariables) => {
-      const id = resolveSyncedId(rawId);
-      const tripId = resolveSyncedId(rawTripId);
+    mutationFn: async (payload: CreateActivityPayload) => {
+      // Também é a Idempotency-Key: o reenvio pela fila não duplica o item.
+      const localId = generateLocalId();
       try {
-        return await updateActivity(token as string, tripId, id, payload);
+        return await createActivity(token as string, tripId, payload, localId);
       } catch (err) {
         if (err instanceof ApiError && err.status === 0) {
-          const local = buildActivityFromPayload(id, tripId, payload);
+          const local = buildActivityFromPayload(localId, tripId, payload);
           await upsertActivityToCache(local);
           await enqueueMutation({
             tripId,
             entityType: 'activity',
-            operation: 'update',
-            localId: id,
+            operation: 'create',
+            localId: local.id,
             payload,
           });
           showToast(OFFLINE_SAVED_TOAST);
@@ -45,9 +40,9 @@ export function useUpdateActivityMutation(rawTripId: string) {
       }
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: activitiesQueryKey(rawTripId) });
-      queryClient.invalidateQueries({ queryKey: budgetQueryKey(rawTripId) });
-      queryClient.invalidateQueries({ queryKey: pendingMutationsQueryKey(rawTripId) });
+      void queryClient.invalidateQueries({ queryKey: activitiesQueryKey(tripId) });
+      void queryClient.invalidateQueries({ queryKey: budgetQueryKey(tripId) });
+      void queryClient.invalidateQueries({ queryKey: pendingMutationsQueryKey(tripId) });
     },
   });
 }

@@ -11,7 +11,7 @@ export function useUpdateProfileMutation() {
   return useMutation({
     mutationFn: (payload: UpdateProfilePayload) => updateMe(token as string, payload),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: profileQueryKey });
+      void queryClient.invalidateQueries({ queryKey: profileQueryKey });
     },
   });
 }

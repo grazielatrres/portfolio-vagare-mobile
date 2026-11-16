@@ -3,36 +3,36 @@ import { useMutation } from '@tanstack/react-query';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/contexts/ToastContext';
 import { ApiError } from '@/services/api';
-import { CreateInfoPayload, buildInfoFromPayload, updateInfo } from '@/services/infos';
-import { upsertInfoToCache } from '@/services/infosCache';
+import { CreateExpensePayload, buildExpenseFromPayload, updateExpense } from '@/services/expenses';
+import { upsertExpenseToCache } from '@/services/expensesCache';
 import { queryClient } from '@/services/queryClient';
 import { enqueueMutation, resolveSyncedId } from '@/services/syncQueue';
 import { OFFLINE_SAVED_TOAST } from '@/utils/offlineToasts';
-import { infosQueryKey } from './useInfosQuery';
+import { budgetQueryKey } from './useBudgetQuery';
 import { pendingMutationsQueryKey } from './usePendingMutationsQuery';
 
-export interface UpdateInfoVariables {
+export interface UpdateExpenseVariables {
   id: string;
-  payload: CreateInfoPayload;
+  payload: CreateExpensePayload;
 }
 
-export function useUpdateInfoMutation(rawTripId: string) {
+export function useUpdateExpenseMutation(rawTripId: string) {
   const { token } = useAuth();
   const { showToast } = useToast();
 
   return useMutation({
-    mutationFn: async ({ id: rawId, payload }: UpdateInfoVariables) => {
+    mutationFn: async ({ id: rawId, payload }: UpdateExpenseVariables) => {
       const id = resolveSyncedId(rawId);
       const tripId = resolveSyncedId(rawTripId);
       try {
-        return await updateInfo(token as string, tripId, id, payload);
+        return await updateExpense(token as string, tripId, id, payload);
       } catch (err) {
         if (err instanceof ApiError && err.status === 0) {
-          const local = buildInfoFromPayload(id, tripId, payload);
-          await upsertInfoToCache(local);
+          const local = buildExpenseFromPayload(id, tripId, payload);
+          await upsertExpenseToCache(local);
           await enqueueMutation({
             tripId,
-            entityType: 'info',
+            entityType: 'expense',
             operation: 'update',
             localId: id,
             payload,
@@ -44,8 +44,8 @@ export function useUpdateInfoMutation(rawTripId: string) {
       }
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: infosQueryKey(rawTripId) });
-      queryClient.invalidateQueries({ queryKey: pendingMutationsQueryKey(rawTripId) });
+      void queryClient.invalidateQueries({ queryKey: budgetQueryKey(rawTripId) });
+      void queryClient.invalidateQueries({ queryKey: pendingMutationsQueryKey(rawTripId) });
     },
   });
 }

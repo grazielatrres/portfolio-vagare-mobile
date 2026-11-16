@@ -2,17 +2,16 @@ import { useMutation } from '@tanstack/react-query';
 
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/contexts/ToastContext';
-import { deleteActivity } from '@/services/activities';
-import { removeActivityFromCache } from '@/services/activitiesCache';
 import { ApiError } from '@/services/api';
+import { deleteInfo } from '@/services/infos';
+import { removeInfoFromCache } from '@/services/infosCache';
 import { queryClient } from '@/services/queryClient';
 import { discardLocalEntity, enqueueMutation, isLocalId, resolveSyncedId } from '@/services/syncQueue';
 import { OFFLINE_DELETED_TOAST } from '@/utils/offlineToasts';
-import { activitiesQueryKey } from './useActivitiesQuery';
-import { budgetQueryKey } from './useBudgetQuery';
+import { infosQueryKey } from './useInfosQuery';
 import { pendingMutationsQueryKey } from './usePendingMutationsQuery';
 
-export function useDeleteActivityMutation(rawTripId: string) {
+export function useDeleteInfoMutation(rawTripId: string) {
   const { token } = useAuth();
   const { showToast } = useToast();
 
@@ -21,17 +20,16 @@ export function useDeleteActivityMutation(rawTripId: string) {
       const id = resolveSyncedId(rawId);
       const tripId = resolveSyncedId(rawTripId);
       try {
-        await deleteActivity(token as string, tripId, id);
+        await deleteInfo(token as string, tripId, id);
       } catch (err) {
         if (err instanceof ApiError && err.status === 0) {
           if (isLocalId(id)) {
-            // Nunca existiu no servidor — não há nada a sincronizar.
-            await discardLocalEntity('activity', id);
+            await discardLocalEntity('info', id);
           } else {
-            await removeActivityFromCache(id);
+            await removeInfoFromCache(id);
             await enqueueMutation({
               tripId,
-              entityType: 'activity',
+              entityType: 'info',
               operation: 'delete',
               localId: id,
               payload: null,
@@ -44,9 +42,8 @@ export function useDeleteActivityMutation(rawTripId: string) {
       }
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: activitiesQueryKey(rawTripId) });
-      queryClient.invalidateQueries({ queryKey: budgetQueryKey(rawTripId) });
-      queryClient.invalidateQueries({ queryKey: pendingMutationsQueryKey(rawTripId) });
+      void queryClient.invalidateQueries({ queryKey: infosQueryKey(rawTripId) });
+      void queryClient.invalidateQueries({ queryKey: pendingMutationsQueryKey(rawTripId) });
     },
   });
 }

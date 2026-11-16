@@ -32,7 +32,7 @@ export function useDeleteTripMutation() {
       }
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: tripsQueryKey });
+      void queryClient.invalidateQueries({ queryKey: tripsQueryKey });
     },
   });
 }

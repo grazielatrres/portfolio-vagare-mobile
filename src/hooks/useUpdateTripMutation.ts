@@ -43,9 +43,9 @@ export function useUpdateTripMutation(trip: Trip) {
       }
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: tripsQueryKey });
-      queryClient.invalidateQueries({ queryKey: tripQueryKey(trip.id) });
-      queryClient.invalidateQueries({ queryKey: pendingMutationsQueryKey(trip.id) });
+      void queryClient.invalidateQueries({ queryKey: tripsQueryKey });
+      void queryClient.invalidateQueries({ queryKey: tripQueryKey(trip.id) });
+      void queryClient.invalidateQueries({ queryKey: pendingMutationsQueryKey(trip.id) });
     },
   });
 }

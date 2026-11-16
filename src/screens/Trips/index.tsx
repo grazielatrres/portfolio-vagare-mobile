@@ -30,7 +30,7 @@ export function Trips() {
   // A lista continua montada sob a tela da viagem; recarrega a contagem ao voltar.
   useFocusEffect(
     useCallback(() => {
-      refetchActivityCounts();
+      void refetchActivityCounts();
     }, [refetchActivityCounts]),
   );
 

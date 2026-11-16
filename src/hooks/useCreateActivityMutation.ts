@@ -40,9 +40,9 @@ export function useCreateActivityMutation(tripId: string) {
       }
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: activitiesQueryKey(tripId) });
-      queryClient.invalidateQueries({ queryKey: budgetQueryKey(tripId) });
-      queryClient.invalidateQueries({ queryKey: pendingMutationsQueryKey(tripId) });
+      void queryClient.invalidateQueries({ queryKey: activitiesQueryKey(tripId) });
+      void queryClient.invalidateQueries({ queryKey: budgetQueryKey(tripId) });
+      void queryClient.invalidateQueries({ queryKey: pendingMutationsQueryKey(tripId) });
     },
   });
 }

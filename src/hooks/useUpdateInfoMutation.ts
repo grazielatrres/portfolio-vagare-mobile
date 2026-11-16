@@ -44,8 +44,8 @@ export function useUpdateInfoMutation(rawTripId: string) {
       }
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: infosQueryKey(rawTripId) });
-      queryClient.invalidateQueries({ queryKey: pendingMutationsQueryKey(rawTripId) });
+      void queryClient.invalidateQueries({ queryKey: infosQueryKey(rawTripId) });
+      void queryClient.invalidateQueries({ queryKey: pendingMutationsQueryKey(rawTripId) });
     },
   });
 }

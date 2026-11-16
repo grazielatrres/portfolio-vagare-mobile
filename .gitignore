@@ -45,4 +45,7 @@ app-example
 # generated native folders
 /ios
 /android
-docs/
+
+# documentos acadêmicos locais (a wiki em docs/wiki é versionada)
+docs/*.pdf
+docs/*.xlsx

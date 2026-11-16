@@ -19,7 +19,6 @@ runs:
       with:
         node-version: 22
         cache: yarn
-        cache-dependency-path: vagare-app/yarn.lock
 
     - uses: expo/expo-github-action@v8
       with:
@@ -29,12 +28,10 @@ runs:
 
     - name: Instalar dependências
       shell: bash
-      working-directory: vagare-app
       run: yarn install --frozen-lockfile
 
     - name: Build e envio à loja
       shell: bash
-      working-directory: vagare-app
       run: |
         eas build \
           --platform ${{ inputs.platform }} \
@@ -46,7 +43,6 @@ runs:
     - name: Resumo
       if: always()
       shell: bash
-      working-directory: vagare-app
       run: |
         if [ ! -s build.json ]; then
           echo "### ❌ ${{ inputs.platform }}: build não gerado" >> "$GITHUB_STEP_SUMMARY"

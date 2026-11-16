@@ -36,6 +36,6 @@ Resultado em 15/11/2026: **224 testes em 46 suítes**, cobertura de ~55% das lin
 |---|---|
 | TypeScript (`tsc --noEmit`) | `scripts/pr-checks.sh` |
 | ESLint (`eslint-config-expo`) | `scripts/pr-checks.sh` |
-| SonarCloud | `pr-script.yml`, com cobertura de `vagare-app/coverage/lcov.info` (projeto `grazielatrres_portfolio-vagare-mobile`) |
+| SonarCloud | `pr-script.yml`, com cobertura de `coverage/lcov.info` (projeto `grazielatrres_portfolio-vagare-mobile`) |
 
 Os mesmos checks rodam antes de qualquer build de loja no workflow **Release**: código com erro de lint, tipo ou teste não chega aos testadores.

@@ -1,6 +1,6 @@
 # Navegação
 
-A navegação usa **Expo Router** (rotas por arquivo em `vagare-app/app/`). Rotas protegidas usam `Stack.Protected`: sem sessão, só as telas de autenticação ficam acessíveis; com sessão, só as telas internas.
+A navegação usa **Expo Router** (rotas por arquivo em `app/`). Rotas protegidas usam `Stack.Protected`: sem sessão, só as telas de autenticação ficam acessíveis; com sessão, só as telas internas.
 
 ```mermaid
 flowchart TD

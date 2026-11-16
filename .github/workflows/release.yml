@@ -35,10 +35,8 @@ jobs:
         with:
           node-version: 22
           cache: yarn
-          cache-dependency-path: vagare-app/yarn.lock
 
       - run: yarn install --frozen-lockfile
-        working-directory: vagare-app
 
       - name: Lint, typecheck e testes
         run: bash scripts/pr-checks.sh

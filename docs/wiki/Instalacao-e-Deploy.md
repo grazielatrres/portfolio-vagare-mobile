@@ -26,7 +26,7 @@ Pré-requisitos: Node.js 22, Yarn 1, um celular com o build de desenvolvimento (
 
 ```bash
 git clone git@github.com:grazielatrres/portfolio-vagare-mobile.git
-cd portfolio-vagare-mobile/vagare-app
+cd portfolio-vagare-mobile
 yarn install
 cp .env.example .env
 yarn dev
@@ -43,7 +43,7 @@ Variáveis do `.env`:
 | `EXPO_PUBLIC_PRIVACY_POLICY_URL` | URL da política de privacidade (padrão: site da política na Vercel) |
 | `EAS_PROJECT_ID` | Projeto no EAS (builds locais) |
 
-Também é possível rodar o Metro em Docker: `docker compose up --build` dentro de `vagare-app/` (ver README).
+Também é possível rodar o Metro em Docker: `docker compose up --build` na raiz do repositório (ver README).
 
 Comandos de verificação (os mesmos do CI):
 

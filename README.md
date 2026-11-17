@@ -57,7 +57,7 @@ yarn dev
 | `EXPO_PUBLIC_API_URL` | URL da API. No celular, use o IP da sua máquina (ex.: `http://192.168.0.10:3000`), pois `localhost` aponta para o próprio celular |
 | `EXPO_PUBLIC_GOOGLE_CLIENT_ID` | Client ID do Google OAuth |
 | `EXPO_PUBLIC_SENTRY_DSN` | DSN do Sentry; vazio desliga o monitoramento |
-| `EXPO_PUBLIC_APP_ENV` | Ambiente reportado ao Sentry (`development` / `production`) |
+| `EXPO_PUBLIC_APP_ENV` | Ambiente reportado ao Sentry (`development` / `staging` / `production`); nos builds do EAS vem do `eas.json` |
 | `EXPO_PUBLIC_PRIVACY_POLICY_URL` | URL da política de privacidade aberta no Perfil |
 | `EAS_PROJECT_ID` | Projeto no EAS, para builds locais |
 | `REACT_NATIVE_PACKAGER_HOSTNAME` | IP da máquina na rede local (uso com Docker) |

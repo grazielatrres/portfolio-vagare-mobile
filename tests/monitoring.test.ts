@@ -43,6 +43,35 @@ describe('monitoring', () => {
     );
   });
 
+  describe('tracesSampleRate', () => {
+    const globals = globalThis as unknown as { __DEV__: boolean };
+    const originalDev = globals.__DEV__;
+
+    afterEach(() => {
+      globals.__DEV__ = originalDev;
+    });
+
+    it('amostra todas as navegações em dev', () => {
+      globals.__DEV__ = true;
+
+      initMonitoring(DSN);
+
+      expect(sentry.init).toHaveBeenCalledWith(
+        expect.objectContaining({ tracesSampleRate: 1.0 }),
+      );
+    });
+
+    it('amostra 20% das navegações nos builds', () => {
+      globals.__DEV__ = false;
+
+      initMonitoring(DSN);
+
+      expect(sentry.init).toHaveBeenCalledWith(
+        expect.objectContaining({ tracesSampleRate: 0.2 }),
+      );
+    });
+  });
+
   it('envia o erro com a tag de contexto', () => {
     initMonitoring(DSN);
 

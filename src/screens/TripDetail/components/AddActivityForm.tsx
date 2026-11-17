@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { StyleSheet, Text } from "react-native";
 
-import { DayField, Input, SelectField } from "@/components";
+import { DayField, DestinationField, Input, SelectField } from "@/components";
 import { useCreateActivityMutation } from "@/hooks/useCreateActivityMutation";
 import { useFieldErrors } from "@/hooks/useFieldErrors";
 import { useUpdateActivityMutation } from "@/hooks/useUpdateActivityMutation";
@@ -9,8 +9,6 @@ import { Activity } from "@/services/activities";
 import { ApiError } from "@/services/api";
 import { Trip } from "@/services/trips";
 import { colors, fonts, spacing } from "@/theme";
-import { formStyles } from "./cardStyles";
-import { FormCard } from "./FormCard";
 import { ACTIVITY_CATEGORIES } from "@/utils/activityCategory";
 import { PERIOD_LABELS, derivePeriodFromTime } from "@/utils/activityPeriod";
 import {
@@ -26,6 +24,8 @@ import {
   toISODate,
 } from "@/utils/date";
 import { dayNumberInTrip } from "@/utils/format";
+import { formStyles } from "./cardStyles";
+import { FormCard } from "./FormCard";
 
 export interface AddActivityFormProps {
   trip: Trip;
@@ -135,7 +135,7 @@ export function AddActivityForm({
       onSubmit={handleSubmit}
     >
       <Input
-        label="Nome da atividade"
+        label="Nome"
         required
         placeholder="Ex: Red Beach"
         value={name}
@@ -192,17 +192,21 @@ export function AddActivityForm({
         label="Valor estimado"
         placeholder={formatAmountFromDigits("", currency)}
         value={formattedCost}
-        onChangeText={(text) => setCostDigits(digitsFromCurrencyInput(text, costDigits, currency))}
+        onChangeText={(text) =>
+          setCostDigits(digitsFromCurrencyInput(text, costDigits, currency))
+        }
         keyboardType="number-pad"
         selection={{ start: formattedCost.length, end: formattedCost.length }}
         containerStyle={styles.field}
       />
 
-      <Input
+      <DestinationField
         label="Localização"
         placeholder="Ex: Oia, Santorini"
+        searchKind="place"
         value={location}
         onChangeText={setLocation}
+        onSelectPlace={(place) => setLocation(place.label)}
         containerStyle={styles.field}
       />
 
